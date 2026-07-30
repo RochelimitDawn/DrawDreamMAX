@@ -1,0 +1,98 @@
+/* GSAP motion layer — keep tasteful, respect reduced motion */
+
+.dd-motion-root {
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dd-motion-text {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.dd-split-char,
+.dd-split-word {
+  display: inline-block;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.dd-reveal {
+  will-change: transform, opacity;
+}
+
+.dd-motion-card {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+}
+
+.dd-magnetic-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  will-change: transform;
+}
+
+.dd-magnetic-btn .dd-magnetic-label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dd-magnetic-btn.has-shine::after {
+  content: '';
+  position: absolute;
+  inset: -40% auto -40% -40%;
+  width: 40%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.28) 48%,
+    transparent 100%
+  );
+  transform: translateX(-120%) rotate(12deg);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dd-magnetic-btn.has-shine:hover::after {
+  animation: ddShine 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes ddShine {
+  to {
+    transform: translateX(320%) rotate(12deg);
+  }
+}
+
+.dd-btn-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  z-index: 2;
+}
+
+[data-theme='dark'] .dd-btn-ripple {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dd-motion-text,
+  .dd-reveal,
+  .dd-motion-card,
+  .dd-magnetic-btn {
+    will-change: auto;
+  }
+
+  .dd-magnetic-btn.has-shine:hover::after {
+    animation: none;
+  }
+}

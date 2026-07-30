@@ -1,0 +1,61 @@
+.swipe-suggest-panel {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-md, 0 8px 24px rgba(15, 23, 42, 0.08));
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.swipe-suggest-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.swipe-suggest-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.swipe-suggest-close {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.swipe-suggest-close:hover {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.swipe-fallback-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.swipe-fallback-btn {
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--border));
+  background: color-mix(in srgb, var(--brand) 8%, var(--bg-elevated));
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.swipe-fallback-btn:hover {
+  background: color-mix(in srgb, var(--brand) 14%, var(--bg-elevated));
+}

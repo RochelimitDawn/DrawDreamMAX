@@ -1,0 +1,444 @@
+.asst-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  flex: 1 1 0%;
+  gap: 10px;
+  min-height: 0;
+  height: auto;
+  max-height: 100%;
+  width: 100%;
+  min-width: 0;
+  /* 仅内部 .asst-stream 滚动，避免与 chat-right 双重滚动抢事件 */
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+.asst-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.asst-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 70%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--border));
+  background: color-mix(in srgb, var(--brand) 8%, var(--bg-muted, transparent));
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asst-stream {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  gap: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overflow-anchor: auto;
+  padding: 2px 1px 8px;
+}
+
+.asst-stream > .asst-card,
+.asst-stream > .asst-empty {
+  flex: 0 0 auto;
+}
+
+.asst-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 140px;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.asst-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  color: var(--brand);
+  background:
+    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--brand) 28%, transparent), transparent 60%),
+    color-mix(in srgb, var(--brand) 10%, var(--bg-muted));
+  animation: asst-empty-breath 3.2s ease-in-out infinite;
+}
+
+.asst-empty p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 28ch;
+}
+
+.asst-empty-hint {
+  font-size: 11.5px !important;
+  opacity: 0.85;
+}
+
+.asst-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated, var(--bg)) 94%, var(--bg-muted));
+  box-shadow: 0 1px 0 color-mix(in srgb, #fff 5%, transparent) inset;
+  overflow: hidden;
+}
+
+.asst-card-user {
+  background: color-mix(in srgb, var(--brand) 10%, var(--bg-muted));
+  border-color: color-mix(in srgb, var(--brand) 16%, var(--border));
+  margin-left: 12px;
+}
+
+.asst-card-assistant {
+  margin-right: 4px;
+}
+
+.asst-card.is-streaming {
+  border-color: color-mix(in srgb, var(--brand) 32%, var(--border));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--brand) 12%, transparent),
+    0 8px 24px -16px color-mix(in srgb, var(--brand) 35%, transparent);
+  animation: asst-card-breath 2.4s ease-in-out infinite;
+}
+
+.asst-card-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.asst-card-avatar {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  color: #fff;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--brand) 88%, #fff),
+    var(--brand-deep, var(--brand-hover, var(--brand)))
+  );
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--brand) 28%, transparent);
+}
+
+.asst-card.is-streaming .asst-card-avatar {
+  animation: asst-avatar-breath 1.9s ease-in-out infinite;
+}
+
+.asst-card-name {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+}
+
+.asst-card-name.is-user {
+  color: color-mix(in srgb, var(--brand) 70%, var(--text));
+}
+
+.asst-card-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+}
+
+.asst-card-tag.is-live {
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 14%, var(--bg-muted));
+}
+
+.asst-process {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.asst-process-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  margin: 0;
+  padding: 3px 2px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  text-align: left;
+}
+
+.asst-process-meta:hover {
+  color: var(--text);
+}
+
+.asst-process-logo {
+  display: inline-flex;
+  color: var(--brand);
+  opacity: 0.85;
+}
+
+.asst-process-meta.is-live .asst-process-logo {
+  animation: asst-avatar-breath 1.85s ease-in-out infinite;
+}
+
+.asst-process-logo.is-idle {
+  opacity: 0.55;
+  color: var(--text-secondary);
+}
+
+.asst-process-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.asst-process-label.is-shiny,
+.asst-waiting-text.is-shiny {
+  --shine: color-mix(in srgb, #fff 52%, var(--brand));
+  --shine-size: 44px;
+  display: inline-block;
+  max-width: 100%;
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 20%,
+      var(--shine) 50%,
+      transparent 80%,
+      transparent 100%
+    ),
+    linear-gradient(90deg, currentColor 0%, currentColor 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-size: calc(var(--shine-size) * 2) 100%, 100% 100%;
+  background-position: calc(var(--shine-size) * -2) 0, 0 0;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: asst-shiny 2.35s ease-in-out infinite;
+}
+
+.asst-process-chevron {
+  font-size: 11px;
+  opacity: 0.45;
+  flex-shrink: 0;
+}
+
+.asst-process-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 2px;
+  min-width: 0;
+}
+
+.asst-process-body .tool-call-list {
+  max-width: 100%;
+  margin-top: 2px;
+}
+
+.asst-waiting {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+}
+
+.asst-waiting-orb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 45%, transparent);
+  animation: asst-orb-breath 1.6s ease-in-out infinite;
+}
+
+.asst-card-body {
+  position: relative;
+  min-width: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text);
+  font-weight: 400;
+}
+
+.asst-card-body.is-stream-md {
+  padding-right: 2px;
+}
+
+.asst-plain {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.65;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 400;
+}
+
+.asst-md {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 400;
+}
+
+.asst-panel .md-body,
+.asst-panel .rp-message,
+.asst-panel .rp-tokui-host {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+/* 流式光标 */
+.asst-caret {
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  margin-left: 2px;
+  vertical-align: -0.1em;
+  border-radius: 1px;
+  background: var(--brand);
+  animation: asst-caret-blink 1s steps(1) infinite;
+}
+
+.asst-composer {
+  display: block;
+  flex-shrink: 0;
+  padding-top: 4px;
+  min-width: 0;
+}
+
+@keyframes asst-shiny {
+  to {
+    background-position: calc(100% + var(--shine-size) * 2) 0, 0 0;
+  }
+}
+
+@keyframes asst-card-breath {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--brand) 10%, transparent),
+      0 8px 24px -16px color-mix(in srgb, var(--brand) 28%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--brand) 22%, transparent),
+      0 10px 28px -12px color-mix(in srgb, var(--brand) 42%, transparent);
+  }
+}
+
+@keyframes asst-avatar-breath {
+  0%,
+  100% {
+    opacity: 0.82;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes asst-orb-breath {
+  0%,
+  100% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 40%, transparent);
+  }
+  50% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--brand) 0%, transparent);
+  }
+}
+
+@keyframes asst-caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes asst-empty-breath {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.88;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asst-card.is-streaming,
+  .asst-card.is-streaming .asst-card-avatar,
+  .asst-process-meta.is-live .asst-process-logo,
+  .asst-waiting-orb,
+  .asst-caret,
+  .asst-empty-icon,
+  .asst-process-label.is-shiny,
+  .asst-waiting-text.is-shiny {
+    animation: none;
+  }
+
+  .asst-process-label.is-shiny,
+  .asst-waiting-text.is-shiny {
+    -webkit-text-fill-color: currentColor;
+    background: none;
+    color: var(--brand);
+  }
+}

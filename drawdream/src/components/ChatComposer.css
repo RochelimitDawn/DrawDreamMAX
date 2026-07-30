@@ -1,0 +1,350 @@
+/* DrawDream 输入条：Uiverse 胶囊布局 + brand 暖棕金 */
+
+.dd-composer {
+  --ddc-h: 42px;
+  --ddc-radius: 22px;
+  --ddc-pad: 5px;
+  --ddc-tool: 32px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  min-height: var(--ddc-h);
+  gap: 0;
+}
+
+.dd-composer.is-compact {
+  --ddc-h: 38px;
+  --ddc-radius: 19px;
+  --ddc-tool: 28px;
+  --ddc-pad: 5px;
+}
+
+.dd-composer-tools {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--text-tertiary, var(--text-secondary));
+  transition:
+    opacity 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.05),
+    visibility 0.42s,
+    filter 0.42s,
+    transform 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.05);
+  z-index: 2;
+}
+
+.dd-composer.is-expanded .dd-composer-tools {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  filter: blur(4px);
+  transform: translateY(-50%) translateX(-6px);
+}
+
+.dd-composer-tool {
+  width: var(--ddc-tool);
+  height: var(--ddc-tool);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.dd-composer-tool:hover:not(:disabled) {
+  color: var(--brand-deep, var(--brand));
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  transform: scale(1.08);
+}
+
+.dd-composer-tool.is-on {
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 16%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand) 28%, transparent);
+}
+
+.dd-composer-tool:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dd-composer-attach {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translateY(-50%) translateX(-10px) scale(0.92);
+  width: var(--ddc-tool);
+  height: var(--ddc-tool);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--ddc-radius);
+  color: var(--text-tertiary, var(--text-secondary));
+  background: color-mix(in srgb, var(--bg-muted) 88%, var(--brand) 6%);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 3;
+  transition: all 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.05);
+}
+
+.dd-composer.is-expanded .dd-composer-attach {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0) scale(1);
+}
+
+.dd-composer-attach:hover:not(:disabled) {
+  color: var(--brand-deep, var(--brand));
+  background: color-mix(in srgb, var(--brand) 14%, var(--bg-muted));
+}
+
+.dd-composer-field {
+  flex: 1;
+  min-width: 0;
+  margin-left: calc(var(--ddc-tool) * 3 + 10px);
+  margin-right: 0;
+  transition: margin 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.05);
+  z-index: 1;
+}
+
+.dd-composer.is-expanded .dd-composer-field {
+  margin-left: calc(var(--ddc-tool) + 12px);
+}
+
+.dd-composer-input {
+  display: block;
+  width: 100%;
+  min-height: var(--ddc-h);
+  max-height: 160px;
+  margin: 0;
+  padding: 8px 82px 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 90%, var(--brand) 8%);
+  border-radius: var(--ddc-radius);
+  outline: none;
+  resize: none;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--input-bg, var(--bg-elevated)) 94%, var(--brand) 4%),
+      var(--input-bg, var(--bg-elevated))
+    );
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  font-family: var(--font-ui, inherit);
+  box-shadow:
+    0 6px 18px color-mix(in srgb, var(--bg) 40%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+  overflow-y: auto;
+}
+
+.dd-composer.is-compact .dd-composer-input {
+  padding: 7px 74px 7px 12px;
+  font-size: 14px;
+  max-height: 72px;
+}
+
+.dd-composer.has-text .dd-composer-input,
+.dd-composer:focus-within .dd-composer-input {
+  border-radius: 18px;
+}
+
+.dd-composer.is-compact.has-text .dd-composer-input,
+.dd-composer.is-compact:focus-within .dd-composer-input {
+  border-radius: 16px;
+}
+
+.dd-composer-input::placeholder {
+  color: var(--text-tertiary, var(--text-secondary));
+  font-weight: 500;
+}
+
+.dd-composer-input:focus {
+  border-color: color-mix(in srgb, var(--brand) 42%, var(--border));
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--brand) 12%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
+}
+
+.dd-composer-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dd-composer-input::selection {
+  background: color-mix(in srgb, var(--brand) 35%, transparent);
+  color: var(--text);
+}
+
+.dd-composer-end {
+  position: absolute;
+  top: 50%;
+  right: var(--ddc-pad);
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 4;
+}
+
+.dd-composer-think {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: calc(var(--ddc-h) - 10px);
+  min-width: calc(var(--ddc-h) - 10px);
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--ddc-radius);
+  background: transparent;
+  color: var(--text-tertiary, var(--text-secondary));
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.dd-composer-think:hover:not(:disabled) {
+  color: var(--brand-deep, var(--brand));
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
+}
+
+.dd-composer-think.is-on {
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 14%, transparent);
+}
+
+.dd-composer-think:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.dd-composer-think-lv {
+  max-width: 52px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.dd-composer-send {
+  width: calc(var(--ddc-h) - 10px);
+  height: calc(var(--ddc-h) - 10px);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: #fffdf8;
+  cursor: pointer;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--brand) 88%, #fff 12%),
+    var(--brand-deep, var(--brand-hover, var(--brand)))
+  );
+  box-shadow:
+    0 4px 12px color-mix(in srgb, var(--brand) 28%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent);
+  opacity: 0.38;
+  transform: scale(0.86);
+  pointer-events: none;
+  transition:
+    opacity 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.05),
+    transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.05),
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.dd-composer.has-text .dd-composer-send:not(.is-stop),
+.dd-composer.is-busy .dd-composer-send {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.dd-composer-send:not(.is-stop):hover:not(:disabled) {
+  box-shadow:
+    0 6px 16px color-mix(in srgb, var(--brand) 36%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
+  transform: scale(1.04);
+}
+
+.dd-composer-send:not(.is-stop):active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.dd-composer-send:disabled:not(.is-stop) {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dd-composer-send.is-stop {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  color: #e11d48;
+  background: color-mix(in srgb, #f43f5e 14%, var(--bg-elevated));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #f43f5e 32%, var(--border));
+}
+
+.dd-composer-send.is-stop:hover {
+  background: color-mix(in srgb, #f43f5e 22%, var(--bg-elevated));
+}
+
+.dd-composer.is-web-on:not(.is-expanded) .dd-composer-input {
+  border-color: color-mix(in srgb, var(--brand) 28%, var(--border));
+}
+
+@media (max-width: 640px) {
+  .dd-composer {
+    --ddc-h: 42px;
+    --ddc-tool: 30px;
+  }
+
+  .dd-composer-input {
+    font-size: 16px;
+    padding-right: 78px;
+  }
+
+  .dd-composer-think-lv {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dd-composer-tools,
+  .dd-composer-attach,
+  .dd-composer-field,
+  .dd-composer-send,
+  .dd-composer-tool,
+  .dd-composer-think {
+    transition: none;
+  }
+}

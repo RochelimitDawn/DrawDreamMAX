@@ -1,0 +1,82 @@
+.dd-search-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.dd-search-input-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 14px 0 16px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition),
+    background var(--transition);
+}
+
+.dd-search-input-wrap:focus-within {
+  border-color: color-mix(in srgb, var(--brand) 55%, var(--border));
+  box-shadow: 0 0 0 4px var(--brand-soft);
+  background: var(--input-bg);
+}
+
+.dd-search-icon {
+  color: var(--text);
+  flex-shrink: 0;
+  opacity: 0.72;
+}
+
+.dd-search-input-wrap input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dd-search-input-wrap input::placeholder {
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.dd-search-clear {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition);
+}
+
+.dd-search-clear:hover {
+  background: color-mix(in srgb, var(--brand) 14%, var(--bg-muted));
+  color: var(--brand);
+}
+
+.dd-search-cancel {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 8px 2px;
+  transition: color var(--transition);
+}
+
+.dd-search-cancel:hover {
+  color: var(--brand);
+}

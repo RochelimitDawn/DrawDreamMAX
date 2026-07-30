@@ -1,0 +1,141 @@
+/* Heart like — adapted from Uiverse.io by barisdogansutcu */
+.heart-like {
+  --heart-bg: var(--bg-elevated, #fff);
+  --heart-fg: var(--text, #000);
+  --heart-active: hsl(0deg 100% 50%);
+  --heart-shadow: var(--shadow-md, rgba(149, 157, 165, 0.2) 0px 8px 24px);
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.heart-like-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  appearance: none;
+}
+
+.heart-like-label {
+  background-color: var(--heart-bg);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 15px 10px 10px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 10px;
+  box-shadow: var(--heart-shadow);
+  color: var(--heart-fg);
+  border: 1px solid var(--border, transparent);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.heart-like.size-sm .heart-like-label {
+  gap: 10px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 8px;
+}
+
+.heart-like.size-sm .heart-like-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.heart-like.size-sm .heart-like-option {
+  font-size: 12px;
+}
+
+.heart-like-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: currentColor;
+  transition: color 0.2s ease;
+}
+
+.heart-like-input:checked + .heart-like-label {
+  color: var(--heart-active);
+}
+
+.heart-like-input:checked + .heart-like-label .heart-like-icon {
+  color: var(--heart-active);
+  animation: heartButton 1s;
+}
+
+.heart-like-input:focus-visible + .heart-like-label {
+  outline: 2px solid var(--brand, #c47a3a);
+  outline-offset: 2px;
+}
+
+.heart-like-input:disabled + .heart-like-label {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@keyframes heartButton {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.3);
+  }
+  50% {
+    transform: scale(1);
+  }
+  75% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.heart-like-action {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  min-width: 2.5em;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.heart-like-option {
+  grid-column-start: 1;
+  grid-column-end: 1;
+  grid-row-start: 1;
+  grid-row-end: 1;
+  transition: all 0.5s;
+}
+
+.heart-like-option.option-1 {
+  transform: translate(0px, 0%);
+  opacity: 1;
+}
+
+.heart-like-input:checked + .heart-like-label .heart-like-option.option-1 {
+  transform: translate(0px, -100%);
+  opacity: 0;
+}
+
+.heart-like-option.option-2 {
+  transform: translate(0px, 100%);
+  opacity: 0;
+}
+
+.heart-like-input:checked + .heart-like-label .heart-like-option.option-2 {
+  transform: translate(0px, 0%);
+  opacity: 1;
+}
+
+[data-theme='dark'] .heart-like {
+  --heart-bg: var(--bg-muted, #171e2b);
+  --heart-fg: var(--text, #f4f7fb);
+  --heart-shadow: var(--shadow-md);
+}

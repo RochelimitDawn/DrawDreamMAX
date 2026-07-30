@@ -1,0 +1,232 @@
+.md-body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.md-body :where(p, li, td, th, blockquote, a, span, strong, em, small) {
+  font-family: inherit;
+}
+
+/* 嵌在 widget / 搜索面板内时继承父级字号 */
+.rp-widget-body .md-body,
+.rp-widget-list .md-body,
+.rp-widget-row .md-body,
+.rp-status-body .md-body,
+.dd-sp-md.md-body {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.md-p {
+  margin: 0 0 0.7em;
+}
+
+.md-p:last-child {
+  margin-bottom: 0;
+}
+
+.md-h {
+  margin: 0.9em 0 0.45em;
+  font-family: var(--font-title);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.md-h1 {
+  font-size: 1.2em;
+}
+.md-h2 {
+  font-size: 1.1em;
+}
+.md-h3,
+.md-h4 {
+  font-size: 1.02em;
+}
+
+.md-ul,
+.md-ol {
+  margin: 0.4em 0 0.75em;
+  padding-left: 1.35em;
+}
+
+.md-ul li,
+.md-ol li {
+  margin: 0.25em 0;
+}
+
+.md-table-wrap {
+  max-width: 100%;
+  margin: 0.55em 0 0.85em;
+  overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border));
+  border-radius: var(--radius-sm, 10px);
+  box-shadow: 0 2px 10px -6px color-mix(in srgb, var(--brand) 12%, transparent);
+}
+
+.md-table {
+  width: 100%;
+  min-width: 420px;
+  border-collapse: collapse;
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+
+.md-table th,
+.md-table td {
+  padding: 7px 10px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.md-table th:last-child,
+.md-table td:last-child {
+  border-right: 0;
+}
+
+.md-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.md-table th {
+  background: color-mix(in srgb, var(--bg-muted) 82%, var(--brand) 8%);
+  color: var(--text);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.md-table td {
+  color: var(--text-secondary);
+}
+
+.md-quote {
+  margin: 0.5em 0 0.75em;
+  padding: 8px 12px;
+  border-left: 3px solid color-mix(in srgb, var(--brand) 45%, var(--border));
+  background: color-mix(in srgb, var(--bg-muted) 70%, transparent);
+  border-radius: 0 10px 10px 0;
+  color: var(--text-secondary);
+}
+
+.md-pre {
+  margin: 0.5em 0 0.8em;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-muted) 85%, #0f172a 8%);
+  border: 1px solid var(--border);
+  overflow: auto;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.md-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--bg-muted) 90%, var(--brand) 6%);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.md-pre .md-code,
+.md-pre code {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+}
+
+.md-link {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.md-hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 0.9em 0;
+}
+
+/* KaTeX 数学公式 */
+.md-math-inline {
+  display: inline;
+  font-size: 1.05em;
+  vertical-align: baseline;
+  max-width: 100%;
+}
+
+.md-math-block-wrap {
+  margin: 0.85em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.15em 0;
+}
+
+.md-math-block {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  font-size: 1.08em;
+}
+
+.md-math-fallback {
+  color: color-mix(in srgb, #f43f5e 75%, var(--text));
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.md-math-empty {
+  display: none;
+}
+
+.md-body .katex {
+  font-size: 1.05em;
+  color: inherit;
+  line-height: 1.25;
+}
+
+.md-body .katex-display {
+  margin: 0.55em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+}
+
+.md-body .katex-display > .katex {
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 行内公式在窄气泡内可横向滚动，避免撑破布局 */
+.md-body .md-math-inline .katex {
+  max-width: 100%;
+}
+
+/* 错误着色（KaTeX throwOnError:false） */
+.md-body .katex-error {
+  color: color-mix(in srgb, #f43f5e 80%, var(--text));
+  font-size: 0.92em;
+  word-break: break-word;
+}
+
+/* 列表 / 表格单元格内公式垂直对齐 */
+.md-body li .katex,
+.md-body td .katex,
+.md-body th .katex {
+  font-size: 1em;
+}
+
+/* 暗色下公式继承前景色，避免过浅 */
+[data-theme='dark'] .md-body .katex,
+.theme-dark .md-body .katex,
+html.dark .md-body .katex {
+  color: inherit;
+}

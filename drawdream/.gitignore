@@ -1,0 +1,73 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# 本地协作 / 历史需求与规格草稿（不入库）
+.monkeycode/
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Embedded Liyuan Agent — secrets & runtime data
+agent/liyuan.agent.json
+agent/drawdream.agent.json
+agent/liyuan.config.json
+agent/liyuan.agent.json.bak
+agent/liyuan.agent.meta.json
+agent/.liyuan/
+agent/.liyuan-state/
+agent/.liyuan-logs/
+agent/.liyuan-codex/
+agent/.liyuan-palace/
+agent/.liyuan-summaries/
+agent/.liyuan-uploads/
+agent/.liyuan-skills/
+agent/node_modules/
+agent/web/node_modules/
+agent/web/dist/
+
+# DrawDream Agent secrets & runtime
+agent/drawdream.agent.json
+agent/drawdream.config.json
+agent/drawdream.agent.json.bak
+agent/drawdream.agent.meta.json
+# 运行态忽略；产品接线层 extensions 必须入库
+agent/.drawdream/*
+!agent/.drawdream/extensions/
+!agent/.drawdream/extensions/**
+agent/.drawdream-state/
+agent/.drawdream-logs/
+agent/.drawdream-codex/
+agent/.drawdream-palace/
+agent/.drawdream-summaries/
+agent/.drawdream-uploads/
+agent/.drawdream-artifacts/
+agent/.drawdream-assistant/
+agent/.drawdream-cache/
+agent/.drawdream-lore/
+agent/.drawdream-media/
+agent/.drawdream-skills/
+agent/.drawdream-audio/
+agent/.drawdream-worldline/
+agent/.drawdream-forge/
+agent/drawdream-profiles/
+
+.local-secrets/

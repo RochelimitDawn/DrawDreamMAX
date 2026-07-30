@@ -1,0 +1,582 @@
+.novel-forge-page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.nf-head {
+  margin-bottom: 20px;
+}
+
+.nf-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.nf-title-row h1 {
+  font-size: 1.45rem;
+  margin: 0;
+}
+
+.nf-sub {
+  color: var(--text-secondary);
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+
+.nf-legal {
+  font-size: 13px;
+  color: var(--text-muted, var(--text-secondary));
+  margin: 0;
+  opacity: 0.9;
+}
+
+.nf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 800px) {
+  .nf-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.nf-panel {
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nf-panel h2 {
+  font-size: 1.05rem;
+  margin: 0 0 4px;
+}
+
+.nf-panel h3 {
+  font-size: 0.95rem;
+  margin: 8px 0 4px;
+}
+
+.nf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.nf-field input,
+.nf-field select {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.nf-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.nf-muted {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.nf-job-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.nf-job-item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.nf-job-item span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.nf-job-item.is-active {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand) 35%, transparent);
+}
+
+.nf-progress {
+  height: 8px;
+  background: var(--bg);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.nf-progress-bar {
+  height: 100%;
+  background: var(--brand);
+  transition: width 0.3s ease;
+}
+
+.nf-status {
+  font-size: 13px;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.nf-error {
+  color: var(--danger, #e55);
+  font-size: 13px;
+  margin: 0;
+}
+
+.nf-mode-rec {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--border));
+  background: color-mix(in srgb, var(--brand) 8%, var(--bg));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nf-mode-rec-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.nf-mode-rec-reason {
+  font-size: 12px;
+}
+
+.nf-mode-rec-btn {
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+.nf-cast-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nf-cast-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.nf-cast-list span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.nf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.nf-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.nf-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.nf-field .dd-select {
+  width: 100%;
+}
+
+.nf-estimate {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.nf-estimate-note {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.nf-job-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.nf-job-row .nf-job-item {
+  flex: 1;
+}
+
+.nf-del {
+  padding: 8px 10px;
+  align-self: center;
+}
+
+.nf-refine {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.nf-field textarea {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 72px;
+  font-family: inherit;
+}
+
+.nf-timeline-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.nf-timeline-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nf-timeline-list span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.spin {
+  animation: nf-spin 0.8s linear infinite;
+}
+
+@keyframes nf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Phase A: stage bar */
+.nf-stage-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 4px;
+  margin: 4px 0 10px;
+}
+
+.nf-stage-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 4.5rem;
+  font-size: 11px;
+  color: var(--text-muted, var(--text-secondary));
+  opacity: 0.75;
+}
+
+.nf-stage-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.nf-stage-step.is-done {
+  opacity: 1;
+  color: var(--text-secondary);
+}
+
+.nf-stage-step.is-done .nf-stage-dot {
+  background: color-mix(in srgb, var(--brand) 70%, var(--border));
+}
+
+.nf-stage-step.is-active {
+  opacity: 1;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.nf-stage-step.is-active .nf-stage-dot {
+  background: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 25%, transparent);
+}
+
+.nf-stage-step.is-failed {
+  color: var(--danger, #e55);
+  opacity: 1;
+}
+
+.nf-stage-step.is-failed .nf-stage-dot {
+  background: var(--danger, #e55);
+}
+
+.nf-fail-box {
+  border: 1px solid color-mix(in srgb, var(--danger, #e55) 40%, var(--border));
+  background: color-mix(in srgb, var(--danger, #e55) 8%, var(--bg));
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Cast roster table */
+.nf-cast-table {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.nf-cast-row {
+  display: grid;
+  grid-template-columns: auto 1fr minmax(100px, 140px);
+  gap: 8px 10px;
+  align-items: start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.nf-cast-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.nf-cast-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nf-cast-meta span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.nf-cast-rename {
+  margin: 0;
+}
+
+.nf-cast-add {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nf-cast-add input {
+  flex: 1;
+  min-width: 140px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.nf-lore-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.nf-lore-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg);
+}
+
+.nf-outline-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+  margin-bottom: 8px;
+}
+
+.nf-apply-opts {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nf-stats {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nf-version-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nf-version-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.nf-outline-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  max-height: 280px;
+  overflow: auto;
+}
+
+.nf-outline-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nf-outline-list span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.nf-outline-list em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--text-muted, var(--text-secondary));
+  opacity: 0.9;
+}
+
+.nf-jobs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nf-jobs-head h2 {
+  margin: 0;
+}
+
+.nf-collapse-btn {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+@media (max-width: 800px) {
+  .nf-cast-row {
+    grid-template-columns: 1fr;
+  }
+
+  .nf-stage-step {
+    min-width: 3.2rem;
+  }
+
+  .nf-stage-label {
+    font-size: 10px;
+  }
+
+  .nf-actions {
+    flex-direction: column;
+  }
+
+  .nf-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .novel-forge-page {
+    max-width: 100%;
+  }
+}

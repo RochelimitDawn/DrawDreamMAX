@@ -1,0 +1,249 @@
+.dd-slide-captcha {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.dd-slide-captcha-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h, var(--text));
+}
+
+.dd-slide-captcha-retry {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.dd-slide-captcha-retry:hover {
+  background: var(--bg-muted, color-mix(in srgb, var(--bg) 80%, var(--border)));
+}
+
+.dd-slide-captcha-track {
+  position: relative;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--bg-muted, var(--bg)) 88%, var(--border)) 0%,
+      color-mix(in srgb, var(--bg) 92%, var(--border)) 100%
+    );
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.dd-slide-captcha-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    color-mix(in srgb, #fff 28%, transparent) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: dd-slide-shine 2.8s ease-in-out infinite;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.dd-slide-captcha.is-ok .dd-slide-captcha-shine {
+  animation: none;
+  opacity: 0;
+}
+
+.dd-slide-captcha-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--brand, #aa3bff) 18%, transparent),
+    color-mix(in srgb, var(--brand, #aa3bff) 38%, transparent)
+  );
+  border-radius: 14px 0 0 14px;
+  pointer-events: none;
+  transition: background 0.2s;
+}
+
+.dd-slide-captcha.is-ok .dd-slide-captcha-fill {
+  width: 100% !important;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, #16a34a 35%, transparent),
+    color-mix(in srgb, #22c55e 55%, transparent)
+  );
+  border-radius: 14px;
+  animation: dd-slide-fill-pulse 0.55s ease-out;
+}
+
+.dd-slide-captcha-hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  pointer-events: none;
+  padding-left: 36px;
+  letter-spacing: 0.02em;
+}
+
+.dd-slide-captcha.is-ok .dd-slide-captcha-hint {
+  color: #15803d;
+  font-weight: 700;
+  padding-left: 0;
+  animation: dd-slide-hint-pop 0.45s ease-out;
+}
+
+.dd-slide-captcha-thumb {
+  position: absolute;
+  top: 2px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border-strong, var(--border));
+  background: var(--bg-elevated, var(--bg));
+  color: var(--brand, #aa3bff);
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.12),
+    0 0 0 1px color-mix(in srgb, var(--brand, #aa3bff) 12%, transparent);
+  z-index: 2;
+  touch-action: none;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, color 0.15s;
+}
+
+.dd-slide-captcha-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.04);
+}
+
+.dd-slide-captcha.is-ok .dd-slide-captcha-thumb {
+  left: calc(100% - 46px) !important;
+  color: #16a34a;
+  border-color: color-mix(in srgb, #16a34a 45%, var(--border));
+  box-shadow: 0 2px 10px color-mix(in srgb, #16a34a 28%, transparent);
+  cursor: default;
+  animation: dd-slide-thumb-ok 0.5s cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+
+.dd-slide-captcha-beat {
+  min-height: 1.35em;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #16a34a;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dd-slide-captcha-beat.is-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dd-slide-captcha-spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  z-index: 3;
+  pointer-events: none;
+  top: 50%;
+  left: 70%;
+  animation: dd-slide-spark 0.75s ease-out forwards;
+}
+
+.dd-slide-captcha-spark.s0 { --dx: -28px; --dy: -22px; background: #a78bfa; }
+.dd-slide-captcha-spark.s1 { --dx: 18px; --dy: -26px; background: #34d399; }
+.dd-slide-captcha-spark.s2 { --dx: -12px; --dy: 20px; background: #fbbf24; }
+.dd-slide-captcha-spark.s3 { --dx: 26px; --dy: 14px; background: #60a5fa; }
+.dd-slide-captcha-spark.s4 { --dx: -32px; --dy: 4px; background: #f472b6; }
+.dd-slide-captcha-spark.s5 { --dx: 32px; --dy: -8px; background: #22d3ee; }
+.dd-slide-captcha-spark.s6 { --dx: 4px; --dy: -30px; background: #86efac; }
+.dd-slide-captcha-spark.s7 { --dx: -6px; --dy: 26px; background: #c084fc; }
+
+.dd-slide-captcha.is-shake .dd-slide-captcha-track {
+  animation: dd-slide-shake 0.4s ease;
+}
+
+.dd-slide-captcha.is-disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+@keyframes dd-slide-shine {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@keyframes dd-slide-fill-pulse {
+  0% { filter: brightness(1.15); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes dd-slide-hint-pop {
+  0% { transform: scale(0.92); opacity: 0.4; }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes dd-slide-thumb-ok {
+  0% { transform: scale(0.9); }
+  55% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+@keyframes dd-slide-spark {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2);
+  }
+}
+
+@keyframes dd-slide-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@media (prefers-color-scheme: dark) {
+  .dd-slide-captcha.is-ok .dd-slide-captcha-hint {
+    color: #4ade80;
+  }
+  .dd-slide-captcha.is-ok .dd-slide-captcha-thumb {
+    color: #4ade80;
+  }
+  .dd-slide-captcha-beat {
+    color: #4ade80;
+  }
+}

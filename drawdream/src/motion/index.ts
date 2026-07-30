@@ -1,0 +1,6 @@
+export { registerMotion, gsap, useGSAP, ScrollTrigger, prefersReducedMotion } from './setup'
+export { MotionText } from './MotionText'
+export { Reveal } from './Reveal'
+export { MagneticButton } from './MagneticButton'
+export { MotionCard } from './MotionCard'
+export { MotionRoot } from './MotionRoot'

@@ -1,0 +1,187 @@
+.dd-think {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 6px;
+  min-width: 0;
+}
+
+.dd-think-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  margin: 0;
+  padding: 4px 2px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition: opacity 0.18s ease, color 0.18s ease;
+}
+
+.dd-think-toggle:hover {
+  color: var(--text);
+  opacity: 0.92;
+}
+
+.dd-think-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--brand) 55%, var(--text-secondary));
+  opacity: 0.85;
+}
+
+.dd-think.is-live .dd-think-icon {
+  color: var(--brand);
+  animation: dd-think-icon-breath 1.85s ease-in-out infinite;
+}
+
+.dd-think-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 扫光标题（参考 DeepSeek shiny-text，色调用 brand） */
+.dd-think-title.is-shiny {
+  --shine: color-mix(in srgb, #fff 55%, var(--brand));
+  --shine-size: 48px;
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  color: var(--text-secondary);
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 22%,
+      var(--shine) 50%,
+      transparent 78%,
+      transparent 100%
+    ),
+    linear-gradient(90deg, currentColor 0%, currentColor 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-size: calc(var(--shine-size) * 2) 100%, 100% 100%;
+  background-position: calc(var(--shine-size) * -2) 0, 0 0;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: dd-think-shiny 2.35s ease-in-out infinite;
+}
+
+.dd-think-chevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  opacity: 0.45;
+  color: var(--text-secondary);
+}
+
+.dd-think-toggle:hover .dd-think-chevron {
+  opacity: 0.75;
+}
+
+.dd-think-body {
+  margin: 0 0 2px 9px;
+  padding: 8px 10px 8px 12px;
+  border-left: 2px solid color-mix(in srgb, var(--brand) 28%, var(--border));
+  border-radius: 0 10px 10px 0;
+  background: color-mix(in srgb, var(--bg-muted, #f4f4f5) 55%, transparent);
+  max-height: min(36vh, 240px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.dd-think-body.is-waiting {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 12px;
+  max-height: none;
+}
+
+.dd-think-pre {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body, inherit);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-secondary);
+}
+
+.dd-think-breath-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brand);
+  opacity: 0.35;
+  animation: dd-think-dot 1.15s ease-in-out infinite;
+}
+
+.dd-think-breath-dot:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.dd-think-breath-dot:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes dd-think-shiny {
+  to {
+    background-position: calc(100% + var(--shine-size) * 2) 0, 0 0;
+  }
+}
+
+@keyframes dd-think-icon-breath {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+}
+
+@keyframes dd-think-dot {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dd-think-title.is-shiny,
+  .dd-think.is-live .dd-think-icon,
+  .dd-think-breath-dot {
+    animation: none;
+  }
+
+  .dd-think-title.is-shiny {
+    -webkit-text-fill-color: currentColor;
+    background: none;
+    color: var(--brand);
+  }
+}

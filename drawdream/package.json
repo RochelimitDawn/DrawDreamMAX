@@ -1,0 +1,45 @@
+{
+  "name": "drawdream",
+  "private": true,
+  "version": "2.0.0-alpha.1-mobile.39",
+  "type": "module",
+  "description": "DrawDreamMAX Alpha 2.0 — UI + embedded DrawDream Agent (port 7620)",
+  "scripts": {
+    "dev": "node scripts/run-dev.mjs",
+    "dev:watch": "VITE_WATCH=1 node scripts/run-dev.mjs",
+    "agent:install": "npm --prefix agent install",
+    "build": "tsc -b && vite build",
+    "release:gate": "node scripts/release-gate.mjs",
+    "start": "node scripts/run-start.mjs",
+    "lint": "oxlint",
+    "mobile:node": "node mobile/scripts/fetch-android-node.mjs",
+    "mobile:smoke": "node mobile/scripts/smoke-mobile-env.mjs",
+    "mobile:runtime": "node mobile/scripts/prepare-runtime.mjs",
+    "mobile:inject": "node mobile/scripts/inject-android-assets.mjs",
+    "mobile:prepare": "node mobile/scripts/prepare-runtime.mjs && node mobile/scripts/inject-android-assets.mjs"
+  },
+  "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "@lobehub/icons-static-svg": "^1.93.0",
+    "gsap": "^3.15.0",
+    "i18next": "^26.3.6",
+    "katex": "^0.18.1",
+    "lucide-react": "^1.24.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-i18next": "^17.0.9",
+    "react-router-dom": "^7.18.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "oxlint": "^1.71.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,329 @@
+.plaza-post {
+  background: var(--bg-elevated);
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  border-radius: 22px;
+  padding: 16px 16px 12px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
+}
+
+.plaza-post:hover {
+  border-color: color-mix(in srgb, var(--brand) 22%, var(--border));
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.plaza-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.plaza-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--bg-elevated), 0 0 0 3.5px color-mix(in srgb, #fbbf24 70%, transparent);
+}
+
+.plaza-author-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.plaza-author-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.plaza-author-sub {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.plaza-follow {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--border));
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--brand-soft);
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  flex-shrink: 0;
+}
+
+.plaza-follow:hover,
+.plaza-follow.is-on {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
+.plaza-content {
+  margin-bottom: 12px;
+}
+
+.plaza-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.plaza-rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #fbbf24 18%, var(--bg-muted));
+  color: #b45309;
+  border: 1px solid color-mix(in srgb, #f59e0b 28%, transparent);
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  transition: transform var(--transition);
+}
+
+[data-theme='dark'] .plaza-rank {
+  color: #fcd34d;
+}
+
+.plaza-rank:hover {
+  transform: translateX(2px);
+}
+
+.plaza-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.plaza-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.plaza-tags span {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--brand) 78%, var(--text));
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  transition: color var(--transition), background var(--transition);
+}
+
+.plaza-tags span:hover {
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 14%, var(--brand-soft));
+}
+
+.plaza-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-bottom: 14px;
+}
+
+.plaza-heat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #d97706;
+  font-weight: 600;
+}
+
+.plaza-heat svg {
+  color: #f59e0b;
+}
+
+.plaza-dot {
+  color: rgba(148, 163, 184, 0.6);
+}
+
+.plaza-works {
+  margin-bottom: 14px;
+  padding-top: 4px;
+}
+
+.plaza-works-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.plaza-works-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fbbf24;
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.plaza-works-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.plaza-work-card {
+  width: 128px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: var(--bg-elevated);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.plaza-work-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.plaza-work-cover {
+  height: 80px;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.9);
+  position: relative;
+  overflow: hidden;
+}
+
+.plaza-work-cover-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.plaza-work-body {
+  padding: 8px 10px 10px;
+}
+
+.plaza-work-title {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.plaza-work-heat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.plaza-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.plaza-actions-left,
+.plaza-actions-right {
+  display: flex;
+  align-items: center;
+}
+
+.plaza-actions-left {
+  gap: 20px;
+}
+
+.plaza-actions-right {
+  gap: 12px;
+}
+
+.plaza-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  transition: color var(--transition), transform var(--transition);
+}
+
+.plaza-act:hover {
+  color: var(--text-secondary);
+}
+
+.plaza-act:active {
+  transform: scale(0.96);
+}
+
+.plaza-act.is-like {
+  color: #f43f5e;
+}
+
+.plaza-heart-like {
+  --heart-bg: transparent;
+  --heart-shadow: none;
+  --heart-fg: var(--text-tertiary);
+}
+
+.plaza-heart-like .heart-like-label {
+  padding: 0;
+  gap: 6px;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.plaza-heart-like.is-on {
+  --heart-fg: #f43f5e;
+}
+
+.plaza-heart-like .heart-like-action {
+  min-width: 2em;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.plaza-act.is-comment:hover {
+  color: var(--brand);
+}
+
+.plaza-act.is-support {
+  color: #06b6d4;
+}
+
+.plaza-act.is-bookmark {
+  color: #f59e0b;
+}

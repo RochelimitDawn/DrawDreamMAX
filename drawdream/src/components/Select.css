@@ -1,0 +1,156 @@
+.dd-select {
+  position: relative;
+  min-width: 140px;
+}
+
+.dd-select.is-full {
+  width: 100%;
+  min-width: 0;
+}
+
+.dd-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--input-bg);
+  color: var(--text);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  text-align: left;
+}
+
+.dd-select.size-sm .dd-select-trigger {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.dd-select-trigger:hover,
+.dd-select-trigger.is-open {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px var(--brand-soft);
+}
+
+.dd-select-trigger .is-placeholder {
+  color: var(--text-secondary);
+}
+
+.dd-select-chevron {
+  color: var(--text-secondary);
+  transition: transform var(--transition);
+  flex-shrink: 0;
+}
+
+.dd-select-chevron.is-open {
+  transform: rotate(180deg);
+  color: var(--brand);
+}
+
+.dd-select-menu {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow: auto;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--overlay);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(12px);
+  animation: menuIn 0.18s ease;
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dd-select-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--text);
+  transition: background var(--transition), color var(--transition);
+}
+
+.dd-select-option:hover {
+  background: var(--bg-muted);
+}
+
+.dd-select-option.is-active {
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.dd-select-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dd-select-label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dd-select-meta {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.dd-select-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.dd-select-option-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.dd-select-option-main small {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.dd-select-option {
+  justify-content: flex-start;
+}
+
+.dd-select-option .lucide-check,
+.dd-select-option > svg:last-child {
+  margin-left: auto;
+  flex-shrink: 0;
+}

@@ -1,0 +1,141 @@
+name: Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      build_debug:
+        description: 'Build debug APK when release keystore is missing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: drawdream
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            drawdream/package-lock.json
+            drawdream/agent/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install root + agent deps
+        run: |
+          npm ci
+          npm --prefix agent ci
+
+      - name: Install deb extract tools
+        working-directory: .
+        run: |
+          sudo apt-get update -y
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y binutils patchelf xz-utils zstd rsync
+
+      - name: Build UI + runtime
+        env:
+          NODE_ARCH: arm64
+          # 默认 fetch Termux aarch64 Node（bionic）；勿设 FORCE_LINUX_NODE
+        run: |
+          npm run build
+          node mobile/scripts/fetch-android-node.mjs
+          node mobile/scripts/prepare-runtime.mjs
+          node mobile/scripts/inject-android-assets.mjs
+
+      - name: Decode keystore
+        id: keystore
+        working-directory: .
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_B64" ]; then
+            echo "has_keystore=false" >> "$GITHUB_OUTPUT"
+            echo "No ANDROID_KEYSTORE_B64 — will assembleDebug only"
+          else
+            echo "$ANDROID_KEYSTORE_B64" | base64 -d > /tmp/drawdream-release.keystore
+            echo "has_keystore=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure Gradle wrapper
+        working-directory: drawdream/mobile/android
+        run: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            if command -v gradle >/dev/null 2>&1; then
+              gradle wrapper --gradle-version 8.11.1
+            else
+              # bootstrap wrapper jar from official distribution metadata is heavy;
+              # install gradle via sdkman-less path
+              curl -sL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
+              sudo unzip -q /tmp/gradle.zip -d /opt
+              /opt/gradle-8.11.1/bin/gradle wrapper --gradle-version 8.11.1
+            fi
+          fi
+          chmod +x gradlew
+
+      - name: Gradle assemble
+        working-directory: drawdream/mobile/android
+        env:
+          KEYSTORE_FILE: /tmp/drawdream-release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          DRAWDREAM_VERSION_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "${{ steps.keystore.outputs.has_keystore }}" = "true" ]; then
+            ./gradlew --no-daemon :app:assembleRelease
+          else
+            ./gradlew --no-daemon :app:assembleDebug
+          fi
+
+      - name: Collect artifacts
+        working-directory: .
+        run: |
+          mkdir -p dist-apk
+          if ls drawdream/mobile/android/app/build/outputs/apk/release/*.apk 1>/dev/null 2>&1; then
+            cp drawdream/mobile/android/app/build/outputs/apk/release/*.apk dist-apk/
+          fi
+          if ls drawdream/mobile/android/app/build/outputs/apk/debug/*.apk 1>/dev/null 2>&1; then
+            cp drawdream/mobile/android/app/build/outputs/apk/debug/*.apk dist-apk/
+          fi
+          cd dist-apk
+          sha256sum *.apk > SHA256SUMS.txt || true
+          ls -la
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: drawdream-apk
+          path: dist-apk/*
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist-apk/*
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

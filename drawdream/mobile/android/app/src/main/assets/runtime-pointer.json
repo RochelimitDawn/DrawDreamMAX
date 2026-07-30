@@ -1,0 +1,4 @@
+{
+  "tarball": "drawdream-runtime.tgz",
+  "note": "CI injects jniLibs + runtime.zip via inject-android-assets.mjs"
+}

@@ -1,0 +1,136 @@
+.admin-page .admin-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.admin-create-user {
+  align-items: stretch;
+}
+
+.admin-create-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  margin-right: auto;
+}
+
+.admin-create-form .settings-input,
+.admin-create-form .admin-create-submit {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-create-submit {
+  align-self: flex-start;
+  width: auto !important;
+}
+
+.admin-batch-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.admin-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-user-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-user-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--bg);
+}
+
+.admin-user-meta {
+  flex: 1 1 140px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-user-tags {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.admin-danger {
+  color: var(--danger, #e11d48) !important;
+}
+
+.admin-delete-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-delete-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.admin-delete-warn {
+  color: var(--danger, #e11d48) !important;
+  font-weight: 600;
+}
+
+.admin-confirm-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.admin-confirm-name {
+  font-weight: 700;
+  color: var(--text-h, var(--text));
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.admin-batch-names {
+  margin: 0;
+  padding: 8px 12px;
+  max-height: 140px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 13px;
+  list-style: disc inside;
+}
+
+.admin-batch-names li {
+  margin: 2px 0;
+}

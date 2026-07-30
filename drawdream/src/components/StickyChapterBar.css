@@ -1,0 +1,154 @@
+/* 粘性章节条：brand 暖棕金 + 羊皮纸/暗色自适应 */
+
+.sticky-chapter-bar {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  width: min(var(--read-max-width, 720px), 100%);
+  max-width: 100%;
+  margin: 0 auto 0.5rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.35rem;
+  padding: 0.48rem 0.9rem;
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      125deg,
+      color-mix(in srgb, var(--brand, #c47a3a) 14%, transparent) 0%,
+      transparent 48%
+    ),
+    color-mix(in srgb, var(--bg-elevated, var(--surface, #fffdf9)) 94%, var(--brand, #c47a3a) 4%);
+  border: 1px solid color-mix(in srgb, var(--brand, #c47a3a) 26%, var(--border, #e8e0d4));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 55%, transparent) inset,
+    0 8px 22px -12px color-mix(in srgb, var(--brand, #c47a3a) 28%, transparent);
+  backdrop-filter: blur(14px) saturate(1.12);
+  font-family: var(--read-font-family, var(--font-body));
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.sticky-chapter-bar.is-ledger {
+  border-style: dashed;
+}
+
+.sticky-chapter-bar.is-empty {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+.sticky-chapter-kind {
+  flex-shrink: 0;
+  font-size: clamp(0.65rem, 0.55rem + 0.3vw, 0.72rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  padding: 0.3rem 0.52rem;
+  border-radius: 999px;
+  color: var(--brand-deep, var(--brand, #c47a3a));
+  background: color-mix(in srgb, var(--brand, #c47a3a) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand, #c47a3a) 30%, transparent);
+}
+
+.sticky-chapter-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: clamp(0.82rem, 0.74rem + 0.35vw, 0.96rem);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--text, #2a241c);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sticky-chapter-meta {
+  flex-shrink: 0;
+  font-size: clamp(0.65rem, 0.58rem + 0.25vw, 0.72rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-secondary, #7a6f62);
+  opacity: 0.92;
+}
+
+[data-theme='dark'] .sticky-chapter-bar {
+  background:
+    linear-gradient(
+      125deg,
+      color-mix(in srgb, var(--brand, #e0b06a) 18%, transparent) 0%,
+      transparent 48%
+    ),
+    color-mix(in srgb, var(--bg-elevated, #1a1b22) 92%, var(--brand, #e0b06a) 6%);
+  border-color: color-mix(in srgb, var(--brand, #e0b06a) 28%, var(--border, #333));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 8%, transparent) inset,
+    0 10px 24px -14px rgb(0 0 0 / 55%);
+}
+
+[data-theme='dark'] .sticky-chapter-kind {
+  color: var(--brand, #e0b06a);
+  background: color-mix(in srgb, var(--brand, #e0b06a) 18%, transparent);
+  border-color: color-mix(in srgb, var(--brand, #e0b06a) 32%, transparent);
+}
+
+[data-theme='dark'] .sticky-chapter-title {
+  color: var(--text, #e8e6e3);
+}
+
+[data-theme='dark'] .sticky-chapter-meta {
+  color: var(--text-secondary, #9aa3b5);
+}
+
+@media (max-width: 640px) {
+  .sticky-chapter-bar {
+    width: 100%;
+    border-radius: 12px;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    gap: 0.45rem;
+    /* 移动端更贴 brand，避免发灰 */
+    background:
+      linear-gradient(
+        110deg,
+        color-mix(in srgb, var(--brand, #c47a3a) 20%, transparent) 0%,
+        color-mix(in srgb, var(--bg-elevated) 88%, var(--brand) 8%) 100%
+      );
+    border-color: color-mix(in srgb, var(--brand, #c47a3a) 32%, var(--border));
+    box-shadow:
+      0 1px 0 color-mix(in srgb, #fff 40%, transparent) inset,
+      0 6px 16px -10px color-mix(in srgb, var(--brand) 35%, transparent);
+  }
+
+  .sticky-chapter-kind {
+    font-size: 0.62rem;
+    padding: 0.28rem 0.45rem;
+  }
+
+  .sticky-chapter-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  .sticky-chapter-meta {
+    display: none;
+  }
+
+  [data-theme='dark'] .sticky-chapter-bar {
+    background:
+      linear-gradient(
+        110deg,
+        color-mix(in srgb, var(--brand, #e0b06a) 22%, transparent) 0%,
+        color-mix(in srgb, var(--bg-elevated) 90%, var(--brand) 10%) 100%
+      );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticky-chapter-bar {
+    transition: none;
+  }
+}
