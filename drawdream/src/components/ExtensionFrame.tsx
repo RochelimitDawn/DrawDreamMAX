@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { apiGet } from '../agent/rest'
 import {
   extensionBridgeBootstrap,
   EXTENSION_BRIDGE_PROTOCOL,
@@ -34,6 +33,13 @@ const FULL_CAPABILITIES: CardBridgeCapability[] = [
   'slash.execute',
 ]
 
+function safeUUID(): string {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  } catch { /* fall through */ }
+  return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 export function ExtensionFrame({
   extension,
   onError,
@@ -43,34 +49,54 @@ export function ExtensionFrame({
 }) {
   const ref = useRef<HTMLIFrameElement>(null)
   const frameId = useMemo(() => `extension-${extension.id}-${Math.random().toString(36).slice(2)}`, [extension.id])
-  const token = useMemo(() => crypto.randomUUID(), [])
+  const token = useMemo(() => safeUUID(), [])
   const [sources, setSources] = useState<{ js: string; css: string } | null>(null)
   const [height, setHeight] = useState(420)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [runtimeLog, setRuntimeLog] = useState<string[]>([])
+  const onErrorRef = useRef(onError)
+  onErrorRef.current = onError
+
+  const log = (message: string): void => {
+    console.log(`[ExtensionFrame:${extension.id}]`, message)
+    setRuntimeLog((prev) => [...prev.slice(-9), `${new Date().toLocaleTimeString()} ${message}`])
+  }
 
   useEffect(() => {
     let active = true
+    setSources(null)
+    setLoadError(null)
+    log(`loading js=${extension.js ?? 'none'} css=${extension.css ?? 'none'}`)
     Promise.all([
       extension.js
         ? fetch(`/api/extensions/file?id=${encodeURIComponent(extension.id)}&path=${encodeURIComponent(extension.js)}`).then((response) => {
-            if (!response.ok) throw new Error(`扩展脚本加载失败：${extension.js}`)
+            if (!response.ok) throw new Error(`JS ${response.status}: ${extension.js}`)
             return response.text()
           })
         : Promise.resolve(''),
       extension.css
         ? fetch(`/api/extensions/file?id=${encodeURIComponent(extension.id)}&path=${encodeURIComponent(extension.css)}`).then((response) => {
-            if (!response.ok) throw new Error(`扩展样式加载失败：${extension.css}`)
+            if (!response.ok) throw new Error(`CSS ${response.status}: ${extension.css}`)
             return response.text()
           })
         : Promise.resolve(''),
     ])
       .then(([js, css]) => {
-        if (active) setSources({ js, css })
+        if (!active) return
+        log(`loaded js=${js.length}b css=${css.length}b`)
+        setSources({ js, css })
       })
-      .catch((error) => onError?.(error instanceof Error ? error.message : String(error)))
+      .catch((error) => {
+        if (!active) return
+        const message = error instanceof Error ? error.message : String(error)
+        log(`load error: ${message}`)
+        setLoadError(message)
+        onErrorRef.current?.(message)
+      })
     return () => {
       active = false
     }
-  }, [extension, onError])
+  }, [extension.id, extension.js, extension.css])
 
   useEffect(() => {
     const el = ref.current
@@ -86,6 +112,7 @@ export function ExtensionFrame({
         !request.requestId ||
         !request.type
       ) return
+      log(`request: ${request.type}`)
       try {
         if (request.type === 'event.subscribe') {
           const events = Array.isArray((request.payload as { events?: unknown } | undefined)?.events)
@@ -130,6 +157,7 @@ export function ExtensionFrame({
           type: request.type,
           payload: request.payload,
         })
+        log(`response: ${request.type} ok`)
         el.contentWindow?.postMessage({
           protocol: EXTENSION_BRIDGE_PROTOCOL,
           frameId,
@@ -139,6 +167,7 @@ export function ExtensionFrame({
         }, '*')
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
+        log(`error: ${request.type} -> ${message}`)
         el.contentWindow?.postMessage({
           protocol: EXTENSION_BRIDGE_PROTOCOL,
           frameId,
@@ -146,7 +175,6 @@ export function ExtensionFrame({
           ok: false,
           error: message,
         }, '*')
-        onError?.(message)
       }
     }
     window.addEventListener('message', onMessage)
@@ -154,24 +182,39 @@ export function ExtensionFrame({
       for (const unsubscribe of unsubscribers) unsubscribe()
       window.removeEventListener('message', onMessage)
     }
-  }, [extension.id, frameId, onError, token])
+  }, [extension.id, frameId, token])
 
   const capabilities = [...new Set([...FULL_CAPABILITIES, ...(extension.capabilities as CardBridgeCapability[])])]
+
   const srcDoc = sources
-    ? `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src data: https:;"><style>html,body{margin:0;background:transparent;color:inherit;font:inherit}#drawdream-extension-root{min-height:100%}</style><style>${sources.css}</style></head><body><div id="drawdream-extension-root" data-extension-id="${extension.id}"></div>${extensionBridgeBootstrap({ frameId, token, capabilities })}<script>${sources.js}</script></body></html>`
-    : '<!doctype html><html><body style="font:14px/1.5 system-ui;color:#748094;padding:24px">正在加载扩展...</body></html>'
+    ? `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src data: https:"><style>html,body{margin:0;background:transparent;color:inherit;font:inherit}#drawdream-extension-root{min-height:100%}</style><style>${sources.css}</style></head><body><div id="drawdream-extension-root" data-extension-id="${extension.id}"></div>${extensionBridgeBootstrap({ frameId, token, capabilities })}<script>try{${sources.js}}catch(e){console.error('[ExtensionJS]',e);parent.postMessage({protocol:${JSON.stringify(EXTENSION_BRIDGE_PROTOCOL)},frameId:${JSON.stringify(frameId)},token:${JSON.stringify(token)},type:'extension.error',payload:{message:String(e&&e.message||e)}},'*')}</script></body></html>`
+    : '<!doctype html><html><body style="font:14px/1.5 system-ui;color:#748094;padding:24px">Loading extension...</body></html>'
+
+  if (loadError) {
+    return (
+      <div style={{ padding: 24, color: '#a33', fontSize: 14, lineHeight: 1.6 }}>
+        <strong>Extension load error</strong>
+        <p style={{ marginTop: 8, wordBreak: 'break-all' }}>{loadError}</p>
+        <p style={{ marginTop: 8, color: '#748094' }}>js: {extension.js ?? 'none'} | css: {extension.css ?? 'none'}</p>
+      </div>
+    )
+  }
 
   return (
-    <iframe
-      ref={ref}
-      title={extension.displayName}
-      sandbox="allow-scripts"
-      srcDoc={srcDoc}
-      style={{ width: '100%', minHeight: height, height, border: 0, display: 'block', background: 'transparent' }}
-    />
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+      <iframe
+        ref={ref}
+        title={extension.displayName}
+        sandbox="allow-scripts"
+        srcDoc={srcDoc}
+        style={{ width: '100%', minHeight: height, height, border: 0, display: 'block', background: 'transparent', flex: 1 }}
+      />
+      {runtimeLog.length > 0 && (
+        <details style={{ borderTop: '1px solid #edf0f4', padding: '8px 12px', fontSize: 11, color: '#748094', maxHeight: 120, overflow: 'auto' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Runtime log ({runtimeLog.length})</summary>
+          {runtimeLog.map((line, i) => <div key={i} style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{line}</div>)}
+        </details>
+      )}
+    </div>
   )
-}
-
-export function useInstalledExtensions() {
-  return apiGet<{ extensions: InstalledExtension[] }>('/api/extensions', { bypassCache: true })
 }

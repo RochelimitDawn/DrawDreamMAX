@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Puzzle, Upload, Download, RefreshCw, Square } from 'lucide-react'
 import { ExtensionFrame } from '../components/ExtensionFrame'
+import { ErrorBoundary } from '../components/ErrorBoundary'
 import './Extensions.css'
 
 type InstalledExtension = { id: string; displayName: string; version: string; root: string; js: string | null; css: string | null; capabilities: string[]; runtimeStatus: string; archiveSha256: string }
@@ -91,7 +92,17 @@ export function ExtensionsPage() {
                 <div><strong>{selected.displayName}</strong><span>{selected.id}</span></div>
                 <button className="dd-icon-button" title={t('extensions.stop')} onClick={() => setSelectedKey(null)}><Square size={16} /></button>
               </div>
-              <ExtensionFrame extension={selected} onError={setError} />
+              <ErrorBoundary
+                fallback={(error, reset) => (
+                  <div style={{ padding: 24, color: '#a33', fontSize: 14, lineHeight: 1.6 }}>
+                    <strong>Extension crashed</strong>
+                    <p style={{ marginTop: 8, wordBreak: 'break-all' }}>{error.message}</p>
+                    <button className="dd-button" style={{ marginTop: 8 }} onClick={reset}>Retry</button>
+                  </div>
+                )}
+              >
+                <ExtensionFrame extension={selected} />
+              </ErrorBoundary>
             </>
           ) : (
             <div className="dd-extension-empty"><Puzzle size={34} /><p>{t('extensions.selectTitle')}</p><span>{t('extensions.selectHint')}</span></div>
