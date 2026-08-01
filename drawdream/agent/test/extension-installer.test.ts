@@ -41,6 +41,18 @@ test('extension installer rejects archives with multiple roots and missing entri
   assert.throws(() => installExtensionBytes(bytes, destination), /one root directory/)
 })
 
+test('extension installer recognizes known PureTavern extensions as runnable', () => {
+  const bytes = archive({
+    'JS-Slash-Runner/manifest.json': JSON.stringify({ display_name: '酒馆助手', version: '4.8.19', js: 'dist/index.js' }),
+    'JS-Slash-Runner/dist/index.js': 'window.Demo = true',
+  })
+  const destination = mkdtempSync(join(tmpdir(), 'dd-extension-known-'))
+  const installed = installExtensionBytes(bytes, destination)
+  assert.equal(installed.runtimeStatus, 'runnable')
+  assert.ok(installed.capabilities.includes('generate'))
+  assert.ok(installed.capabilities.includes('worldbook'))
+})
+
 test('extension installer rejects manifest path traversal', () => {
   const bytes = archive({
     'demo/manifest.json': JSON.stringify({ display_name: 'Demo', version: '1', js: '../index.js' }),

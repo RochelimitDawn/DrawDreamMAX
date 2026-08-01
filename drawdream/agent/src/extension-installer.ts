@@ -4,6 +4,25 @@ import { basename, join, normalize, relative } from 'node:path'
 import { inflateRawSync } from 'node:zlib'
 import type { BundledExtensionCompatibility } from './tavern/compat/bundled-extensions.ts'
 
+// Known PureTavern bundled extensions. 安装时匹配 displayName 或 id 前缀，
+// 为已适配的扩展设置 runnable 状态和完整能力集。
+const KNOWN_EXTENSIONS: Record<string, { capabilities: string[] }> = {
+  'js-slash-runner': {
+    capabilities: ['context.read', 'variables.read', 'variables.write', 'messages.send', 'messages.update', 'events.subscribe', 'assets.read', 'card.ui', 'slash.execute', 'generate', 'worldbook', 'preset', 'character', 'inject', 'audio'],
+  },
+  'st-prompt-template': {
+    capabilities: ['context.read', 'variables.read', 'variables.write', 'messages.send', 'messages.update', 'events.subscribe', 'card.ui', 'slash.execute', 'generate', 'worldbook', 'preset', 'character', 'inject'],
+  },
+}
+
+function knownExtensionStatus(id: string, displayName: string): { capabilities: string[]; runtimeStatus: string } | null {
+  const lower = `${id} ${displayName}`.toLowerCase()
+  for (const [key, value] of Object.entries(KNOWN_EXTENSIONS)) {
+    if (lower.includes(key)) return { capabilities: value.capabilities, runtimeStatus: 'runnable' }
+  }
+  return null
+}
+
 const MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
 const MAX_FILE_BYTES = 16 * 1024 * 1024
 const MAX_FILES = 512
@@ -136,10 +155,14 @@ export function validateExtensionArchive(reader: ExtensionArchiveReader, archive
     assertSafeEntry(`${root}${entry}`)
     if (!entries.includes(`${root}${entry}`)) throw new Error(`Extension entry is missing: ${entry}`)
   }
-  const capabilities = Array.isArray(manifest.drawdreamCapabilities)
-    ? manifest.drawdreamCapabilities.filter((value): value is string => typeof value === 'string')
-    : ['context.read', 'events.subscribe', 'card.ui']
-  return { id, displayName, version, root, js, css, capabilities, runtimeStatus: 'requires-adapter', archiveSha256 }
+  const known = knownExtensionStatus(id, displayName)
+  const capabilities = known
+    ? known.capabilities
+    : Array.isArray(manifest.drawdreamCapabilities)
+      ? manifest.drawdreamCapabilities.filter((value): value is string => typeof value === 'string')
+      : ['context.read', 'events.subscribe', 'card.ui']
+  const runtimeStatus = known ? known.runtimeStatus : 'requires-adapter'
+  return { id, displayName, version, root, js, css, capabilities, runtimeStatus, archiveSha256 }
 }
 
 export function installExtensionArchive(archivePath: string, destination: string, expected?: Pick<BundledExtensionCompatibility, 'archiveBytes' | 'archiveSha256' | 'manifestVersion'>): InstalledExtension {
