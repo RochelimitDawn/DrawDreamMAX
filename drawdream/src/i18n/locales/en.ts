@@ -14,6 +14,7 @@ export default {
     forge: 'Forge',
     admin: 'Admin',
     settings: 'Settings',
+    extensions: 'Extensions',
   },
   library: {
     title: 'Library',
@@ -836,6 +837,23 @@ export default {
       'DrawDream is a local-first AI roleplay client (mobile-first). An embedded agent workflow replaces classic prompt stitching.',
     releases: 'Releases / APK',
     releasesDesc: 'Download the latest Android APK from GitHub Releases',
+  },
+  extensions: {
+    title: 'Extension Runtime',
+    subtitle: 'Install and run compatible extensions in a controlled iframe.',
+    refresh: 'Refresh',
+    uploadZip: 'Upload ZIP',
+    install: 'Install',
+    urlPlaceholder: 'GitHub/GitLab repo URL or direct ZIP link',
+    runnable: 'Runnable',
+    needsAdapter: 'Needs Adapter',
+    emptyTitle: 'No extensions installed',
+    emptyHint: 'Upload a ZIP or enter an extension repo URL to start.',
+    selectTitle: 'Select an extension',
+    selectHint: 'Extension scripts will load in an isolated iframe.',
+    stop: 'Stop extension',
+    listLoadError: 'Failed to load extension list',
+    installFail: 'Failed to install extension',
   },
   secondary: {
     worldInfo: {
