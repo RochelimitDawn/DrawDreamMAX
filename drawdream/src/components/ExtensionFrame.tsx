@@ -2,9 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   extensionBridgeBootstrap,
   EXTENSION_BRIDGE_PROTOCOL,
-  type ExtensionBridgeRequest,
 } from '../tavern/compat/extension-bridge'
-import { handleExtensionRuntimeRequest } from '../tavern/compat/extension-runtime'
+import { handleExtensionRuntimeRequest, type ExtensionRuntimeRequestType } from '../tavern/compat/extension-runtime'
 import { tavernRuntime } from '../tavern/runtime-adapter'
 import type { CardBridgeCapability } from '../utils/cardBridge'
 
@@ -104,14 +103,20 @@ export function ExtensionFrame({
     const unsubscribers: Array<() => void> = []
     const onMessage = async (event: MessageEvent<unknown>) => {
       if (event.source !== el.contentWindow || !event.data || typeof event.data !== 'object') return
-      const request = event.data as Partial<ExtensionBridgeRequest>
+      const request = event.data as { protocol?: string; frameId?: string; token?: string; requestId?: string; type?: string; payload?: unknown }
       if (
         request.protocol !== EXTENSION_BRIDGE_PROTOCOL ||
         request.frameId !== frameId ||
         request.token !== token ||
-        !request.requestId ||
         !request.type
       ) return
+      if (request.type === 'extension.error') {
+        const errorMsg = String((request.payload as { message?: unknown } | undefined)?.message ?? 'Unknown error')
+        log(`extension error: ${errorMsg}`)
+        setLoadError(`Extension script error: ${errorMsg}`)
+        return
+      }
+      if (!request.requestId) return
       log(`request: ${request.type}`)
       try {
         if (request.type === 'event.subscribe') {
@@ -154,7 +159,7 @@ export function ExtensionFrame({
           return
         }
         const value = await handleExtensionRuntimeRequest({
-          type: request.type,
+          type: request.type as ExtensionRuntimeRequestType,
           payload: request.payload,
         })
         log(`response: ${request.type} ok`)
@@ -186,16 +191,26 @@ export function ExtensionFrame({
 
   const capabilities = [...new Set([...FULL_CAPABILITIES, ...(extension.capabilities as CardBridgeCapability[])])]
 
+  const errorReporter = `window.addEventListener('error',function(e){parent.postMessage({protocol:${JSON.stringify(EXTENSION_BRIDGE_PROTOCOL)},frameId:${JSON.stringify(frameId)},token:${JSON.stringify(token)},type:'extension.error',payload:{message:String(e&&e.message||e)+' @ '+(e&&e.filename||'')+':'+(e&&e.lineno||0)}},'*')});window.addEventListener('unhandledrejection',function(e){parent.postMessage({protocol:${JSON.stringify(EXTENSION_BRIDGE_PROTOCOL)},frameId:${JSON.stringify(frameId)},token:${JSON.stringify(token)},type:'extension.error',payload:{message:'Unhandled promise rejection: '+String(e&&e.reason&&(e.reason.message||e.reason)||e.reason||e)}},'*')});`
+
   const srcDoc = sources
-    ? `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src data: https:"><style>html,body{margin:0;background:transparent;color:inherit;font:inherit}#drawdream-extension-root{min-height:100%}</style><style>${sources.css}</style></head><body><div id="drawdream-extension-root" data-extension-id="${extension.id}"></div>${extensionBridgeBootstrap({ frameId, token, capabilities })}<script>try{${sources.js}}catch(e){console.error('[ExtensionJS]',e);parent.postMessage({protocol:${JSON.stringify(EXTENSION_BRIDGE_PROTOCOL)},frameId:${JSON.stringify(frameId)},token:${JSON.stringify(token)},type:'extension.error',payload:{message:String(e&&e.message||e)}},'*')}</script></body></html>`
+    ? `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src data: https:"><style>html,body{margin:0;background:transparent;color:inherit;font:inherit}#drawdream-extension-root{min-height:100%}</style><style>${sources.css}</style></head><body><div id="drawdream-extension-root" data-extension-id="${extension.id}"></div>${extensionBridgeBootstrap({ frameId, token, capabilities })}<script>${errorReporter}try{${sources.js}}catch(e){console.error('[ExtensionJS]',e);parent.postMessage({protocol:${JSON.stringify(EXTENSION_BRIDGE_PROTOCOL)},frameId:${JSON.stringify(frameId)},token:${JSON.stringify(token)},type:'extension.error',payload:{message:String(e&&e.message||e)}},'*')}</script></body></html>`
     : '<!doctype html><html><body style="font:14px/1.5 system-ui;color:#748094;padding:24px">Loading extension...</body></html>'
 
   if (loadError) {
     return (
-      <div style={{ padding: 24, color: '#a33', fontSize: 14, lineHeight: 1.6 }}>
-        <strong>Extension load error</strong>
-        <p style={{ marginTop: 8, wordBreak: 'break-all' }}>{loadError}</p>
-        <p style={{ marginTop: 8, color: '#748094' }}>js: {extension.js ?? 'none'} | css: {extension.css ?? 'none'}</p>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+        <div style={{ padding: 24, color: '#a33', fontSize: 14, lineHeight: 1.6 }}>
+          <strong>Extension error</strong>
+          <p style={{ marginTop: 8, wordBreak: 'break-all' }}>{loadError}</p>
+          <p style={{ marginTop: 8, color: '#748094' }}>js: {extension.js ?? 'none'} | css: {extension.css ?? 'none'}</p>
+        </div>
+        {runtimeLog.length > 0 && (
+          <details style={{ borderTop: '1px solid #edf0f4', padding: '8px 12px', fontSize: 11, color: '#748094', maxHeight: 120, overflow: 'auto' }} open>
+            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Runtime log ({runtimeLog.length})</summary>
+            {runtimeLog.map((line, i) => <div key={i} style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{line}</div>)}
+          </details>
+        )}
       </div>
     )
   }

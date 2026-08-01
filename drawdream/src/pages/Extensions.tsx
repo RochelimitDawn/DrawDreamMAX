@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Puzzle, Upload, Download, RefreshCw, Square } from 'lucide-react'
+import { Puzzle, Upload, Download, RefreshCw, X, Circle } from 'lucide-react'
 import { ExtensionFrame } from '../components/ExtensionFrame'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import './Extensions.css'
@@ -89,8 +89,14 @@ export function ExtensionsPage() {
           {selected ? (
             <>
               <div className="dd-extension-stage-head">
-                <div><strong>{selected.displayName}</strong><span>{selected.id}</span></div>
-                <button className="dd-icon-button" title={t('extensions.stop')} onClick={() => setSelectedKey(null)}><Square size={16} /></button>
+                <div>
+                  <div className="dd-extension-stage-title">
+                    <Circle size={8} className="dd-running-dot" />
+                    <strong>{selected.displayName}</strong>
+                  </div>
+                  <span>{selected.id} · {t('extensions.running')}</span>
+                </div>
+                <button className="dd-icon-button dd-close-button" title={t('extensions.close')} onClick={() => setSelectedKey(null)}><X size={18} /></button>
               </div>
               <ErrorBoundary
                 fallback={(error, reset) => (

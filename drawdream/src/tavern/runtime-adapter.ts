@@ -75,6 +75,7 @@ export class TavernRuntimeAdapter {
     this.syncSession()
     switch (request.type) {
       case 'ready':
+        setTimeout(() => { void this.events.emit('app_ready', { chatId: this.sessionId }) }, 150)
         return { ready: true, context: this.getContext() }
       case 'context.get':
         return this.getContext()
