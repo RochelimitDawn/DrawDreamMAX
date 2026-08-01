@@ -15,7 +15,7 @@ const KNOWN_EXTENSIONS: Record<string, { capabilities: string[] }> = {
   },
 }
 
-function knownExtensionStatus(id: string, displayName: string): { capabilities: string[]; runtimeStatus: string } | null {
+export function knownExtensionStatus(id: string, displayName: string): { capabilities: string[]; runtimeStatus: string } | null {
   const lower = `${id} ${displayName}`.toLowerCase()
   for (const [key, value] of Object.entries(KNOWN_EXTENSIONS)) {
     if (lower.includes(key)) return { capabilities: value.capabilities, runtimeStatus: 'runnable' }

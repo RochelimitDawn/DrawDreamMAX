@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, normalize, relative } from 'node:path'
-import { installExtensionBytes, type InstalledExtension } from '../../../src/extension-installer.ts'
+import { installExtensionBytes, knownExtensionStatus, type InstalledExtension } from '../../../src/extension-installer.ts'
 import { MAX_UPLOAD, readBody, readBodyRaw, sendJson } from '../http.ts'
 import type { RouteCtx } from './context.ts'
 
@@ -66,7 +66,15 @@ export async function handleExtensionsRoutes(ctx: RouteCtx): Promise<boolean> {
     for (const name of (existsSync(root) ? readdirSync(root, { withFileTypes: true }) : []).filter((entry) => entry.isDirectory()).map((entry) => entry.name)) {
       try {
         const value = JSON.parse(readFileSync(join(root, name, 'drawdream-install.json'), 'utf8'))
-        if (value && typeof value === 'object' && value.id) items.push(value as InstalledExtension)
+        if (value && typeof value === 'object' && value.id) {
+          // Re-check known extension status on every list (handles pre-existing installs)
+          const known = knownExtensionStatus(value.id, value.displayName)
+          if (known) {
+            value.runtimeStatus = known.runtimeStatus
+            value.capabilities = known.capabilities
+          }
+          items.push(value as InstalledExtension)
+        }
       } catch { /* ignore incomplete directories */ }
     }
     sendJson(ctx.res, 200, { extensions: items })
