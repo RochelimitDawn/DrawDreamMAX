@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, join, normalize, relative } from 'node:path'
-import type { BundledExtensionCompatibility } from '../../src/tavern/compat/bundled-extensions.ts'
+import type { BundledExtensionCompatibility } from './tavern/compat/bundled-extensions.ts'
 
 const MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
 const MAX_FILE_BYTES = 16 * 1024 * 1024
