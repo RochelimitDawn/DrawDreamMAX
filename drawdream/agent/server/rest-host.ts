@@ -407,7 +407,7 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 			deps.broadcast({ type: "notify", level: "info", text: `已导入酒馆聊天记录（${cleaned.length} 条正文）` });
 			return {
 				messages: cleaned.length,
-				warnings: parsed.messages.length === cleaned.length ? [] : ["部分消息清洗后为空，未写入正文"],
+				warnings: adapted.messages.length === cleaned.length ? [] : ["部分消息清洗后为空，未写入正文"],
 			};
 		},
 		queueCommand(text) {

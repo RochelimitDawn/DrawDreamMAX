@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, normalize, relative } from 'node:path'
-import { installExtensionBytes, type InstalledExtension } from '../../src/extension-installer.ts'
+import { installExtensionBytes, type InstalledExtension } from '../../../src/extension-installer.ts'
 import { MAX_UPLOAD, readBodyRaw, sendJson } from '../http.ts'
 import type { RouteCtx } from './context.ts'
 

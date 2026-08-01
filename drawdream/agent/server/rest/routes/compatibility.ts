@@ -1,5 +1,5 @@
-import { getCompatibilityContract, compatibilityMatrix } from '../../../src/tavern/compat/inventory.ts'
-import { unsupportedCompatibility } from '../../../src/tavern/compat/errors.ts'
+import { getCompatibilityContract, compatibilityMatrix } from '../../../../src/tavern/compat/inventory.ts'
+import { unsupportedCompatibility } from '../../../../src/tavern/compat/errors.ts'
 import { readBodyRaw } from '../http.ts'
 import { sendJson } from '../http.ts'
 import type { RouteCtx } from './context.ts'
