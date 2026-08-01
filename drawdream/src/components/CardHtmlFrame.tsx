@@ -11,6 +11,21 @@ import {
 import { tavernRuntime } from '../tavern/runtime-adapter'
 import type { TavernRuntimeManifest } from '../agent/rest'
 
+const SCRIPT_CODE_FIELDS = ['code', 'startMessage', 'endMessage', 'onMessage', 'onAppReady', 'onEdit', 'onDestroy'] as const
+
+function extractExtensionScriptCode(scripts: Record<string, unknown>[]): string {
+  const parts: string[] = []
+  for (const script of scripts) {
+    for (const field of SCRIPT_CODE_FIELDS) {
+      const value = script[field]
+      if (typeof value === 'string' && value.trim()) {
+        parts.push(`try{${value}}catch(e){console.error('[CardScript:${field}]',e)}`)
+      }
+    }
+  }
+  return parts.join('\n')
+}
+
 export type CardHtmlFrameProps = {
   html: string
   scripts?: boolean
@@ -51,10 +66,14 @@ export function CardHtmlFrame({
 
   const srcDoc = useMemo(() => {
     const base = `<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden;color:inherit;font:inherit}img{max-width:100%}</style>`
-     const csp = runtimeManifest?.csp
-       ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${runtimeManifest.csp.scriptSrc.join(' ')}; style-src ${runtimeManifest.csp.styleSrc.join(' ')}; connect-src ${runtimeManifest.csp.connectSrc.join(' ')}; img-src 'self' data:;">`
-       : ''
-     const boot = scripts ? cardBridgeBootstrapScript({ frameId: effectiveFrameId, capabilityToken: effectiveCapabilityToken, cardFingerprint: runtimeManifest?.cardFingerprint, capabilities: effectiveCapabilities }) : ''
+    const csp = runtimeManifest?.csp
+      ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${[...new Set([...runtimeManifest.csp.scriptSrc, "'unsafe-inline'"])].join(' ')}; style-src ${runtimeManifest.csp.styleSrc.join(' ')}; connect-src ${runtimeManifest.csp.connectSrc.join(' ')}; img-src 'self' data:;">`
+      : ''
+    const extCode = scripts && runtimeManifest?.extensionScripts?.length
+      ? extractExtensionScriptCode(runtimeManifest.extensionScripts)
+      : ''
+    const extTag = extCode ? `<script>${extCode}</script>` : ''
+    const boot = scripts ? cardBridgeBootstrapScript({ frameId: effectiveFrameId, capabilityToken: effectiveCapabilityToken, cardFingerprint: runtimeManifest?.cardFingerprint, capabilities: effectiveCapabilities }) + extTag : ''
     if (/^\s*<(!doctype|html)\b/i.test(html)) {
        if (!scripts) return csp ? html.replace(/<head([^>]*)>/i, `<head$1>${csp}`) : html
        const withCsp = csp ? html.replace(/<head([^>]*)>/i, `<head$1>${csp}`) : html
@@ -63,7 +82,7 @@ export function CardHtmlFrame({
        return `${withCsp}${boot}`
     }
      return `<!DOCTYPE html><html><head><meta charset="utf-8"/>${csp}${base}</head><body>${html}${boot}</body></html>`
-  }, [html, scripts, effectiveFrameId, effectiveCapabilityToken, effectiveCapabilities, runtimeManifest?.csp])
+  }, [html, scripts, effectiveFrameId, effectiveCapabilityToken, effectiveCapabilities, runtimeManifest?.csp, runtimeManifest?.extensionScripts])
 
   // 高度自适应
   useEffect(() => {

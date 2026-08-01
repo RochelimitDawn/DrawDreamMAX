@@ -53,6 +53,8 @@ export class TavernRuntimeAdapter {
   readonly events = new TavernEventBus()
   private variables = new MvuStoreController('')
   private sessionId = ''
+  private lastMessageCount = 0
+  private lastMessageId = ''
 
   constructor() {
     sessionStore.subscribe(() => this.syncSession())
@@ -61,10 +63,37 @@ export class TavernRuntimeAdapter {
 
   private syncSession(): void {
     const snapshot = sessionStore.getSnapshot()
-    if (snapshot.sessionId === this.sessionId) return
-    this.sessionId = snapshot.sessionId
-    this.variables = new MvuStoreController(this.sessionId || 'pending')
-    if (this.sessionId) void this.events.emit('chat_changed', { chatId: this.sessionId })
+    if (snapshot.sessionId !== this.sessionId) {
+      this.sessionId = snapshot.sessionId
+      this.variables = new MvuStoreController(this.sessionId || 'pending')
+      this.lastMessageCount = snapshot.messages.length
+      this.lastMessageId = snapshot.messages[snapshot.messages.length - 1]?.id ?? ''
+      if (this.sessionId) void this.events.emit('chat_changed', { chatId: this.sessionId })
+      return
+    }
+    const currentCount = snapshot.messages.length
+    const currentLastId = snapshot.messages[currentCount - 1]?.id ?? ''
+    if (currentCount > this.lastMessageCount) {
+      const lastMessage = snapshot.messages[currentCount - 1]
+      if (lastMessage) {
+        const role = lastMessage.channel === 'user' ? 'user' : 'assistant'
+        void this.events.emit(role === 'user' ? 'message_sent' : 'message_received', {
+          message: { id: lastMessage.id, role, text: lastMessage.text, name: lastMessage.name ?? '' },
+          chatId: this.sessionId,
+        })
+      }
+      this.lastMessageCount = currentCount
+      this.lastMessageId = currentLastId
+    } else if (currentLastId !== this.lastMessageId && currentLastId !== '') {
+      const lastMessage = snapshot.messages[currentCount - 1]
+      if (lastMessage) {
+        void this.events.emit('message_updated', {
+          message: { id: lastMessage.id, text: lastMessage.text },
+          chatId: this.sessionId,
+        })
+      }
+      this.lastMessageId = currentLastId
+    }
   }
 
   getContext(): TavernContext {

@@ -39,6 +39,7 @@ import {
   fetchCommands,
   fetchChannels,
   fetchModels,
+  fetchCardRuntime,
   renameSession,
   selectModel,
   sessionExportUrl,
@@ -49,6 +50,7 @@ import {
   importSillyTavernChat,
   type CommandMeta,
   type ModelInfo,
+  type TavernRuntimeManifest,
 } from '../agent/rest'
 import type { LiveBubble } from '../agent/session-store'
 import type { WorldState } from '../agent/wire.types'
@@ -259,6 +261,7 @@ export function ChatPage() {
   const [uploading, setUploading] = useState(false)
   const [asstWebSearch, setAsstWebSearch] = useState(false)
   const [asstUploading, setAsstUploading] = useState(false)
+  const [runtimeManifest, setRuntimeManifest] = useState<TavernRuntimeManifest | null>(null)
 
   useEffect(() => {
     const onPrefs = (e: Event) => {
@@ -271,7 +274,15 @@ export function ChatPage() {
   }, [])
 
   useEffect(() => {
-    if (!topTrayOpen) return
+    if (!session.cardPath) { setRuntimeManifest(null); return }
+    let active = true
+    fetchCardRuntime(session.cardPath)
+      .then((res) => { if (active) setRuntimeManifest(res.manifest) })
+      .catch(() => { if (active) setRuntimeManifest(null) })
+    return () => { active = false }
+  }, [session.cardPath])
+
+  useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       const el = topTrayRef.current
       if (el && !el.contains(e.target as Node)) setTopTrayOpen(false)
@@ -1355,6 +1366,16 @@ export function ChatPage() {
 
   return (
     <div className="page chat-page">
+      {runtimeManifest?.extensionScripts?.length ? (
+        <div aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}>
+          <CardHtmlFrame
+            html=""
+            scripts
+            runtimeManifest={runtimeManifest}
+            title="card-runtime"
+          />
+        </div>
+      ) : null}
       <div
         className={`chat-layout ${rightTab ? 'has-right' : ''} ${historyCollapsed ? 'side-collapsed' : ''}`}
       >
