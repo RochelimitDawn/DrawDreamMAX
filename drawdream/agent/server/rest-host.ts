@@ -374,15 +374,16 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 		},
 		promptCommand: (text) => deps.handlePrompt(text),
 		async importStChat(content, tag) {
-			const { buildImportBlock, cleanChat, parseStChat } = await import("../src/chatlog.ts");
-			const parsed = parseStChat(content);
-			const cleaned = cleanChat(parsed.messages, tag ? { extractTag: tag } : undefined);
+			const { adaptSillyTavernChat } = await import("../src/compat/data-adapter.ts");
+			const { buildImportBlock } = await import("../src/chatlog.ts");
+			const adapted = adaptSillyTavernChat(content, tag ? { extractTag: tag } : undefined);
+			const { meta, messages: cleaned } = adapted;
 			if (cleaned.length === 0) throw new Error("聊天记录没有可导入的正文消息");
 			const importText = buildImportBlock({
 				summary: "",
 				recentTurns: cleaned.slice(-40),
-				charName: parsed.meta.charName,
-				userName: parsed.meta.userName,
+				charName: meta.charName,
+				userName: meta.userName,
 			});
 			deps.getSession().sessionManager.appendMessage({
 				role: "custom",
@@ -392,10 +393,10 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 				details: {
 					rpImport: {
 						source: "sillytavern-chat-jsonl",
-						userName: parsed.meta.userName,
-						charName: parsed.meta.charName,
-						createDate: parsed.meta.createDate,
-						messageCount: parsed.messages.length,
+						userName: meta.userName,
+						charName: meta.charName,
+						createDate: meta.createDate,
+						messageCount: adapted.messages.length,
 						cleanedCount: cleaned.length,
 						sourceMessages: cleaned.map((message) => message.source).filter(Boolean),
 					},

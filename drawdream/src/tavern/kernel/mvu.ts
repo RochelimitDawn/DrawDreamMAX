@@ -69,8 +69,8 @@ export class MvuStoreController {
 
   setSchema(schema: MvuSchema | null): void {
     if (schema !== null && (!schema || typeof schema !== 'object')) throw new Error('Invalid MVU schema')
-    this.schema = schema
     if (schema) validateSchema(this.store.chat, schema, '$chat')
+    this.schema = schema ? clone(schema) : null
   }
 
   getSchema(): MvuSchema | null {

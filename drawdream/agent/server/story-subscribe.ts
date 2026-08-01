@@ -39,13 +39,26 @@ export type StorySessionEvent = {
 };
 
 export function createStoryEventHandler(deps: StorySubscribeDeps): (event: StorySessionEvent) => void {
+	let generationNumber = 0;
+	let generationId: string | null = null;
+	const emitGeneration = (frame: Extract<ServerFrame, { type: "generation" }>) => deps.broadcast(frame);
+
 	return (event) => {
 		switch (event.type) {
 			case "agent_start":
+				generationId = `generation-${++generationNumber}`;
+				emitGeneration({ type: "generation", generationId, phase: "start" });
 				deps.broadcast({ type: "agent", state: "start" });
 				break;
 			case "agent_end":
 				if (!event.willRetry) {
+					const id = generationId ?? `generation-${++generationNumber}`;
+					emitGeneration({
+						type: "generation",
+						generationId: id,
+						phase: "end",
+						outcome: event.aborted ? "aborted" : "completed",
+					});
 					deps.broadcast({ type: "agent", state: "end" });
 					const stats = deps.safeStats();
 					if (stats) deps.broadcast({ type: "stats", stats });
@@ -116,6 +129,14 @@ export function createStoryEventHandler(deps: StorySubscribeDeps): (event: Story
 				deps.resyncAll();
 				break;
 			case "auto_retry_start":
+				if (generationId) {
+					emitGeneration({
+						type: "generation",
+						generationId,
+						phase: "retry",
+						attempt: event.attempt,
+					});
+				}
 				deps.broadcast({
 					type: "notify",
 					level: "warning",
@@ -133,12 +154,15 @@ export function createStoryEventHandler(deps: StorySubscribeDeps): (event: Story
 					}
 				} else {
 					const detail = (event.finalError || "未知错误").trim();
+					const id = generationId ?? `generation-${++generationNumber}`;
+					emitGeneration({ type: "generation", generationId: id, phase: "end", outcome: "failed", error: detail });
 					const friendly = /401|auth|api.?key|invalid|unauthorized/i.test(detail)
 						? `模型鉴权失败：${detail}。请到「设置 → API」检查渠道 Key 与接口地址。`
 						: `模型请求失败：${detail}`;
 					deps.broadcast({ type: "error", text: friendly });
 					deps.broadcast({ type: "stream", state: "clear" });
 					deps.broadcast({ type: "agent", state: "end" });
+					generationId = null;
 				}
 				break;
 			}

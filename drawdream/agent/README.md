@@ -66,14 +66,16 @@ coding agent 在删文件前会停下来问你。DrawDream 把这套翻译进 RP
 
 ## 兼容性
 
-1. **角色卡**：PNG / JSON 直接导入，卡内嵌世界书一并读取  
+1. **角色卡**：PNG / JSON 直接导入，卡内嵌世界书一并读取；Runtime Manifest 与 regex 显示规则  
 2. **世界书**：JSON 导入；蓝灯 constant / 绿灯关键词语义保留；知识库可导出回 ST 世界书格式  
-3. **聊天记录**：jsonl 导入续玩，自动清洗旧状态栏与思维链，摘要建账  
+3. **聊天记录**：jsonl 导入续玩，自动清洗旧状态栏与思维链，保留 metadata/variables/swipes sidecar  
 4. **预设**：提供转换器；部分为旧一问一答架构补偿的块在 harness 下可能失效，请自行实测  
+5. **扩展运行时**：安全 ZIP 安装 + 受控 iframe + TavernHelper/SillyTavern facade  
+6. **PureTavern 内置扩展**：酒馆助手与 Prompt Template 公开入口可运行（`runnable`）
 
-明确不兼容：正则脚本、STscript、前端插件、角色卡自带 HTML 界面。
+仍受控或降级：依赖原版 ST 页面 DOM / parent 深层对象图的 UI 插件、未映射的深层 API、任意外网 CDN。
 
-> 未使用任何 SillyTavern 代码，全部格式解析按公开规范独立实现。兼容的是数据生态。
+> 兼容实现以 clean-room 适配为主。PureTavern 仅作公开行为参考，归属见 `docs/puretavern-attribution.md`。
 
 ---
 

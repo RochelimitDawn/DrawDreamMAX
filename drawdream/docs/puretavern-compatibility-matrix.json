@@ -1,0 +1,225 @@
+{
+  "version": 1,
+  "generatedAt": "2026-08-01T08:30:40.633Z",
+  "reference": {
+    "repository": "https://github.com/Lianues/PureTavern",
+    "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+    "license": "AGPL-3.0",
+    "path": "apps/web/src/features/characters"
+  },
+  "totals": {
+    "contracts": 10,
+    "fixtures": 22,
+    "coveredContracts": 10
+  },
+  "contracts": [
+    {
+      "id": "characters.card-runtime",
+      "domain": "characters",
+      "status": "partial",
+      "reference": {
+        "repository": "https://github.com/Lianues/PureTavern",
+        "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+        "license": "AGPL-3.0",
+        "path": "apps/web/src/features/characters"
+      },
+      "drawdreamTarget": "agent/server/rest/routes/cards.ts",
+      "responseSchema": "CardResponse",
+      "fixtureIds": [
+        "card-v1",
+        "card-v2",
+        "card-v3",
+        "card-png"
+      ],
+      "mobile": "supported",
+      "reuse": "clean-room",
+      "fixtureCount": 4,
+      "missingFixtureIds": []
+    },
+    {
+      "id": "chats.jsonl-import-export",
+      "domain": "chats",
+      "status": "partial",
+      "reference": {
+        "repository": "https://github.com/Lianues/PureTavern",
+        "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+        "license": "AGPL-3.0",
+        "path": "apps/web/src/features/chats"
+      },
+      "drawdreamTarget": "src/agent/rest.ts",
+      "requestSchema": "SillyTavern JSONL",
+      "fixtureIds": [
+        "chat-jsonl-metadata",
+        "chat-jsonl-swipes"
+      ],
+      "mobile": "supported",
+      "reuse": "clean-room",
+      "fixtureCount": 2,
+      "missingFixtureIds": []
+    },
+    {
+      "id": "world-books.entries",
+      "domain": "world-books",
+      "status": "partial",
+      "reference": {
+        "repository": "https://github.com/Lianues/PureTavern",
+        "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+        "license": "AGPL-3.0",
+        "path": "apps/web/src/features/world-books"
+      },
+      "drawdreamTarget": "agent/src/lorebook.ts",
+      "fixtureIds": [
+        "world-book-v1",
+        "world-book-embedded"
+      ],
+      "mobile": "supported",
+      "reuse": "clean-room",
+      "fixtureCount": 2,
+      "missingFixtureIds": []
+    },
+    {
+      "id": "presets.prompt-pipeline",
+      "domain": "presets",
+      "status": "partial",
+      "reference": {
+        "repository": "https://github.com/Lianues/PureTavern",
+        "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+        "license": "AGPL-3.0",
+        "path": "apps/web/src/features/presets"
+      },
+      "drawdreamTarget": "agent/src/tavern-prompt.ts",
+      "fixtureIds": [
+        "preset-post-history",
+        "prompt-differential"
+      ],
+      "mobile": "supported",
+      "reuse": "clean-room",
+      "fixtureCount": 2,
+      "missingFixtureIds": []
+    },
+    {
+      "id": "generation.lifecycle-events",
+      "domain": "generation",
+      "status": "fixture-covered",
+      "reference": {
+        "repository": "https://github.com/Lianues/PureTavern",
+        "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+        "license": "AGPL-3.0",
+        "path": "apps/web/src/features/generation"
+      },
+      "drawdreamTarget": "agent/server/story-subscribe.ts",
+      "responseSchema": "ServerFrame",
+      "fixtureIds": [
+        "generation-stream",
+        "generation-tool-round"
+      ],
+      "mobile": "supported",
+      "reuse": "clean-room",
+      "fixtureCount": 2,
+      "missingFixtureIds": []
+    },
+    {
+      "id": "extensions.legacy-hook",
+      "domain": "extensions",
+      "status": "partial",
+      "reference": {
+        "repository": "https://github.com/Lianues/PureTavern",
+        "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+        "license": "AGPL-3.0",
+        "path": "apps/web/src/legacy-hook"
+      },
+      "drawdreamTarget": "src/utils/cardBridge.ts",
+      "requestSchema": "TavernFrame request",
+      "fixtureIds": [
+        "tavernhelper-mvu",
+        "card-bridge-capabilities"
+      ],
+      "mobile": "supported",
+      "reuse": "clean-room",
+      "fixtureCount": 2,
+      "missingFixtureIds": []
+    },
+    {
+      "id": "assets.card-relative",
+      "domain": "assets",
+      "status": "supported",
+      "reference": {
+        "repository": "https://github.com/Lianues/PureTavern",
+        "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+        "license": "AGPL-3.0",
+        "path": "apps/web/src/features/assets"
+      },
+      "drawdreamTarget": "src/tavern/card-assets.ts",
+      "fixtureIds": [
+        "asset-relative",
+        "asset-traversal"
+      ],
+      "mobile": "supported",
+      "reuse": "clean-room",
+      "fixtureCount": 2,
+      "missingFixtureIds": []
+    },
+    {
+      "id": "import-export.archive",
+      "domain": "import-export",
+      "status": "partial",
+      "reference": {
+        "repository": "https://github.com/Lianues/PureTavern",
+        "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+        "license": "AGPL-3.0",
+        "path": "apps/web/src/features/import-export"
+      },
+      "drawdreamTarget": "src/agent/rest.ts",
+      "fixtureIds": [
+        "chat-jsonl-roundtrip",
+        "card-png-roundtrip"
+      ],
+      "mobile": "supported",
+      "reuse": "clean-room",
+      "fixtureCount": 2,
+      "missingFixtureIds": []
+    },
+    {
+      "id": "events.tavern-runtime",
+      "domain": "events",
+      "status": "fixture-covered",
+      "reference": {
+        "repository": "https://github.com/Lianues/PureTavern",
+        "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+        "license": "AGPL-3.0",
+        "path": "packages/contracts/src"
+      },
+      "drawdreamTarget": "src/tavern/kernel/event-bus.ts",
+      "responseSchema": "TavernEvent",
+      "fixtureIds": [
+        "event-ordering",
+        "event-generation-lifecycle"
+      ],
+      "mobile": "supported",
+      "reuse": "clean-room",
+      "fixtureCount": 2,
+      "missingFixtureIds": []
+    },
+    {
+      "id": "runtime.card-ui",
+      "domain": "runtime",
+      "status": "partial",
+      "reference": {
+        "repository": "https://github.com/Lianues/PureTavern",
+        "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+        "license": "AGPL-3.0",
+        "path": "apps/web/src/legacy-hook"
+      },
+      "drawdreamTarget": "src/components/CardHtmlFrame.tsx",
+      "requestSchema": "CardBridgeRequest",
+      "fixtureIds": [
+        "status-placeholder",
+        "card-html-frame"
+      ],
+      "mobile": "partial",
+      "reuse": "clean-room",
+      "fixtureCount": 2,
+      "missingFixtureIds": []
+    }
+  ]
+}

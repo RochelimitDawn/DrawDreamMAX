@@ -5,13 +5,14 @@ import {
   IdCard,
   Layers3,
   MessageSquareText,
+  Puzzle,
   Settings,
 } from 'lucide-react'
 import './Sidebar.css'
 
 type NavItem = {
   to: string
-  key: 'cards' | 'chat' | 'library' | 'forge' | 'settings'
+  key: 'cards' | 'chat' | 'library' | 'forge' | 'settings' | 'extensions'
   icon: typeof IdCard
   end?: boolean
 }
@@ -22,6 +23,7 @@ const items: NavItem[] = [
   { to: '/library', key: 'library', icon: Layers3 },
   { to: '/novel-forge', key: 'forge', icon: BookOpen },
   { to: '/settings', key: 'settings', icon: Settings },
+  { to: '/extensions', key: 'extensions', icon: Puzzle },
 ]
 
 export function Sidebar() {

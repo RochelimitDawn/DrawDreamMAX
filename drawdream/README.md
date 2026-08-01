@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.39`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.40`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,14 +23,14 @@
 
 ## 说明
 
-当前仓库以 `mobile.39` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、角色卡兼容和移动端主流程进行。
+当前仓库以 `mobile.40` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容适配、扩展运行时和移动端主流程进行。
 
 本目录同时包含：
 
 | 路径 | 角色 |
 | --- | --- |
-| `src/` → `dist/` | 手机 WebView 中的 UI（含工坊 `/novel-forge`、资料库 `/library`） |
-| `agent/` | 手机内嵌 Node 上的 Agent 运行时（含 `/api/forge/*`） |
+| `src/` → `dist/` | 手机 WebView 中的 UI（含工坊 `/novel-forge`、资料库 `/library`、扩展 `/extensions`） |
+| `agent/` | 手机内嵌 Node 上的 Agent 运行时（含 `/api/forge/*`、`/api/extensions/*`） |
 | `mobile/` | Android 壳与 runtime 打包 |
 
 三者缺一不可。桌面 `npm run dev` 用于构建 UI 与联调 Agent，**产品主线是 APK**。
@@ -59,6 +59,9 @@ npm run dev
 | `npm run build` | 输出 `dist/` |
 | `npm run start` | 仅启动 Agent |
 | `npm run agent:install` | Agent 依赖 |
+| `npm run release:gate` | 发布门禁：类型、兼容测试、构建、Android 静态检查 |
+| `npm run compat:report` | 生成 PureTavern 兼容矩阵报告 |
+| `npm run bundled-extension:report` | 生成内置扩展兼容报告 |
 | `npm run mobile:prepare` | 组装 runtime + inject |
 | `npm run mobile:smoke` | 桌面冒烟 |
 | `npm run lint` | oxlint |
@@ -106,6 +109,7 @@ drawdream/
 | `/cards/:id` | 详情 | `/api/cards/detail` … |
 | `/chat` | 对话 | WS + 会话 API |
 | `/settings` | 设置 | 渠道 / 模型 / config / 阅读 |
+| `/extensions` | 扩展运行时 | `/api/extensions` + 受控 iframe |
 | `/world-info` | 世界书 | `/api/lorebooks` |
 | `/persona` | 人设 | `/api/personas` |
 | `/presets` | 预设 | `/api/presets` |
@@ -113,28 +117,22 @@ drawdream/
 
 ---
 
-## 本版要点（mobile.39）
+## 本版要点（mobile.40）
 
-- 上下文占用面板从顶部工具栏下方居中展开，避免向上弹出后被裁切
-- 历史侧栏同时保留“导入酒馆”和“新会话”按钮，窄宽度自动换行
-- 角色卡头像增加金色双层头像框、状态光点和图片内框
-- 修复普通消息路径 `loadConfig is not defined` 运行时错误
-- 角色卡 `StatusPlaceHolderImpl` 转换为状态面板并接入世界状态
-- 保留流式中间工具轮内容，避免闪屏、格式回退和回复重复生成
+- PureTavern 兼容适配层：角色卡 / JSONL / 世界书 / 预设 / 生成事件 / Card Runtime / TavernHelper / MVU
+- 扩展 ZIP 安装器与 Legacy API facade；`/extensions` 页面可安装并启动受控 iframe
+- PureTavern 内置扩展 `JS-Slash-Runner` 与 `ST-Prompt-Template` 标为 `runnable`
+- 兼容矩阵报告与 `release:gate` 发布门禁（类型、测试、构建、Android loopback 静态检查）
+- 生成生命周期 `generation start/retry/end` 与严格递增 sequence / sessionRevision
+- 外部模块 HTTPS、声明、显式授权与 card fingerprint 缓存隔离
+- 保留 mobile.39 流式稳定、状态面板与设置页体验修复
 
-- 设置页桌面/平板 Bento 改为稳定章节流，避免长区块和标题跨列折叠
-- 角色卡读取酒馆 `extensions.regex_scripts`，安全应用显示期美化规则
-- 支持从聊天页直接导入 SillyTavern JSONL，保留 MVU、metadata、swipe 和原文 sidecar
-- 统一重复生成防护、RP 流式解析、搜索硬开关、世界时间缓存和搜索结果融合
+兼容文档：
 
-- 设置与资料页采用短说明，移除页级冗余提示和 Agent 在线徽章
-- 移动端上下文占用面板修复为可点击、居中显示
-- 自定义中转始终使用 DrawDream Logo，Toggle 恢复黑白配色
-- 修复助手生成前后滚动与抉择选项 Markdown 加粗渲染
-- 修复角色卡删除后的缓存和文件存在性校验
-- 删除酒馆卡前端美化皮肤及 body.load 依赖
-- ChatComposer 默认 42px，输入内容最多展示约 3 行，超出后内部滚动
-- Android 桌面、通知和启动页统一使用关于页 DrawDream Logo
+- [`docs/sillytavern-compatibility.md`](./docs/sillytavern-compatibility.md)
+- [`docs/puretavern-compatibility-matrix.md`](./docs/puretavern-compatibility-matrix.md)
+- [`docs/puretavern-bundled-extension-report.md`](./docs/puretavern-bundled-extension-report.md)
+- [`docs/puretavern-attribution.md`](./docs/puretavern-attribution.md)
 
 ---
 

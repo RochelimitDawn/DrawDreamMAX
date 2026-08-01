@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "reference": {
+    "repository": "https://github.com/Lianues/PureTavern",
+    "commit": "847c04235a4fa113bef7994929779f7e1eb50871",
+    "license": "AGPL-3.0"
+  },
+  "fixtures": [
+    { "id": "card-v1", "domain": "characters", "file": "card-v1.json" },
+    { "id": "card-v2", "domain": "characters", "file": "card-v2.json" },
+    { "id": "card-v3", "domain": "characters", "file": "card-v3.json" },
+    { "id": "card-png", "domain": "characters", "file": "card-png.json" },
+    { "id": "chat-jsonl-metadata", "domain": "chats", "file": "chat-jsonl-metadata.jsonl" },
+    { "id": "chat-jsonl-swipes", "domain": "chats", "file": "chat-jsonl-swipes.jsonl" },
+    { "id": "world-book-v1", "domain": "world-books", "file": "world-book-v1.json" },
+    { "id": "world-book-embedded", "domain": "world-books", "file": "world-book-embedded.json" },
+    { "id": "preset-post-history", "domain": "presets", "file": "preset-post-history.json" },
+    { "id": "prompt-differential", "domain": "presets", "file": "prompt-differential.json" },
+    { "id": "generation-stream", "domain": "generation", "file": "generation-stream.json" },
+    { "id": "generation-tool-round", "domain": "generation", "file": "generation-tool-round.json" },
+    { "id": "tavernhelper-mvu", "domain": "extensions", "file": "tavernhelper-mvu.json" },
+    { "id": "card-bridge-capabilities", "domain": "extensions", "file": "card-bridge-capabilities.json" },
+    { "id": "asset-relative", "domain": "assets", "file": "asset-relative.json" },
+    { "id": "asset-traversal", "domain": "assets", "file": "asset-traversal.json" },
+    { "id": "chat-jsonl-roundtrip", "domain": "import-export", "file": "chat-jsonl-roundtrip.json" },
+    { "id": "card-png-roundtrip", "domain": "import-export", "file": "card-png-roundtrip.json" },
+    { "id": "event-ordering", "domain": "events", "file": "event-ordering.json" },
+    { "id": "event-generation-lifecycle", "domain": "events", "file": "event-generation-lifecycle.json" },
+    { "id": "status-placeholder", "domain": "runtime", "file": "status-placeholder.json" },
+    { "id": "card-html-frame", "domain": "runtime", "file": "card-html-frame.json" }
+  ]
+}

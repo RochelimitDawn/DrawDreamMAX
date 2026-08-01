@@ -19,6 +19,8 @@ import { handlePresetsRoutes } from "./routes/presets.ts";
 import { handleLoreRoutes } from "./routes/lore.ts";
 import { handleAgentRoutes } from "./routes/agent.ts";
 import { handleForgeRoutes } from "./routes/forge.ts";
+import { handleCompatibilityRoutes } from "./routes/compatibility.ts";
+import { handleExtensionsRoutes } from "./routes/extensions.ts";
 
 type Handler = (ctx: RouteCtx) => Promise<boolean>;
 
@@ -44,6 +46,8 @@ const BY_SEGMENT: Record<string, Handler> = {
 	"models-json": handleAgentRoutes,
 	channels: handleAgentRoutes,
 	config: handleAgentRoutes,
+	compatibility: handleCompatibilityRoutes,
+	extensions: handleExtensionsRoutes,
 };
 
 function pickHandler(urlPath: string): Handler {
@@ -72,6 +76,11 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 		sendJson(res, 404, { error: `未知接口：${route}` });
 		return true;
 	} catch (err) {
+		if (err && typeof err === 'object' && 'toJSON' in err && typeof (err as { toJSON?: unknown }).toJSON === 'function') {
+			const body = (err as { toJSON: () => Record<string, unknown> }).toJSON()
+			sendJson(res, body.code === 'COMPATIBILITY_UNSUPPORTED' ? 404 : 400, body)
+			return true
+		}
 		sendJson(res, 400, { error: err instanceof Error ? err.message : String(err) });
 		return true;
 	}

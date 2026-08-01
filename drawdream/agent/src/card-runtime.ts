@@ -57,11 +57,37 @@ function externalModules(extensions: Record<string, unknown>, diagnostics: Runti
 	collectStrings(extensions, strings);
 	const urls = uniqueStrings(strings.flatMap((value) => value.match(URL_RE) ?? []), MAX_EXTERNAL_MODULES);
 	for (const url of urls) {
+		if (!/^https:\/\//i.test(url)) {
+			diagnostics.push({ code: "external-module-insecure", level: "error", message: `拒绝非 HTTPS 外部模块：${url}`, path: "extensions" });
+			continue;
+		}
 		if (!/\.(?:js|mjs|cjs|ts)(?:[?#]|$)/i.test(url) && !/\/bundle(?:\.min)?\.js(?:[?#]|$)/i.test(url)) {
 			diagnostics.push({ code: "external-resource-unclassified", level: "warning", message: `检测到外部 URL，运行时需要单独确认资源类型：${url}`, path: "extensions" });
 		}
 	}
-	return urls.map((url) => ({ url }));
+	return urls.filter((url) => /^https:\/\//i.test(url)).map((url) => ({ url }));
+}
+
+function entrypoints(extensions: Record<string, unknown>): TavernRuntimeManifest["entrypoints"] {
+	const values: string[] = [];
+	collectStrings(extensions, values);
+	const result = { html: [] as string[], css: [] as string[], javascript: [] as string[] };
+	for (const value of values) {
+		if (/\.(?:html?|htm)(?:[?#]|$)/i.test(value)) result.html.push(value);
+		else if (/\.css(?:[?#]|$)/i.test(value)) result.css.push(value);
+		else if (/\.(?:js|mjs|cjs|ts)(?:[?#]|$)/i.test(value)) result.javascript.push(value);
+	}
+	return {
+		html: uniqueStrings(result.html, 16),
+		css: uniqueStrings(result.css, 16),
+		javascript: uniqueStrings(result.javascript, 16),
+	};
+}
+
+export function mapCardPlaceholder(name: string): { name: string; surface: "state-panel" | "card-ui" } {
+	return /^(?:StatusPlaceHolderImpl|statusplaceholderimpl)$/i.test(name)
+		? { name, surface: "state-panel" }
+		: { name, surface: "card-ui" };
 }
 
 function placeholders(card: CharacterCard): string[] {
@@ -130,6 +156,14 @@ export function buildTavernRuntimeManifest(card: CharacterCard): TavernRuntimeMa
 	return {
 		version: 1,
 		cardFingerprint: fingerprint(card),
+		entrypoints: entrypoints(extensions),
+		uiModules: foundPlaceholders.map((name) => ({ name, placeholder: name, surface: mapCardPlaceholder(name).surface })),
+		csp: {
+			scriptSrc: ["'self'"],
+			styleSrc: ["'self'", "'unsafe-inline'"],
+			connectSrc: ["'self'", ...modules.map((module) => new URL(module.url).origin)],
+		},
+		mobile: { supported: true, safeArea: true, responsiveHeight: true, touchEvents: true },
 		requiredCapabilities: requiredCapabilities(card, scripts, modules, foundPlaceholders),
 		regexScripts: (card.compat?.regexScripts ?? []).map((script: CardRegexScript) => ({ ...script, placement: [...script.placement], trimStrings: [...script.trimStrings] })),
 		extensionScripts: scripts,

@@ -19,6 +19,20 @@ test('TavernEventBus emits ordered events and supports unsubscribe', async () =>
   assert.equal(bus.revision, 2)
 })
 
+test('TavernEventBus maintains strict sequence and non-decreasing revisions', async () => {
+  const bus = new TavernEventBus()
+  const events: Array<{ sequence: number; revision: number }> = []
+  bus.on('generation_started', (event) => events.push({ sequence: event.sequence, revision: event.sessionRevision }))
+  bus.on('generation_ended', (event) => events.push({ sequence: event.sequence, revision: event.sessionRevision }))
+
+  await bus.emit('generation_started', { generationId: 'g1' }, 4)
+  await bus.emit('generation_ended', { generationId: 'g1', outcome: 'completed' }, 4)
+  await bus.emit('generation_started', { generationId: 'g2' })
+
+  assert.deepEqual(events.map((event) => event.sequence), [1, 2, 3])
+  assert.deepEqual(events.map((event) => event.revision), [4, 4, 5])
+})
+
 test('MvuStoreController commits nested operations with revisions', () => {
   const store = new MvuStoreController('session-1', {
     chat: { score: 2, tags: ['initial'] },

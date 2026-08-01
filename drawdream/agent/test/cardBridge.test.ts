@@ -10,6 +10,7 @@ import {
 	parseCardBridgeMessage,
 	clampCardBridgeHeight,
 	cardBridgeBootstrapScript,
+	cardFrameViewportStyle,
 } from "../../src/utils/cardBridge.ts";
 
 test("parse send canonical", () => {
@@ -122,4 +123,12 @@ test("controlled DOM and asset requests require explicit capabilities", () => {
 	const script = cardBridgeBootstrapScript({ capabilities: ["card.ui", "assets.read"] });
 	assert.ok(script.includes("resolveAsset"));
 	assert.ok(script.includes("TavernFrame.dom"));
+});
+
+test("card iframe viewport style enables safe-area and touch behavior", () => {
+	assert.deepEqual(cardFrameViewportStyle({ safeArea: true, touchEvents: true }), {
+		touchAction: "manipulation",
+		paddingBottom: "env(safe-area-inset-bottom)",
+	});
+	assert.deepEqual(cardFrameViewportStyle(), {});
 });

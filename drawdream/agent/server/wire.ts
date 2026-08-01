@@ -216,16 +216,26 @@ export type ServerFrame =
 	  }
 	| { type: "message"; message: WireMsg; sequence?: number; sessionRevision?: number }
 	| { type: "delta"; kind: "text" | "thinking"; delta: string; sequence?: number; sessionRevision?: number }
+	| {
+			type: "generation";
+			generationId: string;
+			phase: "start" | "retry" | "end";
+			outcome?: "completed" | "aborted" | "failed";
+			attempt?: number;
+			error?: string;
+			sequence?: number;
+			sessionRevision?: number;
+	  }
 	/** 丢弃当前流式半成品（中间 tool 轮被过滤后，避免计划旁白叠进下一轮 / 误落本地气泡） */
-	| { type: "stream"; state: "clear" }
-	| { type: "agent"; state: "start" | "end" }
-	| { type: "activity"; activity: WireActivity }
-	| { type: "state"; state: WorldState }
+	| { type: "stream"; state: "clear"; sequence?: number; sessionRevision?: number }
+	| { type: "agent"; state: "start" | "end"; sequence?: number; sessionRevision?: number }
+	| { type: "activity"; activity: WireActivity; sequence?: number; sessionRevision?: number }
+	| { type: "state"; state: WorldState; sequence?: number; sessionRevision?: number }
 	/** agent 自建面板变化（panel_write/close 落盘、rewind 回退）：活跃面板全量推送（同 state 的 fs.watch 机制） */
-	| { type: "panels"; panels: RpPanel[] }
-	| { type: "stats"; stats: WireStats }
-	| { type: "notify"; level: "info" | "warning" | "error"; text: string }
-	| { type: "compaction"; state: "start" | "end"; ok?: boolean }
+	| { type: "panels"; panels: RpPanel[]; sequence?: number; sessionRevision?: number }
+	| { type: "stats"; stats: WireStats; sequence?: number; sessionRevision?: number }
+	| { type: "notify"; level: "info" | "warning" | "error"; text: string; sequence?: number; sessionRevision?: number }
+	| { type: "compaction"; state: "start" | "end"; ok?: boolean; sequence?: number; sessionRevision?: number }
 	| { type: "sessions"; list: WireSessionInfo[] }
 	/** 剧情决策询问（ask_director 停笔）：前端渲染选择卡，等用户应答 */
 	| { type: "choice"; id: string; question: string; options: string[]; placeholder?: string }
@@ -257,7 +267,7 @@ export type ServerFrame =
 			error?: string;
 			updatedAt: number;
 	  }
-	| { type: "error"; text: string };
+	| { type: "error"; text: string; sequence?: number; sessionRevision?: number };
 
 /** Client → Server 帧 */
 export type ClientFrame =

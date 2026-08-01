@@ -5,6 +5,8 @@ import type { JsonObject, MvuSchema, TavernActivity, TavernContext, TavernMessag
 import type { CardBridgeRequest } from '../utils/cardBridge'
 import { resolveCardAsset } from './card-assets'
 import { modulePermission } from './module-policy'
+import { unavailableRuntimeCapability } from './compat/errors'
+import { filterTavernEvents, normalizeTavernSlashCommand } from './compat/tavern-helper'
 
 function jsonObject(value: unknown): JsonObject {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
@@ -79,8 +81,11 @@ export class TavernRuntimeAdapter {
       case 'variables.get': {
         const payload = jsonObject(request.payload)
         const snapshot = this.variables.snapshot()
-        const scope = payload.scope === 'global' ? snapshot.global : payload.scope === 'message' ? snapshot.messages[String(payload.messageId ?? '')] ?? {} : snapshot.chat
-        return { scope: payload.scope ?? 'chat', revision: snapshot.revisions[String(payload.scope ?? 'chat')] ?? 0, value: scope }
+        const scopeName = payload.scope === 'global' || payload.scope === 'message' ? payload.scope : 'chat'
+        const messageId = String(payload.messageId ?? '')
+        const scope = scopeName === 'global' ? snapshot.global : scopeName === 'message' ? snapshot.messages[messageId] ?? {} : snapshot.chat
+        const revisionKey = scopeName === 'message' ? `message:${messageId}` : scopeName
+        return { scope: scopeName, revision: snapshot.revisions[revisionKey] ?? 0, value: scope }
       }
       case 'variables.patch': {
         const transaction = request.payload as VariableTransaction
@@ -165,13 +170,22 @@ export class TavernRuntimeAdapter {
         return { accepted }
       }
       case 'event.subscribe':
-        return { subscribed: true, events: jsonObject(request.payload).events ?? [] }
-      case 'slash.execute':
-        throw new Error('Slash commands require the Tavern Kernel command adapter')
+        {
+          const requested = jsonObject(request.payload).events
+          return { subscribed: true, events: filterTavernEvents(requested) }
+        }
+      case 'slash.execute': {
+        const parsed = normalizeTavernSlashCommand(String(jsonObject(request.payload).command ?? ''))
+        if (!parsed) {
+          throw unavailableRuntimeCapability('slash.execute', 'Use one of /reroll, /rewind, /compact, /branch, /store, /greeting, /swipe')
+        }
+        if (!sessionStore.command(parsed.command)) throw new Error('当前会话无法执行命令')
+        return { accepted: true, command: parsed.command }
+      }
       case 'frame.resize':
         return { accepted: true }
       default:
-        throw new Error(`Tavern Bridge request is not implemented: ${request.type}`)
+        throw unavailableRuntimeCapability(request.type, 'Use the documented TavernFrame or TavernHelper methods')
     }
   }
 }

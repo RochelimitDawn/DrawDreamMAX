@@ -9,6 +9,7 @@ import {
   type CardBridgeRequest,
 } from '../utils/cardBridge'
 import { tavernRuntime } from '../tavern/runtime-adapter'
+import type { TavernRuntimeManifest } from '../agent/rest'
 
 export type CardHtmlFrameProps = {
   html: string
@@ -19,6 +20,7 @@ export type CardHtmlFrameProps = {
   frameId?: string
   capabilityToken?: string
   onBridgeRequest?: (request: CardBridgeRequest) => unknown | Promise<unknown>
+  runtimeManifest?: TavernRuntimeManifest | null
 }
 
 /**
@@ -33,23 +35,35 @@ export function CardHtmlFrame({
   frameId,
   capabilityToken,
   onBridgeRequest,
+  runtimeManifest,
 }: CardHtmlFrameProps) {
   const ref = useRef<HTMLIFrameElement>(null)
   const generatedId = useId()
   const effectiveFrameId = frameId ?? `card-${generatedId}`
   const effectiveCapabilityToken = capabilityToken ?? `token-${generatedId}`
+  const effectiveCapabilities = useMemo(() => {
+    const declared = runtimeManifest?.requiredCapabilities ?? []
+    return [...new Set([...capabilities, ...declared])].filter((capability): capability is CardBridgeCapability => [
+      'context.read', 'variables.read', 'variables.write', 'messages.send', 'messages.update',
+      'events.subscribe', 'assets.read', 'card.ui', 'external.module', 'slash.execute',
+    ].includes(capability))
+  }, [capabilities, runtimeManifest?.requiredCapabilities])
 
   const srcDoc = useMemo(() => {
     const base = `<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden;color:inherit;font:inherit}img{max-width:100%}</style>`
-     const boot = scripts ? cardBridgeBootstrapScript({ frameId: effectiveFrameId, capabilityToken: effectiveCapabilityToken, capabilities }) : ''
+     const csp = runtimeManifest?.csp
+       ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${runtimeManifest.csp.scriptSrc.join(' ')}; style-src ${runtimeManifest.csp.styleSrc.join(' ')}; connect-src ${runtimeManifest.csp.connectSrc.join(' ')}; img-src 'self' data:;">`
+       : ''
+     const boot = scripts ? cardBridgeBootstrapScript({ frameId: effectiveFrameId, capabilityToken: effectiveCapabilityToken, cardFingerprint: runtimeManifest?.cardFingerprint, capabilities: effectiveCapabilities }) : ''
     if (/^\s*<(!doctype|html)\b/i.test(html)) {
-      if (!scripts) return html
-      if (/<\/body\s*>/i.test(html)) return html.replace(/<\/body\s*>/i, `${boot}</body>`)
-      if (/<\/html\s*>/i.test(html)) return html.replace(/<\/html\s*>/i, `${boot}</html>`)
-      return `${html}${boot}`
+       if (!scripts) return csp ? html.replace(/<head([^>]*)>/i, `<head$1>${csp}`) : html
+       const withCsp = csp ? html.replace(/<head([^>]*)>/i, `<head$1>${csp}`) : html
+       if (/<\/body\s*>/i.test(withCsp)) return withCsp.replace(/<\/body\s*>/i, `${boot}</body>`)
+       if (/<\/html\s*>/i.test(withCsp)) return withCsp.replace(/<\/html\s*>/i, `${boot}</html>`)
+       return `${withCsp}${boot}`
     }
-    return `<!DOCTYPE html><html><head><meta charset="utf-8"/>${base}</head><body>${html}${boot}</body></html>`
-  }, [html, scripts, effectiveFrameId, effectiveCapabilityToken, capabilities])
+     return `<!DOCTYPE html><html><head><meta charset="utf-8"/>${csp}${base}</head><body>${html}${boot}</body></html>`
+  }, [html, scripts, effectiveFrameId, effectiveCapabilityToken, effectiveCapabilities, runtimeManifest?.csp])
 
   // 高度自适应
   useEffect(() => {
@@ -59,7 +73,8 @@ export function CardHtmlFrame({
     const onMessage = async (event: MessageEvent<unknown>) => {
       if (event.source !== el.contentWindow) return
       const request = parseCardBridgeRequest(event.data)
-      if (!request || request.frameId !== effectiveFrameId || request.capabilityToken !== effectiveCapabilityToken) return
+       if (!request || request.frameId !== effectiveFrameId || request.capabilityToken !== effectiveCapabilityToken) return
+       if (runtimeManifest?.cardFingerprint && request.cardFingerprint !== runtimeManifest.cardFingerprint) return
       const required = requiredCapabilityForRequest(request.type)
       if (required && !capabilities.includes(required)) {
         el.contentWindow?.postMessage(createCardBridgeResponse(request, { ok: false, error: `Capability denied: ${required}` }), '*')
@@ -148,7 +163,7 @@ export function CardHtmlFrame({
       el.removeEventListener('load', fit)
       window.clearTimeout(t)
     }
-  }, [srcDoc, effectiveFrameId, effectiveCapabilityToken, capabilities, onBridgeRequest])
+  }, [srcDoc, effectiveFrameId, effectiveCapabilityToken, effectiveCapabilities, onBridgeRequest])
 
 
   return (
@@ -158,13 +173,15 @@ export function CardHtmlFrame({
       title={title}
       sandbox={scripts ? 'allow-scripts' : ''}
       srcDoc={srcDoc}
-      style={{
+       style={{
         width: '100%',
         border: 0,
         display: 'block',
         minHeight: 48,
-        background: 'transparent',
-      }}
+         background: 'transparent',
+         touchAction: runtimeManifest?.mobile.touchEvents ? 'manipulation' : undefined,
+         paddingBottom: runtimeManifest?.mobile.safeArea ? 'env(safe-area-inset-bottom)' : undefined,
+       }}
     />
   )
 }

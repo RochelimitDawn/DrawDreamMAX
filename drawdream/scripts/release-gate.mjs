@@ -19,9 +19,10 @@ assert(Number(process.versions.node.split('.')[0]) >= 22, 'Node.js 22 or newer i
 assert(existsSync(join(root, 'dist', 'index.html')), 'frontend dist/index.html is missing; build must run first')
 
 run('npx', ['tsc', '--noEmit'], agent)
-run('node', ['--test', 'test/card.test.ts', 'test/cardBridge.test.ts', 'test/tavern-prompt.test.ts', 'test/tavern-runtime-adapter.test.ts', 'test/swipe.test.ts', 'test/hybrid-extension.test.ts'], agent)
+run('node', ['--test', 'test/card.test.ts', 'test/cardBridge.test.ts', 'test/tavern-prompt.test.ts', 'test/tavern-runtime-adapter.test.ts', 'test/swipe.test.ts', 'test/hybrid-extension.test.ts', 'test/compat-report.test.ts', 'test/mobile-policy.test.ts', 'test/mobile-android-static.test.ts', 'test/bundled-extensions.test.ts', 'test/extension-installer.test.ts', 'test/legacy-api.test.ts', 'test/extension-runtime-contract.test.ts'], agent)
 run('npm', ['run', 'build'], codingAgent)
 run('npm', ['run', 'build'], root)
+run('npm', ['run', 'compat:report'], root)
 run('git', ['diff', '--check'], root)
 
 const androidMain = readFileSync(join(root, 'mobile/android/app/src/main/java/com/drawdream/app/MainActivity.kt'), 'utf8')
@@ -36,5 +37,13 @@ assert(!bridge.includes('eval('), 'Card Bridge must not expose eval')
 const assets = readFileSync(join(root, 'src/tavern/card-assets.ts'), 'utf8')
 assert(assets.includes("Only HTTPS external assets are allowed"), 'external assets must require HTTPS')
 assert(assets.includes("path escapes card workspace"), 'asset path traversal guard is missing')
+
+const report = JSON.parse(readFileSync(join(root, 'docs/puretavern-compatibility-matrix.json'), 'utf8'))
+assert(report.version === 1, 'compatibility matrix report version is missing')
+assert(report.totals.coveredContracts === report.totals.contracts, 'compatibility matrix has uncovered contracts')
+
+const fixtureManifest = JSON.parse(readFileSync(join(root, 'fixtures/puretavern/manifest.json'), 'utf8'))
+assert(fixtureManifest.reference?.license === 'AGPL-3.0', 'PureTavern fixture license reference is missing')
+assert(fixtureManifest.fixtures?.length >= 20, 'PureTavern fixture manifest is incomplete')
 
 process.stdout.write('\n[gate] release gate passed; Android device and offline-cache tests require a real Android runtime.\n')

@@ -1,7 +1,7 @@
 {
   "name": "drawdream",
   "private": true,
-  "version": "2.0.0-alpha.1-mobile.39",
+  "version": "2.0.0-alpha.1-mobile.40",
   "type": "module",
   "description": "DrawDreamMAX Alpha 2.0 — UI + embedded DrawDream Agent (port 7620)",
   "scripts": {
@@ -9,6 +9,8 @@
     "dev:watch": "VITE_WATCH=1 node scripts/run-dev.mjs",
     "agent:install": "npm --prefix agent install",
     "build": "tsc -b && vite build",
+    "compat:report": "node scripts/compat-report.mjs",
+    "bundled-extension:report": "node scripts/bundled-extension-report.mjs",
     "release:gate": "node scripts/release-gate.mjs",
     "start": "node scripts/run-start.mjs",
     "lint": "oxlint",

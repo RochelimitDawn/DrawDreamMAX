@@ -21,7 +21,7 @@ export function resolveCardAsset(request: CardAssetRequest, _workspaceRoot: stri
     if (!allowed) throw new Error('External asset is not declared by the card')
     return { path, url: path, kind: 'external' }
   }
-  const normalized = path.replace(/^\.\//, '')
+  const normalized = path.replace(/^\.\//, '').replace(/\\/g, '/')
   if (normalized.startsWith('/') || normalized.split('/').includes('..')) throw new Error('Asset path escapes card workspace')
   const cardRoot = request.cardPath ? request.cardPath.split('/').slice(0, -1).join('/') : ''
   if (!/^assets\//i.test(normalized) && !request.cardPath) throw new Error('Local asset is outside assets')

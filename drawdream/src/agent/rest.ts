@@ -482,6 +482,14 @@ export interface RuntimeDiagnostic {
 export interface TavernRuntimeManifest {
   version: 1
   cardFingerprint: string
+  entrypoints: {
+    html: string[]
+    css: string[]
+    javascript: string[]
+  }
+  uiModules: Array<{ name: string; placeholder: string; surface: 'state-panel' | 'card-ui' }>
+  csp: { scriptSrc: string[]; styleSrc: string[]; connectSrc: string[] }
+  mobile: { supported: boolean; safeArea: boolean; responsiveHeight: boolean; touchEvents: boolean }
   requiredCapabilities: string[]
   regexScripts: Array<{
     id: string
@@ -508,6 +516,25 @@ export interface CardRuntimeResponse {
   manifest: TavernRuntimeManifest
   grantedModules?: string[]
 }
+
+export interface CompatibilityContractResponse {
+  version: 1
+  contract: {
+    id: string
+    domain: string
+    status: 'supported' | 'partial' | 'fixture-covered' | 'unsupported'
+    drawdreamTarget: string
+    fixtureIds: string[]
+    mobile: 'supported' | 'partial' | 'unsupported'
+    reuse: 'clean-room' | 'adapted-with-notice' | 'pending-review'
+  }
+}
+
+export const compatibilityContracts = () =>
+  apiGet<{ version: 1; contracts: CompatibilityContractResponse['contract'][]; reference: { repository: string; commit: string; license: string } }>('/api/compatibility/contracts')
+
+export const compatibilityContract = (id: string) =>
+  apiGet<CompatibilityContractResponse>(`/api/compatibility/contract?id=${encodeURIComponent(id)}`)
 
 export interface ChannelPublic {
   name: string

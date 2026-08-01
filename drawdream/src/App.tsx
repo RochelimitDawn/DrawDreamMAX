@@ -10,6 +10,7 @@ import { WorldInfoPage } from './pages/WorldInfo'
 import { PersonaPage } from './pages/Persona'
 import { PresetsPage } from './pages/Presets'
 import { NovelForgePage } from './pages/NovelForge'
+import { ExtensionsPage } from './pages/Extensions'
 import { LibraryPage } from './pages/Library'
 import { AuthProvider } from './auth/AuthContext'
 import { AuthGate } from './auth/AuthGate'
@@ -44,6 +45,7 @@ function AppShell() {
             <Route path="/persona" element={<PersonaPage />} />
             <Route path="/presets" element={<PresetsPage />} />
             <Route path="/novel-forge" element={<NovelForgePage />} />
+            <Route path="/extensions" element={<ExtensionsPage />} />
             <Route path="/profile" element={<Navigate to="/settings" replace />} />
             <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="/register" element={<Navigate to="/" replace />} />

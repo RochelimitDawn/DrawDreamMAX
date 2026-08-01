@@ -153,7 +153,7 @@ class MainActivity : AppCompatActivity() {
         ws.loadWithOverviewMode = true
         ws.useWideViewPort = true
         ws.mediaPlaybackRequiresUserGesture = false
-        ws.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+        ws.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
         ws.cacheMode = WebSettings.LOAD_DEFAULT
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ws.safeBrowsingEnabled = true

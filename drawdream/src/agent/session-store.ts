@@ -86,6 +86,13 @@ export type SessionSnapshot = {
   assistant: AssistantSnapshot
   sessionRevision: number
   eventSequence: number
+  generation: {
+    id: string
+    phase: 'start' | 'retry' | 'end'
+    outcome?: 'completed' | 'aborted' | 'failed'
+    attempt?: number
+    error?: string
+  } | null
 }
 
 type Listener = () => void
@@ -147,6 +154,7 @@ function createInitial(): SessionSnapshot {
     assistant: emptyAssistant(),
     sessionRevision: 0,
     eventSequence: 0,
+    generation: null,
   }
 }
 
@@ -329,6 +337,13 @@ class SessionStore {
   }
 
   private onFrame(frame: ServerFrame) {
+    if (frame.type !== 'hello' && 'sequence' in frame && frame.sequence != null) {
+      if (frame.sequence <= this.snap.eventSequence) return
+      this.patch({
+        eventSequence: frame.sequence,
+        ...(frame.sessionRevision != null ? { sessionRevision: frame.sessionRevision } : {}),
+      })
+    }
     switch (frame.type) {
       case 'hello': {
         this.promptPending = false
@@ -392,6 +407,21 @@ class SessionStore {
           messages: [...rest, b],
           busy: false,
           ...(canHangActs ? { activities: [] } : {}),
+        })
+        break
+      }
+      case 'generation': {
+        this.patch({
+          generation:
+            frame.phase === 'start'
+              ? { id: frame.generationId, phase: 'start' }
+              : {
+                  id: frame.generationId,
+                  phase: frame.phase,
+                  ...(frame.outcome ? { outcome: frame.outcome } : {}),
+                  ...(frame.attempt != null ? { attempt: frame.attempt } : {}),
+                  ...(frame.error ? { error: frame.error } : {}),
+                },
         })
         break
       }

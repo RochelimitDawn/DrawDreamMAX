@@ -313,9 +313,7 @@ const broadcast = (frame: ServerFrame) => {
 	const enriched =
 		frame.type === "hello"
 			? { ...frame, sequence, sessionRevision: revision }
-			: frame.type === "message" || frame.type === "delta"
-				? { ...frame, sequence, sessionRevision: revision }
-				: frame;
+			: { ...frame, sequence, sessionRevision: revision };
 	const data = JSON.stringify(enriched);
 	for (const ws of clients) {
 		if (ws.readyState === ws.OPEN) ws.send(data);

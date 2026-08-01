@@ -34,7 +34,7 @@
 | **代码结构** | `mobile` 壳 + **同一套** React UI + DrawDream Agent |
 | **入口端口** | **7620**（`/*` UI · `/api/*` REST · `/ws` Wire） |
 | **LLM** | 云端 API（壳内不内嵌模型权重） |
-| **当前发布版本** | `v2.0.0-alpha.1-mobile.33` |
+| **当前发布版本** | `v2.0.0-alpha.1-mobile.40` |
 
 > 仓库**只维护移动端主线**。`drawdream/src`（UI）与 `drawdream/agent`（运行时）是 APK 的必要组成部分，属于本地 Node 运行时之上的 Web UI 层，**请勿当作「可删的网页产品」拆除**。桌面 `npm run dev` 仅用于开发构建与联调。
 
@@ -61,7 +61,7 @@
 | 世界线 | `/store` 钉存档 · `/back` 回档 · `/line` 全景 |
 | 双 Agent | 剧情只写剧情；助手侧栏管配置与诊断 |
 | 单机模式 | `DD_AUTH_MODE=single`，APK 内静默本地会话、无账号门闩 |
-| 生态兼容 | 角色卡 / 世界书 / 聊天记录导入；预设转换器 |
+| 生态兼容 | 角色卡 / 世界书 / 聊天记录导入；预设转换器；PureTavern 兼容适配与扩展运行时 |
 
 ---
 
@@ -98,12 +98,12 @@ flowchart LR
 3. 启动后先使用旧 runtime 进入界面，再后台准备新 runtime 并完成健康检查
 4. **设置 → API** 配置云端 Key 与模型后即可开聊
 
-当前仓库以 `v2.0.0-alpha.1-mobile.33` 作为移动端发布版本，采用清理后的单一主线。
+当前仓库以 `v2.0.0-alpha.1-mobile.40` 作为移动端发布版本，采用清理后的单一主线。
 
-mobile.33 APK：
+mobile.40 APK：
 
 ```bash
-https://github.com/RochelimitDawn/DrawDreamMAX/releases/tag/v2.0.0-alpha.1-mobile.33
+https://github.com/RochelimitDawn/DrawDreamMAX/releases/tag/v2.0.0-alpha.1-mobile.40
 ```
 
 远程仓库策略：默认分支仅 **`main`**；发布版本使用 `v2.0.0-alpha.1-mobile.N` 标签，GitHub Release 保留当前交付版本。
@@ -241,21 +241,17 @@ DrawDreamMAX/
 | --- | --- |
 | 产品 | **Alpha 2.0** |
 | 包 | `2.0.0-alpha.1` |
-| 当前 Release | **`v2.0.0-alpha.1-mobile.30`** |
+| 当前 Release | **`v2.0.0-alpha.1-mobile.40`** |
 | Agent | DrawDream Agent（手机内嵌 Node） |
 
-### mobile.30 要点
+### mobile.40 要点
 
-- 设置与资料页完成文案精简，移除注入说明、在线徽章和冗余页级提示
-- 移动端上下文占用面板修复为可点击、居中显示
-- 自定义中转渠道始终使用 DrawDream Logo，不受模型 ID 覆盖
-- Toggle 恢复黑白配色
-- 修复助手生成前后滚动，以及抉择选项 Markdown 加粗渲染
-- 修复角色卡删除后的缓存和文件存在性校验
-- 删除酒馆卡前端美化皮肤及 body.load 依赖
-- ChatComposer 空闲高度收紧到 42px，输入内容最多展示约 3 行
-- Android 壳桌面、通知和启动页 Logo 改为透明底资源
-- 继承 mobile.29：设置精简、接口地址预览、ChatComposer 和透明 Logo 资源
+- PureTavern 兼容适配：角色卡 / JSONL / 世界书 / 预设 / 生成事件 / Card Runtime / TavernHelper / MVU
+- 扩展 ZIP 安装器、`/extensions` 页面、受控 iframe 与 Legacy API facade
+- PureTavern 内置扩展酒馆助手与 Prompt Template 标为 `runnable`
+- 兼容矩阵报告与 `npm run release:gate` 发布门禁
+- 生成生命周期、外部模块 HTTPS/授权/fingerprint 隔离
+- 继承 mobile.39：流式稳定、状态面板、设置页体验修复
 
 ---
 

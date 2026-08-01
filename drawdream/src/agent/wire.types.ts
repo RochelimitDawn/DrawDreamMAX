@@ -145,14 +145,24 @@ export type ServerFrame =
     }
   | { type: 'message'; message: WireMsg; sequence?: number; sessionRevision?: number }
   | { type: 'delta'; kind: 'text' | 'thinking'; delta: string; sequence?: number; sessionRevision?: number }
-  | { type: 'stream'; state: 'clear' }
-  | { type: 'agent'; state: 'start' | 'end' }
-  | { type: 'activity'; activity: WireActivity }
-  | { type: 'state'; state: WorldState }
-  | { type: 'panels'; panels: RpPanel[] }
-  | { type: 'stats'; stats: WireStats }
-  | { type: 'notify'; level: 'info' | 'warning' | 'error'; text: string }
-  | { type: 'compaction'; state: 'start' | 'end'; ok?: boolean }
+  | {
+      type: 'generation'
+      generationId: string
+      phase: 'start' | 'retry' | 'end'
+      outcome?: 'completed' | 'aborted' | 'failed'
+      attempt?: number
+      error?: string
+      sequence?: number
+      sessionRevision?: number
+    }
+  | { type: 'stream'; state: 'clear'; sequence?: number; sessionRevision?: number }
+  | { type: 'agent'; state: 'start' | 'end'; sequence?: number; sessionRevision?: number }
+  | { type: 'activity'; activity: WireActivity; sequence?: number; sessionRevision?: number }
+  | { type: 'state'; state: WorldState; sequence?: number; sessionRevision?: number }
+  | { type: 'panels'; panels: RpPanel[]; sequence?: number; sessionRevision?: number }
+  | { type: 'stats'; stats: WireStats; sequence?: number; sessionRevision?: number }
+  | { type: 'notify'; level: 'info' | 'warning' | 'error'; text: string; sequence?: number; sessionRevision?: number }
+  | { type: 'compaction'; state: 'start' | 'end'; ok?: boolean; sequence?: number; sessionRevision?: number }
   | { type: 'sessions'; list: WireSessionInfo[] }
   | { type: 'choice'; id: string; question: string; options: string[]; placeholder?: string }
   | { type: 'choice_resolved'; id: string; answer?: string; stopped?: boolean }
@@ -180,7 +190,7 @@ export type ServerFrame =
       failedStage?: string
       updatedAt: number
     }
-  | { type: 'error'; text: string }
+  | { type: 'error'; text: string; sequence?: number; sessionRevision?: number }
 
 export type ClientFrame =
   | { type: 'prompt'; text: string; webSearch?: boolean }

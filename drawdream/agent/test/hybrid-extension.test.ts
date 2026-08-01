@@ -18,3 +18,10 @@ test("Headless Extension Host enforces capabilities and unloads", async () => {
 	assert.equal(await host.unregister("safe"), true);
 	assert.equal(unloaded, true);
 });
+
+test("Headless Extension Host rolls back a failed load", async () => {
+
+	const host = new HeadlessExtensionHost();
+	await assert.rejects(() => host.register({ id: "broken", capabilities: [], onLoad: () => { throw new Error("load failed"); } }, []), /load failed/);
+	assert.deepEqual(host.list(), []);
+});

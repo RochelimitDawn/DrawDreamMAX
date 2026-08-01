@@ -57,6 +57,14 @@ export interface RuntimeDiagnostic {
 export interface TavernRuntimeManifest {
 	version: 1;
 	cardFingerprint: string;
+	entrypoints: {
+		html: string[];
+		css: string[];
+		javascript: string[];
+	};
+	uiModules: Array<{ name: string; placeholder: string; surface: "state-panel" | "card-ui" }>;
+	csp: { scriptSrc: string[]; styleSrc: string[]; connectSrc: string[] };
+	mobile: { supported: boolean; safeArea: boolean; responsiveHeight: boolean; touchEvents: boolean };
 	requiredCapabilities: string[];
 	regexScripts: CardRegexScript[];
 	extensionScripts: Record<string, unknown>[];

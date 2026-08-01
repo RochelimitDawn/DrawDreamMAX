@@ -45,6 +45,7 @@ export type CardBridgeRequest = {
   version: typeof CARD_BRIDGE_VERSION
   frameId: string
   capabilityToken: string
+  cardFingerprint?: string
   requestId: string
   type: CardBridgeRequestType
   payload?: unknown
@@ -122,6 +123,7 @@ export function parseCardBridgeRequest(data: unknown): CardBridgeRequest | null 
     version: CARD_BRIDGE_VERSION,
     frameId: record.frameId,
     capabilityToken: record.capabilityToken,
+    ...(typeof record.cardFingerprint === 'string' ? { cardFingerprint: record.cardFingerprint } : {}),
     requestId: record.requestId,
     type: record.type as CardBridgeRequestType,
     ...(Object.prototype.hasOwnProperty.call(record, 'payload') ? { payload: record.payload } : {}),
@@ -164,20 +166,23 @@ export function requiredCapabilityForRequest(type: CardBridgeRequestType): CardB
 export function cardBridgeBootstrapScript(options: {
   frameId?: string
   capabilityToken?: string
+  cardFingerprint?: string
   capabilities?: CardBridgeCapability[]
 } = {}): string {
   const frameId = options.frameId ?? 'card-frame'
   const capabilityToken = options.capabilityToken ?? 'card-token'
+  const cardFingerprint = options.cardFingerprint ?? ''
   const capabilities = options.capabilities ?? []
   return `<script>(function(){try{
  var S=${JSON.stringify(CARD_BRIDGE_SOURCE)};
  var P=${JSON.stringify(CARD_BRIDGE_PROTOCOL)};
  var V=${CARD_BRIDGE_VERSION};
  var F=${JSON.stringify(frameId)};
- var T=${JSON.stringify(capabilityToken)};
+  var T=${JSON.stringify(capabilityToken)};
+  var K=${JSON.stringify(cardFingerprint)};
  var C=${JSON.stringify(capabilities)};
  var seq=0;var pending={};var listeners={};
- function post(p){try{parent.postMessage(Object.assign({source:S,protocol:P,version:V,frameId:F,capabilityToken:T},p),'*')}catch(e){}}
+  function post(p){try{parent.postMessage(Object.assign({source:S,protocol:P,version:V,frameId:F,capabilityToken:T,cardFingerprint:K},p),'*')}catch(e){}}
  function request(type,payload){var requestId=F+'-'+(++seq);post({type:type,requestId:requestId,payload:payload});return new Promise(function(resolve,reject){pending[requestId]={resolve:resolve,reject:reject};});}
  window.addEventListener('message',function(event){var d=event.data||{};if(d.protocol===P&&d.version===V&&d.frameId===F&&d.requestId&&pending[d.requestId]){var p=pending[d.requestId];delete pending[d.requestId];d.ok?p.resolve(d.value):p.reject(new Error(d.error||'Tavern bridge request failed'));return;}if(d.protocol===P&&d.version===V&&d.frameId===F&&d.type==='event'){(listeners[d.event]||[]).forEach(function(fn){try{fn(d.payload,d)}catch(e){}});}});
  function on(event,fn){(listeners[event]||(listeners[event]=[])).push(fn);if(listeners[event].length===1){request('event.subscribe',{events:[event]}).catch(function(){});}return function(){listeners[event]=(listeners[event]||[]).filter(function(x){return x!==fn;});};}
@@ -218,4 +223,14 @@ export function cardBridgeBootstrapScript(options: {
 export function clampCardBridgeHeight(height: number): number {
   if (!Number.isFinite(height) || height <= 0) return CARD_BRIDGE_MIN_HEIGHT
   return Math.min(CARD_BRIDGE_MAX_HEIGHT, Math.max(CARD_BRIDGE_MIN_HEIGHT, Math.round(height)))
+}
+
+export function cardFrameViewportStyle(options: { safeArea?: boolean; touchEvents?: boolean } = {}): {
+  touchAction?: 'manipulation'
+  paddingBottom?: string
+} {
+  return {
+    ...(options.touchEvents ? { touchAction: 'manipulation' as const } : {}),
+    ...(options.safeArea ? { paddingBottom: 'env(safe-area-inset-bottom)' } : {}),
+  }
 }
