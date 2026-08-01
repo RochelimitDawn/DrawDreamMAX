@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
-import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, join, normalize, relative } from 'node:path'
+import { inflateRawSync } from 'node:zlib'
 import type { BundledExtensionCompatibility } from './tavern/compat/bundled-extensions.ts'
 
 const MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
@@ -21,9 +21,57 @@ export type InstalledExtension = {
   archiveSha256: string
 }
 
+type ZipEntry = { name: string; offset: number; comp: number; csize: number; usize: number }
+
+function readU16(buf: Buffer, off: number): number { return buf.readUInt16LE(off) }
+function readU32(buf: Buffer, off: number): number { return buf.readUInt32LE(off) }
+
+function parseZipEntries(buf: Buffer): ZipEntry[] {
+  // Find EOCD signature (PK\x05\x06) from end
+  const eocdSig = Buffer.from([0x50, 0x4b, 0x05, 0x06])
+  let eocdPos = -1
+  for (let i = buf.length - 22; i >= 0 && eocdPos < 0; i--) {
+    if (buf[i] === 0x50 && buf.subarray(i, i + 4).equals(eocdSig)) eocdPos = i
+  }
+  if (eocdPos < 0) throw new Error('Not a valid ZIP archive (no EOCD)')
+  const cdOff = readU32(buf, eocdPos + 16)
+  const cdCount = readU16(buf, eocdPos + 10)
+  if (cdCount > MAX_FILES) throw new Error(`ZIP archive has too many files: ${cdCount}`)
+  const entries: ZipEntry[] = []
+  let pos = cdOff
+  for (let i = 0; i < cdCount; i++) {
+    if (buf.readUInt32LE(pos) !== 0x02014b50) throw new Error('Invalid central directory entry')
+    const nameLen = readU16(buf, pos + 28)
+    const extraLen = readU16(buf, pos + 30)
+    const commentLen = readU16(buf, pos + 32)
+    const name = buf.subarray(pos + 46, pos + 46 + nameLen).toString('utf8')
+    entries.push({
+      name,
+      comp: readU16(buf, pos + 10),
+      csize: readU32(buf, pos + 20),
+      usize: readU32(buf, pos + 24),
+      offset: readU32(buf, pos + 42),
+    })
+    pos += 46 + nameLen + extraLen + commentLen
+  }
+  return entries
+}
+
+function readZipEntry(buf: Buffer, entry: ZipEntry): Buffer {
+  const header = entry.offset
+  if (buf.readUInt32LE(header) !== 0x04034b50) throw new Error(`Invalid local header for ${entry.name}`)
+  const nameLen = readU16(buf, header + 26)
+  const extraLen = readU16(buf, header + 28)
+  const dataOff = header + 30 + nameLen + extraLen
+  const data = buf.subarray(dataOff, dataOff + entry.csize)
+  if (entry.comp === 0) return Buffer.from(data) // stored
+  if (entry.comp === 8) return inflateRawSync(data) // deflated
+  throw new Error(`Unsupported ZIP compression method: ${entry.comp}`)
+}
+
 export type ExtensionArchiveReader = {
   list: () => string[]
-  read: (entry: string) => Buffer
+  read: (name: string) => Buffer
 }
 
 function assertSafeEntry(entry: string): void {
@@ -56,11 +104,18 @@ function parseManifest(reader: ExtensionArchiveReader, root: string): Record<str
 
 export function createZipReader(archivePath: string): ExtensionArchiveReader {
   if (!existsSync(archivePath)) throw new Error('Extension archive does not exist')
-  const entries = execFileSync('unzip', ['-Z1', archivePath], { encoding: 'utf8', maxBuffer: 2 * 1024 * 1024 }).split(/\r?\n/).filter(Boolean)
-  for (const entry of entries) assertSafeEntry(entry)
+  const buf = readFileSync(archivePath)
+  const entries = parseZipEntries(buf)
+  const names = entries.map((e) => e.name)
+  for (const name of names) assertSafeEntry(name)
+  const index = new Map(entries.map((e) => [e.name, e]))
   return {
-    list: () => [...entries],
-    read: (entry) => execFileSync('unzip', ['-p', archivePath, entry], { maxBuffer: MAX_FILE_BYTES + 1 }),
+    list: () => [...names],
+    read: (name) => {
+      const entry = index.get(name)
+      if (!entry) throw new Error(`Entry not found: ${name}`)
+      return readZipEntry(buf, entry)
+    },
   }
 }
 
@@ -97,24 +152,37 @@ export function installExtensionBytes(archive: Buffer, destination: string, expe
   const archiveSha256 = createHash('sha256').update(archive).digest('hex')
   if (expected?.archiveBytes != null && expected.archiveBytes !== archive.byteLength) throw new Error('Extension archive size mismatch')
   if (expected?.archiveSha256 && expected.archiveSha256 !== archiveSha256) throw new Error('Extension archive SHA-256 mismatch')
-  const archivePath = join(destination, `.incoming-${archiveSha256}.zip`)
-  mkdirSync(destination, { recursive: true })
-  if (!existsSync(archivePath)) writeFileSync(archivePath, archive, { flag: 'wx' })
-  const installed = validateExtensionArchive(createZipReader(archivePath), archiveSha256)
+  const installed = validateExtensionArchive(createZipReaderFromBuffer(archive), archiveSha256)
   if (expected?.manifestVersion && expected.manifestVersion !== installed.version) throw new Error('Extension manifest version mismatch')
   const target = join(destination, installed.id)
   const root = normalize(target)
   if (relative(normalize(destination), root).startsWith('..')) throw new Error('Extension destination escapes root')
   mkdirSync(root, { recursive: true })
-  for (const entry of createZipReader(archivePath).list().filter((value) => !value.endsWith('/'))) {
+  const reader = createZipReaderFromBuffer(archive)
+  for (const entry of reader.list().filter((value) => !value.endsWith('/'))) {
     const relativeEntry = entry.slice(installed.root.length)
     const targetFile = normalize(join(root, relativeEntry))
     if (!targetFile.startsWith(`${root}/`)) throw new Error(`Extension path escapes destination: ${entry}`)
-    const content = createZipReader(archivePath).read(entry)
+    const content = reader.read(entry)
     if (content.byteLength > MAX_FILE_BYTES) throw new Error(`Extension file exceeds size limit: ${entry}`)
     mkdirSync(join(targetFile, '..'), { recursive: true })
     if (!existsSync(targetFile)) writeFileSync(targetFile, content, { flag: 'wx' })
   }
   writeFileSync(join(root, 'drawdream-install.json'), JSON.stringify({ ...installed, installedAt: new Date().toISOString() }, null, 2))
   return { ...installed, root }
+}
+
+function createZipReaderFromBuffer(buf: Buffer): ExtensionArchiveReader {
+  const entries = parseZipEntries(buf)
+  const names = entries.map((e) => e.name)
+  for (const name of names) assertSafeEntry(name)
+  const index = new Map(entries.map((e) => [e.name, e]))
+  return {
+    list: () => [...names],
+    read: (name) => {
+      const entry = index.get(name)
+      if (!entry) throw new Error(`Entry not found: ${name}`)
+      return readZipEntry(buf, entry)
+    },
+  }
 }
