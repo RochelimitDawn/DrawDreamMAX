@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Puzzle, Upload, Download, RefreshCw, Square } from 'lucide-react'
 import { ExtensionFrame } from '../components/ExtensionFrame'
@@ -9,20 +9,24 @@ type InstalledExtension = { id: string; displayName: string; version: string; ro
 export function ExtensionsPage() {
   const { t } = useTranslation()
   const [extensions, setExtensions] = useState<InstalledExtension[]>([])
-  const [selected, setSelected] = useState<InstalledExtension | null>(null)
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [url, setUrl] = useState('')
   const input = useRef<HTMLInputElement>(null)
 
-  const refresh = async () => {
+  const extKey = (ext: InstalledExtension, index: number): string => `${ext.id}-${ext.archiveSha256 ?? 'n'}-${index}`
+
+  const refresh = useCallback(async () => {
     const response = await fetch('/api/extensions', { credentials: 'include' })
     const data = await response.json() as { extensions?: InstalledExtension[]; error?: string }
     if (!response.ok) throw new Error(data.error || t('extensions.listLoadError'))
     setExtensions(data.extensions ?? [])
-  }
+  }, [t])
 
-  useEffect(() => { refresh().catch((e) => setError(e instanceof Error ? e.message : String(e))) }, [])
+  useEffect(() => { refresh().catch((e) => setError(e instanceof Error ? e.message : String(e))) }, [refresh])
+
+  const selected = selectedKey ? extensions.find((e, i) => extKey(e, i) === selectedKey) ?? null : null
 
   const install = async (file: File) => {
     setBusy(true); setError(null)
@@ -30,7 +34,7 @@ export function ExtensionsPage() {
       const response = await fetch('/api/extensions/install', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/zip' }, body: file })
       const data = await response.json() as { extension?: InstalledExtension; error?: string }
       if (!response.ok || !data.extension) throw new Error(data.error || t('extensions.installFail'))
-      await refresh(); setSelected(data.extension)
+      await refresh()
     } catch (e) { setError(e instanceof Error ? e.message : String(e)) } finally { setBusy(false) }
   }
 
@@ -41,7 +45,7 @@ export function ExtensionsPage() {
       const response = await fetch('/api/extensions/install-url', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: url.trim() }) })
       const data = await response.json() as { extension?: InstalledExtension; error?: string }
       if (!response.ok || !data.extension) throw new Error(data.error || t('extensions.installFail'))
-      await refresh(); setSelected(data.extension); setUrl('')
+      await refresh(); setUrl('')
     } catch (e) { setError(e instanceof Error ? e.message : String(e)) } finally { setBusy(false) }
   }
 
@@ -63,19 +67,29 @@ export function ExtensionsPage() {
       <div className="dd-extension-layout">
         <div className="dd-extension-list">
           {extensions.length === 0 && <div className="dd-extension-empty"><Puzzle size={28} /><p>{t('extensions.emptyTitle')}</p><span>{t('extensions.emptyHint')}</span></div>}
-          {extensions.map((extension) => (
-            <button key={`${extension.id}-${extension.archiveSha256}`} className={`dd-extension-card ${selected?.archiveSha256 === extension.archiveSha256 ? 'is-selected' : ''}`} onClick={() => setSelected(extension)}>
-              <span><strong>{extension.displayName}</strong><small>{extension.id} · v{extension.version}</small></span>
-              <span className="dd-extension-status">{extension.runtimeStatus === 'runnable' ? t('extensions.runnable') : extension.runtimeStatus === 'requires-adapter' ? t('extensions.needsAdapter') : extension.runtimeStatus}</span>
-            </button>
-          ))}
+          {extensions.map((extension, index) => {
+            const key = extKey(extension, index)
+            return (
+              <div
+                key={key}
+                className={`dd-extension-card ${selectedKey === key ? 'is-selected' : ''}`}
+                onClick={() => setSelectedKey(key)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedKey(key) } }}
+              >
+                <span><strong>{extension.displayName}</strong><small>{extension.id} · v{extension.version}</small></span>
+                <span className="dd-extension-status">{extension.runtimeStatus === 'runnable' ? t('extensions.runnable') : extension.runtimeStatus === 'requires-adapter' ? t('extensions.needsAdapter') : extension.runtimeStatus}</span>
+              </div>
+            )
+          })}
         </div>
         <div className="dd-extension-stage">
           {selected ? (
             <>
               <div className="dd-extension-stage-head">
                 <div><strong>{selected.displayName}</strong><span>{selected.id}</span></div>
-                <button className="dd-icon-button" title={t('extensions.stop')} onClick={() => setSelected(null)}><Square size={16} /></button>
+                <button className="dd-icon-button" title={t('extensions.stop')} onClick={() => setSelectedKey(null)}><Square size={16} /></button>
               </div>
               <ExtensionFrame extension={selected} onError={setError} />
             </>
