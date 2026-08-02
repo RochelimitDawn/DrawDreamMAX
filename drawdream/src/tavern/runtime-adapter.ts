@@ -7,6 +7,7 @@ import { resolveCardAsset } from './card-assets'
 import { modulePermission } from './module-policy'
 import { unavailableRuntimeCapability } from './compat/errors'
 import { filterTavernEvents, normalizeTavernSlashCommand } from './compat/tavern-helper'
+import { looksLikeHtmlMarkup } from '../utils/htmlEmbed'
 
 function jsonObject(value: unknown): JsonObject {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
@@ -194,7 +195,12 @@ export class TavernRuntimeAdapter {
           if (html) {
             if (sessionStore.patchMessageLocal(id, { html, text: text || undefined })) accepted += 1
           } else if (text) {
-            if (sessionStore.patchMessageLocal(id, { text })) accepted += 1
+            // 若 text 含美化 HTML 标记，提升为 html channel 渲染
+            if (looksLikeHtmlMarkup(text)) {
+              if (sessionStore.patchMessageLocal(id, { html: text, text: '' })) accepted += 1
+            } else {
+              if (sessionStore.patchMessageLocal(id, { text })) accepted += 1
+            }
           }
         }
         for (const id of deleteIds) {

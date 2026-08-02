@@ -1239,6 +1239,7 @@ export function ChatPage() {
               title={m.text || 'html'}
               html={m.html}
               scripts={!!m.scripts}
+              runtimeManifest={runtimeManifest}
             />
           ) : null}
           {m.channel === 'choice' && m.choice ? (
@@ -1366,7 +1367,7 @@ export function ChatPage() {
 
   return (
     <div className="page chat-page">
-      {runtimeManifest?.extensionScripts?.length ? (
+      {runtimeManifest && (runtimeManifest.extensionScripts?.length || runtimeManifest.requiredCapabilities?.length) ? (
         <div aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}>
           <CardHtmlFrame
             html=" "

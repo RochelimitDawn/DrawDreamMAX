@@ -132,3 +132,19 @@ export function splitHtmlParts(text: string): HtmlPart[] {
   if (parts.length === 0) return [{ kind: 'text', text }]
   return parts
 }
+
+/**
+ * 检测文本是否包含美化 HTML 标记（div/table/style 等）。
+ * 用于消息更新时判断是否应提升为 html channel 渲染。
+ */
+export function looksLikeHtmlMarkup(text: string): boolean {
+  if (!text) return false
+  const t = text.trim()
+  if (!t) return false
+  if (looksLikeHtmlDocument(t)) return true
+  if (/^\s*```html[\s\S]*?```\s*$/i.test(t)) return true
+  // 美化卡片常用结构：带 style/class 的块级元素、表格、style 块
+  return /<\s*(?:div|table|style|section|article|aside)\b[^>]*(?:\b(?:style|class)\s*=|\b(?:style|class)\s*=)?/i.test(t) ||
+    /<\s*style\b[\s\S]*?<\/\s*style\s*>/i.test(t) ||
+    (/<\s*div\b[^>]*>/i.test(t) && /<\s*\/\s*div\s*>/i.test(t))
+}
