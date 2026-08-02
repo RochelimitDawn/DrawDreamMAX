@@ -14,6 +14,7 @@ import {
   PanelLeft,
   PanelLeftClose,
   Pencil,
+  Plus,
   RefreshCw,
   Trash2,
   Wifi,
@@ -56,7 +57,7 @@ import type { LiveBubble } from '../agent/session-store'
 import type { WorldState } from '../agent/wire.types'
 import { textLooksLikeChoice } from '../agent/rp/parse-rp'
 import { ProviderIcon } from '../components/ProviderIcon'
-import { CardHtmlFrame } from '../components/CardHtmlFrame'
+import { HtmlFrame } from '../components/HtmlFrame'
 import { RichMessage } from '../components/RichMessage'
 import { StickyChapterBar } from '../components/StickyChapterBar'
 import { ToolCallList, coalesceActivities } from '../components/ToolCallChip'
@@ -1234,12 +1235,13 @@ export function ChatPage() {
           {m.channel === 'audio' && m.src ? <audio className="msg-media" controls src={m.src} /> : null}
           {m.channel === 'video' && m.src ? <video className="msg-media" controls src={m.src} /> : null}
           {m.channel === 'html' && m.html ? (
-            <CardHtmlFrame
-              className="msg-html"
-              title={m.text || 'html'}
+            <HtmlFrame
               html={m.html}
+              title={m.text || 'html'}
               scripts={!!m.scripts}
+              seamless={!!m.scripts}
               runtimeManifest={runtimeManifest}
+              streaming={!!m.streaming}
             />
           ) : null}
           {m.channel === 'choice' && m.choice ? (
@@ -1367,17 +1369,6 @@ export function ChatPage() {
 
   return (
     <div className="page chat-page">
-      {runtimeManifest && (runtimeManifest.extensionScripts?.length || runtimeManifest.requiredCapabilities?.length) ? (
-        <div aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}>
-          <CardHtmlFrame
-            html=" "
-            scripts
-            capabilities={['context.read', 'variables.read', 'variables.write', 'messages.send', 'messages.update', 'events.subscribe', 'assets.read', 'card.ui', 'external.module', 'slash.execute']}
-            runtimeManifest={runtimeManifest}
-            title="card-runtime"
-          />
-        </div>
-      ) : null}
       <div
         className={`chat-layout ${rightTab ? 'has-right' : ''} ${historyCollapsed ? 'side-collapsed' : ''}`}
       >
@@ -1397,7 +1388,9 @@ export function ChatPage() {
               />
               <button
                 type="button"
-                className="btn btn-sm btn-primary"
+                className="icon-btn chat-new-chat"
+                title={t('chat.newChat')}
+                aria-label={t('chat.newChat')}
                 onClick={() => {
                   if (session.conn !== 'open') {
                     toast(t('chat.toastNewOffline'), 'error')
@@ -1409,7 +1402,17 @@ export function ChatPage() {
                   }
                 }}
               >
-                {t('chat.newChat')}
+                <Plus size={17} />
+              </button>
+              <button
+                type="button"
+                className="icon-btn chat-import-btn"
+                title={t('chat.importSession')}
+                aria-label={t('chat.importSession')}
+                disabled={stChatImporting || session.busy}
+                onClick={() => stChatImportRef.current?.click()}
+              >
+                <FileUp size={17} />
               </button>
               <button
                 type="button"
@@ -1418,20 +1421,10 @@ export function ChatPage() {
                 aria-label={t('chat.collapseHistory')}
                 onClick={toggleHistoryCollapsed}
               >
-                <PanelLeftClose size={16} />
+                <PanelLeftClose size={17} />
               </button>
             </div>
           </div>
-          <button
-            type="button"
-            className="btn btn-sm chat-session-import"
-            disabled={stChatImporting || session.busy}
-            title="导入 SillyTavern 聊天记录"
-            onClick={() => stChatImportRef.current?.click()}
-          >
-            <FileUp size={14} />
-            {stChatImporting ? '导入中…' : t('chat.importSession')}
-          </button>
           {historyList}
         </aside>
 
@@ -2080,10 +2073,9 @@ export function ChatPage() {
                           <span className="chip">{p.kind}</span>
                         </div>
                         {fullHtml ? (
-                          <CardHtmlFrame
-                            className="msg-html panel-html"
-                            title={p.name}
+                          <HtmlFrame
                             html={content}
+                            title={p.name}
                           />
                         ) : (
                           <RichMessage

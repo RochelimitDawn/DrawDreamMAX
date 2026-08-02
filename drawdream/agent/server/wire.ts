@@ -566,7 +566,7 @@ function toWireMsgBase(m: unknown, names: WireNames, opts?: { backstage?: boolea
 		const thinking = [modelThinking, scaffoldThinking].filter(Boolean).join("\n\n").trim();
 		// 显示层剥离脚手架（会话文件仍保留原文；cleanAssistantText 另管送模历史）
 		const display = channel === "narrative"
-			? applyDisplayRegexScripts(displayAssistantText(text), names.displayRegexScripts ?? [])
+			? applyDisplayRegexScripts(displayAssistantText(text), names.displayRegexScripts ?? [], { charName: names.charName, userName: names.userName })
 			: text;
 		if (!display && !thinking) return null;
 		const meta = metaOfAssistant(msg);
@@ -587,7 +587,7 @@ function toWireMsgBase(m: unknown, names: WireNames, opts?: { backstage?: boolea
 			const index = typeof pick?.index === "number" && Number.isFinite(pick.index) ? Math.max(0, pick.index) : undefined;
 			const total = typeof pick?.total === "number" && Number.isFinite(pick.total) ? Math.max(0, pick.total) : undefined;
 			// 开场白同样走皮肤（HTML 开场 / 状态栏正则）
-			const greetText = applyDisplayRegexScripts(displayAssistantText(text), names.displayRegexScripts ?? []);
+			const greetText = applyDisplayRegexScripts(displayAssistantText(text), names.displayRegexScripts ?? [], { charName: names.charName, userName: names.userName });
 			return {
 				channel: "greeting",
 				name: names.charName,
@@ -600,7 +600,7 @@ function toWireMsgBase(m: unknown, names: WireNames, opts?: { backstage?: boolea
 		/** 用户手改后的角色回复：显示同叙事通道 */
 		if (msg.customType === "rp-edited-reply") {
 			return text
-				? { channel: "narrative", name: names.charName, text: applyDisplayRegexScripts(displayAssistantText(text), names.displayRegexScripts ?? []) }
+				? { channel: "narrative", name: names.charName, text: applyDisplayRegexScripts(displayAssistantText(text), names.displayRegexScripts ?? [], { charName: names.charName, userName: names.userName }) }
 				: null;
 		}
 		if (msg.customType === "rp-import") {

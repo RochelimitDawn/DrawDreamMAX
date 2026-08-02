@@ -10,7 +10,7 @@ import {
   type ColorizePrefs,
 } from '../utils/rule-colorize'
 import { MarkdownText } from './MarkdownText'
-import { CardHtmlFrame } from './CardHtmlFrame'
+import { HtmlFrame } from './HtmlFrame'
 import type { WorldState } from '../agent/wire.types'
 
 import { parseTimePanelBody, TimePanel } from './TimePanel'
@@ -133,28 +133,44 @@ function SceneBlock({
   body,
   anchorKey,
   read,
+  nested = false,
 }: {
   title?: string
   ambience?: string
   body: string
   anchorKey?: string
   read?: ReadCtx
+  /** 场景内层（被场景包裹的子 UI 递归渲染时，不再套 scene 头） */
+  nested?: boolean
 }) {
+  // 场景 body 内可能嵌套 widget / voice / char 等 RP 标签（线索、心声等），
+  // 递归解析渲染，避免它们被当作纯文本丢失。
+  const innerParts = useMemo(() => parseRpText(body, {}), [body])
+  const hasRp = innerParts.some((p) => p.kind !== 'text' || p.text.trim() !== body.trim())
+
   return (
     <section className="rp-scene" data-read-anchor={anchorKey || undefined}>
-      <header className="rp-scene-head">
-        <span className="rp-scene-badge">场景</span>
-        {title ? <strong className="rp-scene-title">{title}</strong> : null}
-        {ambience ? <span className="rp-scene-ambience">{ambience}</span> : null}
-      </header>
+      {!nested && (
+        <header className="rp-scene-head">
+          <span className="rp-scene-badge">场景</span>
+          {title ? <strong className="rp-scene-title">{title}</strong> : null}
+          {ambience ? <span className="rp-scene-ambience">{ambience}</span> : null}
+        </header>
+      )}
       {body.trim() ? (
         <div className="rp-scene-body">
-          <MdBody
-            text={body}
-            enableReading={read?.enableReading}
-            readingPrefs={read?.readingPrefs}
-            nameList={read?.nameList}
-          />
+          {hasRp ? (
+            <>
+              {innerParts.map((p, i) => renderPart(p, i, { read }))}
+            </>
+          ) : (
+            <MdBody
+              text={body}
+              enableReading={read?.enableReading}
+              readingPrefs={read?.readingPrefs}
+              nameList={read?.nameList}
+            />
+          )}
         </div>
       ) : null}
     </section>
@@ -582,9 +598,11 @@ export function RichMessage({
   if (hasHtml && htmlChunks.length === 1 && htmlChunks[0]!.kind === 'html') {
     return (
       <div className={`rp-message is-html-full ${className}`.trim()}>
-        <CardHtmlFrame
+        <HtmlFrame
           html={htmlChunks[0]!.html}
           scripts={htmlChunks[0]!.scripts}
+          seamless={!!htmlChunks[0]!.scripts}
+          streaming={streaming}
         />
       </div>
     )
@@ -597,10 +615,12 @@ export function RichMessage({
         {htmlChunks.map((chunk, i) => {
           if (chunk.kind === 'html') {
             return (
-              <CardHtmlFrame
+              <HtmlFrame
                 key={`h-${i}`}
                 html={chunk.html}
                 scripts={chunk.scripts}
+                seamless={!!chunk.scripts}
+                streaming={streaming}
               />
             )
           }

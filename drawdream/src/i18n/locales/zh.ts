@@ -13,7 +13,6 @@ export default {
     forge: '工坊',
     admin: '管理',
     settings: '设置',
-    extensions: '扩展',
   },
   library: {
     title: '资料',
@@ -835,25 +834,6 @@ export default {
       'DrawDream 是本地优先的 AI 角色扮演客户端（移动端主线）。内嵌 Agent 工作流，替代传统提示词拼接。',
     releases: '发行版 / APK',
     releasesDesc: '在 GitHub Releases 下载最新安卓安装包',
-  },
-  extensions: {
-    title: '扩展运行时',
-    subtitle: '安装并在受控 iframe 中运行兼容扩展。',
-    refresh: '刷新',
-    uploadZip: '上传 ZIP',
-    install: '安装',
-    urlPlaceholder: 'GitHub/GitLab 仓库 URL 或直接 ZIP 链接',
-    runnable: '可运行',
-    needsAdapter: '需要适配',
-    emptyTitle: '暂无已安装扩展',
-    emptyHint: '上传 ZIP 或输入扩展仓库 URL 开始安装。',
-    selectTitle: '选择一个扩展',
-    selectHint: '点击下方扩展卡片即可加载运行，再次点击可取消选择。',
-    stop: '停止扩展',
-    close: '关闭',
-    running: '运行中',
-    listLoadError: '扩展列表加载失败',
-    installFail: '扩展安装失败',
   },
   secondary: {
     worldInfo: {

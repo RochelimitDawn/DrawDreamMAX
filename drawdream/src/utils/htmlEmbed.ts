@@ -17,6 +17,118 @@ export function looksLikeHtmlDocument(text: string): boolean {
   return false
 }
 
+/** 文档内是否含可执行脚本（决定 HtmlFrame scripts 沙箱） */
+export function htmlLooksInteractive(html: string): boolean {
+  return /<script[\s>]/i.test(html) || /\bon[a-z]+\s*=/i.test(html)
+}
+
+/** body 是否为「恰好一份」完整 HTML 文档（末尾 </html> 后仅空白） */
+function bodyIsSingleCompleteDoc(body: string): boolean {
+  const re = /<\/html\s*>/gi
+  let m: RegExpExecArray | null
+  let count = 0
+  let lastEnd = -1
+  while ((m = re.exec(body)) !== null) {
+    count++
+    lastEnd = m.index + m[0].length
+  }
+  if (count === 1) return body.slice(lastEnd).trim() === ''
+  if (count === 0) {
+    return body.length >= 200 && /<\/(div|section|body)>/i.test(body)
+  }
+  return false
+}
+
+/**
+ * 从文本中定位「围栏包裹的 HTML 文档/大界面」（卡显示正则常见产物）。
+ * 闭合策略：
+ * 1) 优先首个「恰好一份完整文档」的行首 ```（多 state/options 各进独立帧）
+ * 2) 否则回退末闭（单文档内含行首 ``` 时避免提前截断）
+ */
+export function findFencedHtmlDocument(
+  text: string,
+): { html: string; scripts: boolean; start: number; end: number } | null {
+  if (!text) return null
+  const openRe = /(^|\n)(```([^\n`]*)\r?\n)/g
+  let om: RegExpExecArray | null
+  while ((om = openRe.exec(text)) !== null) {
+    const fenceStart = om.index + om[1].length
+    const openTok = om[2]
+    const lang = (om[3] ?? '').trim()
+    if (lang && !/^html\b/i.test(lang) && !/^(?:html\s*\+?\s*(?:scripts?|js))$/i.test(lang)) {
+      continue
+    }
+    const contentStart = fenceStart + openTok.length
+    const probe = text.slice(contentStart, contentStart + 80).trimStart().toLowerCase()
+    if (!probe.startsWith('<!doctype html') && !probe.startsWith('<html')) {
+      if (!/^<(div|section|article|main|body)\b/i.test(probe) || text.length < 200) {
+        continue
+      }
+    }
+    const rest = text.slice(contentStart)
+    const closeRe = /\r?\n```[ \t]*(?=\r?\n|$)/g
+    let cm: RegExpExecArray | null
+    let firstSingleClose = -1
+    let firstSingleEnd = -1
+    let lastClose = -1
+    let lastEnd = -1
+    while ((cm = closeRe.exec(rest)) !== null) {
+      const body = rest.slice(0, cm.index)
+      if (!/<\/html\s*>/i.test(body) && !(body.length >= 200 && /<\/(div|section|body)>/i.test(body))) {
+        continue
+      }
+      lastClose = cm.index
+      lastEnd = cm.index + cm[0].length
+      if (firstSingleClose < 0 && bodyIsSingleCompleteDoc(body)) {
+        firstSingleClose = cm.index
+        firstSingleEnd = cm.index + cm[0].length
+      }
+    }
+    const bestClose = firstSingleClose >= 0 ? firstSingleClose : lastClose
+    const bestEnd = firstSingleClose >= 0 ? firstSingleEnd : lastEnd
+    if (bestClose < 0) continue
+    const html = rest.slice(0, bestClose).replace(/^\uFEFF/, '').trim()
+    if (!html) continue
+    const isDoc = looksLikeHtmlDocument(html)
+    const isUiRoot = /^<(div|section|article|main|body)\b/i.test(html) && html.length >= 200
+    if (!isDoc && !isUiRoot) continue
+    const scripts = htmlLooksInteractive(html) || /\bscripts?\b|\bjs\b|\+/i.test(lang)
+    return {
+      html,
+      scripts,
+      start: fenceStart,
+      end: contentStart + bestEnd,
+    }
+  }
+  return null
+}
+
+/** 整段 trim 后恰为围栏 HTML 文档时返回 */
+export function claimFencedHtmlDocument(text: string): { html: string; scripts: boolean } | null {
+  const t = text.trim()
+  const found = findFencedHtmlDocument(t)
+  if (!found) return null
+  const pre = t.slice(0, found.start).trim()
+  const post = t.slice(found.end).trim()
+  if (pre || post) return null
+  return { html: found.html, scripts: found.scripts }
+}
+
+/** 粗判：整条消息就是一个界面（整楼模式） */
+export function isFullInterface(text: string): boolean {
+  const found = findFencedHtmlDocument(text)
+  if (found) {
+    const pre = text.slice(0, found.start).trim()
+    const post = text.slice(found.end).trim()
+    if (post) return false
+    if (!pre) return true
+    return pre.length <= 80 && !pre.includes('```') && !looksLikeHtmlDocument(pre)
+  }
+  if (looksLikeHtmlDocument(text.trim())) return true
+  const parts = splitHtmlParts(text)
+  return parts.length === 1 && parts[0]!.kind === 'html'
+}
+
 /** 从 ```html … ``` 围栏提取 */
 function takeFence(
   src: string,
@@ -30,7 +142,7 @@ function takeFence(
     // 仅认 html 围栏；空 lang 且内容像 HTML 也认
     if (!looksLikeHtmlDocument(m[2]) && !/^\s*<div\b/i.test(m[2])) return null
   }
-  return { end: from + m[0].length, html: m[2], scripts: /\bscripts?\b/i.test(lang) }
+  return { end: from + m[0].length, html: m[2], scripts: /\bscripts?\b/i.test(lang) || htmlLooksInteractive(m[2]) }
 }
 
 /** 匹配顶层带 style 或 class 的 div 块 */
@@ -76,6 +188,17 @@ function closeDiv(src: string, openAt: number): { end: number; html: string } | 
  */
 export function splitHtmlParts(text: string): HtmlPart[] {
   if (!text) return []
+  // 围栏 HTML 文档整段认领（卡开局 / 多状态栏产物）
+  const found = findFencedHtmlDocument(text)
+  if (found) {
+    const parts: HtmlPart[] = []
+    const pre = text.slice(0, found.start)
+    if (pre.trim()) parts.push(...splitTopLevelDivs(pre))
+    parts.push({ kind: 'html', html: found.html, scripts: found.scripts })
+    const post = text.slice(found.end)
+    if (post.trim()) parts.push(...splitHtmlParts(post))
+    return parts
+  }
   if (looksLikeHtmlDocument(text)) {
     return [{ kind: 'html', html: text.trim(), scripts: /<script[\s>]/i.test(text) }]
   }
@@ -130,6 +253,40 @@ export function splitHtmlParts(text: string): HtmlPart[] {
 
   // 合并：若仅一段纯 text，保持原样
   if (parts.length === 0) return [{ kind: 'text', text }]
+  return parts
+}
+
+/** 在纯文本段中切出行首起始、深度配平的标准容器块（div/section/table 等） */
+function splitTopLevelDivs(text: string): HtmlPart[] {
+  const blockRe = /^[ \t]*<(div|section|article|table|details)(\s[^>]*)?>/gm
+  const parts: HtmlPart[] = []
+  let last = 0
+  let m: RegExpExecArray | null
+  while ((m = blockRe.exec(text)) !== null) {
+    const tag = m[1]!
+    const tagRe = new RegExp(`<(/?)${tag}(?:\\s[^>]*)?>`, 'gi')
+    tagRe.lastIndex = m.index
+    let depth = 0
+    let end = -1
+    let t: RegExpExecArray | null
+    while ((t = tagRe.exec(text)) !== null) {
+      depth += t[1] ? -1 : 1
+      if (depth === 0) {
+        end = t.index + t[0].length
+        break
+      }
+    }
+    if (end < 0) continue
+    const before = text.slice(last, m.index)
+    if (before.trim()) parts.push({ kind: 'text', text: before })
+    const html = text.slice(m.index, end).trim()
+    parts.push({ kind: 'html', html, scripts: htmlLooksInteractive(html) })
+    last = end
+    blockRe.lastIndex = end
+  }
+  if (parts.length === 0) return [{ kind: 'text', text }]
+  const rest = text.slice(last)
+  if (rest.trim()) parts.push({ kind: 'text', text: rest })
   return parts
 }
 

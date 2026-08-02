@@ -281,6 +281,30 @@
   min-width: 0;
 }
 
+/* 设置子页导航图标：桌面端小图标点缀，平板端便当盒色块 */
+.settings-nav-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  transition: color var(--transition), background var(--transition);
+}
+
+.settings-nav-item:hover .settings-nav-item-icon {
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+}
+
+.settings-nav-item.is-active .settings-nav-item-icon {
+  color: var(--brand-deep, var(--brand));
+  background: color-mix(in srgb, var(--brand) 16%, transparent);
+}
+
 .settings-nav-item-chevron {
   color: var(--text-tertiary);
   font-size: 20px;
@@ -770,6 +794,19 @@
   .settings-nav-item-chevron {
     font-size: 22px;
     opacity: 0.7;
+  }
+
+  /* 平板/移动端便当盒：图标放大为色块，恰当大小展示 */
+  .settings-nav-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    font-size: 18px;
+    background: color-mix(in srgb, var(--text) 7%, transparent);
+  }
+
+  .settings-nav-item.is-active .settings-nav-item-icon {
+    background: color-mix(in srgb, var(--brand) 18%, transparent);
   }
 }
 

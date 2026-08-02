@@ -10,12 +10,12 @@ import { WorldInfoPage } from './pages/WorldInfo'
 import { PersonaPage } from './pages/Persona'
 import { PresetsPage } from './pages/Presets'
 import { NovelForgePage } from './pages/NovelForge'
-import { ExtensionsPage } from './pages/Extensions'
 import { LibraryPage } from './pages/Library'
 import { AuthProvider } from './auth/AuthContext'
 import { AuthGate } from './auth/AuthGate'
 import { MotionRoot } from './motion'
 import { clearToasts } from './utils/toast'
+import { installParentTavernShim } from './tavern/tavern-shim'
 import './motion/motion.css'
 
 function RouteToastGuard() {
@@ -25,6 +25,10 @@ function RouteToastGuard() {
   }, [pathname])
   return null
 }
+
+// 安装父页卡脚本运行时垫片（TavernHelper.generate / triggerSlash），
+// 卡 iframe 通过 parent 或 postMessage 访问。
+installParentTavernShim()
 
 function AppShell() {
   return (
@@ -45,7 +49,6 @@ function AppShell() {
             <Route path="/persona" element={<PersonaPage />} />
             <Route path="/presets" element={<PresetsPage />} />
             <Route path="/novel-forge" element={<NovelForgePage />} />
-            <Route path="/extensions" element={<ExtensionsPage />} />
             <Route path="/profile" element={<Navigate to="/settings" replace />} />
             <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="/register" element={<Navigate to="/" replace />} />

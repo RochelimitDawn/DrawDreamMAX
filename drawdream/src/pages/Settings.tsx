@@ -2,6 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Activity, Plus, RefreshCw, Trash2, Wifi } from 'lucide-react'
+import {
+  SlidersHorizontal,
+  Server,
+  Palette,
+  MessageCircle,
+  BookOpen,
+  Settings2,
+  Info,
+  type LucideIcon,
+} from 'lucide-react'
 import i18n from '../i18n'
 import {
   createChannel,
@@ -83,6 +93,17 @@ const NAV_GROUPS: Array<{ id: string; keys: Tab[]; groupKey?: string }> = [
   { id: 'look', keys: ['ui', 'reading'], groupKey: 'settings.groupLook' },
   { id: 'system', keys: ['chat', 'advanced', 'about'], groupKey: 'settings.groupSystem' },
 ]
+
+/** 每个设置子页对应的图标（平板/移动端导航项展示，桌面端仅 hover 高亮） */
+const TAB_ICONS: Record<Tab, LucideIcon> = {
+  general: SlidersHorizontal,
+  api: Server,
+  ui: Palette,
+  chat: MessageCircle,
+  reading: BookOpen,
+  advanced: Settings2,
+  about: Info,
+}
 
 const RULE_LABEL_KEY: Record<ColorRuleId, string> = {
   dialogue: 'settings.readRuleDialogue',
@@ -933,24 +954,32 @@ export function SettingsPage() {
                     <div className="settings-nav-group-label">{t(group.groupKey)}</div>
                   ) : null}
                   <div className={`settings-nav-group-body${multi ? ' is-cluster' : ''}`}>
-                    {group.keys.map((key) => (
-                      <button
-                        key={key}
-                        type="button"
-                        className={`settings-nav-item ${tab === key ? 'is-active' : ''}`}
-                        aria-current={tab === key ? 'page' : undefined}
-                        onClick={() => {
-                          setTab(key)
-                          setSearchParams(key === 'general' ? {} : { tab: key }, { replace: true })
-                          setMobileDetail(true)
-                        }}
-                      >
-                        <span className="settings-nav-item-label">{t(`settings.${key}`)}</span>
-                        <span className="settings-nav-item-chevron" aria-hidden>
-                          ›
-                        </span>
-                      </button>
-                    ))}
+                    {group.keys.map((key) => {
+                      const Icon = TAB_ICONS[key]
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          className={`settings-nav-item ${tab === key ? 'is-active' : ''}`}
+                          aria-current={tab === key ? 'page' : undefined}
+                          onClick={() => {
+                            setTab(key)
+                            setSearchParams(key === 'general' ? {} : { tab: key }, { replace: true })
+                            setMobileDetail(true)
+                          }}
+                        >
+                          {Icon ? (
+                            <span className="settings-nav-item-icon" aria-hidden>
+                              <Icon size={18} strokeWidth={1.8} />
+                            </span>
+                          ) : null}
+                          <span className="settings-nav-item-label">{t(`settings.${key}`)}</span>
+                          <span className="settings-nav-item-chevron" aria-hidden>
+                            ›
+                          </span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )

@@ -104,7 +104,6 @@ body:has(.chat-page),
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 14px;
-  flex-wrap: wrap;
 }
 
 .chat-side-head h2 {
@@ -114,41 +113,46 @@ body:has(.chat-page),
 .chat-side-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex: 0 1 auto;
   min-width: 0;
 }
 
-.chat-side-actions .btn {
-  min-width: 0;
-  white-space: nowrap;
+/* 历史侧边栏头部图标按钮：新对话 / 导入 / 折叠 */
+.chat-side-actions .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
 }
 
-.chat-session-import {
-  width: 100%;
-  margin: 0 0 12px;
-  border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--border));
+.chat-side-actions .icon-btn:hover {
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  color: var(--text);
+}
+
+.chat-side-actions .chat-new-chat {
   color: var(--brand-deep, var(--brand));
-  background: color-mix(in srgb, var(--brand-soft) 58%, var(--bg-elevated));
+  background: color-mix(in srgb, var(--brand-soft) 70%, var(--bg-elevated));
 }
 
-.chat-session-import:hover {
-  border-color: color-mix(in srgb, var(--brand) 48%, var(--border));
-  background: color-mix(in srgb, var(--brand-soft) 78%, var(--bg-elevated));
+.chat-side-actions .chat-new-chat:hover {
+  background: color-mix(in srgb, var(--brand-soft) 100%, var(--bg-elevated));
+  color: var(--brand-deep, var(--brand));
+}
+
+.chat-side-actions .icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 @media (max-width: 340px) {
-  .chat-side-head {
-    align-items: flex-start;
-  }
-
   .chat-side-head h2 {
-    flex: 1 1 100%;
-  }
-
-  .chat-side-actions {
-    width: 100%;
-    justify-content: flex-end;
+    font-size: 14px;
   }
 }
 
@@ -341,8 +345,7 @@ body:has(.chat-page),
 }
 
 .history-avatar::before,
-.peer-avatar::before,
-.msg-avatar-assistant::before {
+.peer-avatar::before {
   content: '';
   position: absolute;
   inset: -3px;
@@ -354,8 +357,7 @@ body:has(.chat-page),
 }
 
 .history-avatar::after,
-.peer-avatar::after,
-.msg-avatar-assistant::after {
+.peer-avatar::after {
   content: '';
   position: absolute;
   top: -5px;
@@ -1155,24 +1157,26 @@ body:has(.chat-page),
 
 .msg-avatar {
   position: relative;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   flex-shrink: 0;
-  overflow: visible;
+  overflow: hidden;
   isolation: isolate;
-  box-shadow: 0 0 0 2px var(--bg-elevated), 0 1px 4px rgb(15 23 42 / 10%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--border-strong) 65%, transparent),
+    0 1px 4px rgb(74 52 28 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 45%);
 }
 
 .msg-avatar-img {
   position: absolute;
-  inset: 2px;
+  inset: 0;
   z-index: 1;
-  border-radius: inherit;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1184,8 +1188,12 @@ body:has(.chat-page),
   background: #0f172a;
 }
 
+/* 助手头像：品牌暖金描边光晕 */
 .msg-avatar-assistant {
-  box-shadow: 0 0 0 2px var(--bg-elevated), 0 5px 14px color-mix(in srgb, var(--brand) 24%, transparent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent-gold) 55%, var(--brand)),
+    0 0 0 4px color-mix(in srgb, var(--accent-gold) 16%, transparent),
+    0 4px 12px color-mix(in srgb, var(--brand) 26%, transparent);
 }
 
 .msg-avatar.has-cover .msg-avatar-letter {
@@ -1199,18 +1207,34 @@ body:has(.chat-page),
 }
 
 .msg-avatar-user {
-  background: color-mix(in srgb, var(--brand) 18%, var(--bg-muted));
-  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 16%, var(--bg-muted));
+  color: var(--brand-deep, var(--brand));
 }
 
 .msg-avatar-assistant {
-  background: linear-gradient(145deg, #0f172a 0%, #1d4ed8 50%, #60a5fa 100%);
-  color: #fff;
+  background: linear-gradient(145deg, #3d2b18 0%, #8b5124 55%, #c47a3a 100%);
+  color: #fffdf9;
 }
 
 .msg-avatar-system {
   background: var(--bg-muted);
   color: var(--text-secondary);
+}
+
+/* 助手头像金色光点装饰（右下角，比原先更精致） */
+.msg-avatar-assistant::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 9px;
+  height: 9px;
+  z-index: 3;
+  border: 2px solid var(--bg-elevated);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe9b0, var(--accent-gold));
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--brand) 34%, transparent), 0 2px 6px rgb(0 0 0 / 22%);
+  pointer-events: none;
 }
 
 .msg-role {
@@ -1882,6 +1906,101 @@ body:has(.chat-page),
   border-radius:12px;
   width:100%;
   min-height:180px;
+}
+
+/* ── HtmlFrame 无痕整楼界面（参考梨园）── */
+.msg-html.msg-html-seamless {
+  background:transparent;
+  border-radius:0;
+  min-height:0;
+  margin:0;
+  position:relative;
+}
+.msg-html.msg-html-program {
+  min-height:480px;
+}
+.msg-html-frame {
+  width:100%;
+  border:0;
+  display:block;
+  background:transparent;
+  min-height:48px;
+}
+.msg-html-ghost {
+  position:absolute;
+  top:4px;
+  right:8px;
+  z-index:10;
+  opacity:.35;
+}
+.msg-html-ghost:hover {
+  opacity:1;
+}
+.msg-html-ghost .act {
+  font-size:11px;
+  color:#748094;
+  background:rgba(255,255,255,.6);
+  border:1px solid var(--border,#d8dee8);
+  border-radius:8px;
+  padding:2px 8px;
+  cursor:pointer;
+}
+.msg-html-bar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 12px;
+  border-bottom:1px solid var(--border,#edf0f4);
+  font-size:12px;
+  color:#748094;
+}
+.msg-html-bar .msg-html-title {
+  font-weight:600;
+  color:#243b53;
+}
+.msg-html-tags {
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.msg-html-tags .chip {
+  font-size:10px;
+  padding:1px 6px;
+  border-radius:6px;
+}
+.chip-html-js {
+  background:#e8f0f8;
+  color:#243b53;
+}
+.chip-html-static {
+  background:#edf0f4;
+  color:#748094;
+}
+.msg-html-tags .act {
+  font-size:11px;
+  color:#748094;
+  background:transparent;
+  border:0;
+  cursor:pointer;
+}
+.msg-html-tags .act:hover {
+  color:#243b53;
+}
+.msg-html-source {
+  margin:0;
+  padding:12px;
+  font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:#f6f8fa;
+  color:#374151;
+  overflow:auto;
+  max-height:320px;
+  white-space:pre-wrap;
+  word-break:break-all;
+}
+.msg-html-cap {
+  padding:6px 12px;
+  font-size:11px;
+  color:#748094;
 }
 
 .msg-choice {

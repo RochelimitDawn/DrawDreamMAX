@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { applyDisplayRegexScripts, applyRegexScripts, normalizeCardRegexScripts } from "../src/card-regex.ts";
+import { applyDisplayRegexScripts, applyRegexScripts, expandSkinReplacement, normalizeCardRegexScripts } from "../src/card-regex.ts";
 import { normalizeCard } from "../src/card.ts";
 
 test("角色卡 extensions.regex_scripts 支持 ST 字段并进入兼容投影", () => {
@@ -44,4 +44,38 @@ test("Prompt placement 支持捕获组、trim、深度和执行 trace", () => {
 	assert.equal(result.traces[0]?.matched, true);
 	assert.equal(result.traces[0]?.placement, "prompt");
 	assert.equal(applyRegexScripts("Name: Sera", scripts, "prompt", { depth: 1 }).text, "Name: Sera");
+});
+
+test("expandSkinReplacement 不展开 $' / $` 特殊序列（程序卡 JS 字面量保护）", () => {
+	// 用字符串拼接避免模板字符串嵌套反引号
+	const template = "let a=\"$'\"; let b=\"$\" + String.fromCharCode(96) + \" 前文\"; {{match}}";
+	const out = expandSkinReplacement(template, "MATCH", []);
+	// $' 和 $` 必须原样保留（不落入 String.replace 语义）
+	assert.ok(out.includes("$'"), "应保留 $' 字面量");
+	assert.ok(out.includes("$"), "应保留 $ 字面量");
+	assert.ok(out.includes("MATCH"), "{{match}} 应展开为匹配值");
+});
+
+test("expandSkinReplacement 短模板展开 $&，长模板保留字面 $&", () => {
+	const short = expandSkinReplacement("prefix $& suffix", "HELLO", []);
+	assert.equal(short, "prefix HELLO suffix");
+	const longTemplate = `<div>${"x".repeat(9000)}</div>` + "$&";
+	const long = expandSkinReplacement(longTemplate, "HELLO", []);
+	assert.ok(long.includes("$&"), "长模板应保留字面 $&");
+	assert.ok(!long.includes("HELLO"), "长模板不应展开 $& 为匹配串");
+});
+
+test("expandSkinReplacement 展开捕获组与宏", () => {
+	const out = expandSkinReplacement("$1:{{char}}/{{user}}", "full", ["Sera"], { charName: "Sera", userName: "旅人" });
+	assert.equal(out, "Sera:Sera/旅人");
+});
+
+test("applyDisplayRegexScripts 支持 {{char}}/{{user}} 宏展开", () => {
+	const scripts = normalizeCardRegexScripts([{
+		findRegex: "NAME",
+		replaceString: "{{char}} 对 {{user}} 说",
+		placement: [2],
+	}]);
+	const out = applyDisplayRegexScripts("NAME", scripts, { charName: "艾拉", userName: "阿明" });
+	assert.equal(out, "艾拉 对 阿明 说");
 });

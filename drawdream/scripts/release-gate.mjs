@@ -19,7 +19,7 @@ assert(Number(process.versions.node.split('.')[0]) >= 22, 'Node.js 22 or newer i
 assert(existsSync(join(root, 'dist', 'index.html')), 'frontend dist/index.html is missing; build must run first')
 
 run('npx', ['tsc', '--noEmit'], agent)
-run('node', ['--test', 'test/card.test.ts', 'test/cardBridge.test.ts', 'test/tavern-prompt.test.ts', 'test/tavern-runtime-adapter.test.ts', 'test/swipe.test.ts', 'test/hybrid-extension.test.ts', 'test/compat-report.test.ts', 'test/mobile-policy.test.ts', 'test/mobile-android-static.test.ts', 'test/bundled-extensions.test.ts', 'test/extension-installer.test.ts', 'test/legacy-api.test.ts', 'test/extension-runtime-contract.test.ts'], agent)
+run('node', ['--test', 'test/card.test.ts', 'test/cardBridge.test.ts', 'test/card-regex.test.ts', 'test/tavern-prompt.test.ts', 'test/tavern-runtime-adapter.test.ts', 'test/swipe.test.ts', 'test/hybrid-extension.test.ts', 'test/compat-report.test.ts', 'test/mobile-policy.test.ts', 'test/mobile-android-static.test.ts', 'test/bundled-extensions.test.ts', 'test/extension-installer.test.ts', 'test/legacy-api.test.ts', 'test/extension-runtime-contract.test.ts'], agent)
 run('npm', ['run', 'build'], codingAgent)
 run('npm', ['run', 'build'], root)
 run('npm', ['run', 'compat:report'], root)

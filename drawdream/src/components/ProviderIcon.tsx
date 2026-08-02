@@ -118,8 +118,18 @@ function matchMap(key: string, map: Array<{ test: RegExp; src: string }>): strin
 /** 按「API 域名 → 模型 id → 渠道名」顺序解析图标，避免 Grok/Groq 互伤 */
 export function resolveProviderIcon(name: string, baseUrl = '', modelId = ''): string | null {
   const url = (baseUrl || '').toLowerCase()
-  // 中转/自建网关始终使用 DrawDream 标识，模型 ID 不参与覆盖。
+  // 中转/自建网关：先尝试用模型 id 匹配真实品牌图标；匹配不到再回落 DrawDream 标识。
+  // 具体模型应显示对应品牌图标（如中转渠道上的 deepseek-* → DeepSeek 标），
+  // 渠道/提供商列表本身仍用 DrawDream 标识。
   if (isRelayProvider(name, baseUrl) || (baseUrl.trim() && !OFFICIAL_ENDPOINT.test(url) && !matchMap(name, PROVIDER_ICON_MAP))) {
+    const mid = (modelId || '').trim()
+    if (mid) {
+      // 模型 id 明确是 grok / x-ai 路径 → Grok
+      if (/(?:^|[^a-z0-9])grok(?:[^a-z0-9]|$)|grok-|[\/.]x-?ai[\/.]/i.test(mid)) return grok
+      // 绝不要把 groq 模型 id 当成 grok
+      const fromModel = matchMap(mid, MODEL_ICON_MAP)
+      if (fromModel) return fromModel
+    }
     return relayChannel
   }
   // 1) 域名最可靠
