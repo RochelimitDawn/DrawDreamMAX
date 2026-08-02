@@ -11,7 +11,7 @@ import {
 import { tavernRuntime } from '../tavern/runtime-adapter'
 import type { TavernRuntimeManifest } from '../agent/rest'
 
-const SCRIPT_CODE_FIELDS = ['code', 'startMessage', 'endMessage', 'onMessage', 'onAppReady', 'onEdit', 'onDestroy'] as const
+const SCRIPT_CODE_FIELDS = ['content', 'code', 'startMessage', 'endMessage', 'onMessage', 'onAppReady', 'onEdit', 'onDestroy'] as const
 
 function extractExtensionScriptCode(scripts: Record<string, unknown>[]): string {
   const parts: string[] = []

@@ -50,8 +50,9 @@ window.TavernHelper.selectPreset=function(file){return request('preset.select',{
 window.TavernHelper.getCharacter=function(){return request('character.get');};
 window.TavernHelper.injectPrompt=function(text,opts){return request('inject.prompt',Object.assign({text:String(text||'')},opts||{}));};
 window.TavernHelper.speak=function(text,opts){return request('audio.speak',Object.assign({text:String(text||'')},opts||{}));};
-window.DrawDreamExtension={capabilities:C,request:request,on:on,resize:function(h){return request('parent.resize',{height:Number(h)||0});},fetch:function(url,opts){return request('http.fetch',{url:String(url||''),options:opts||{}});}};
+window.DrawDreamExtension={capabilities:C,request:request,on:on,resize:function(h){return request('parent.resize',{height:Number(h)||0});},fetch:function(url,opts){return request('http.fetch',{url:String(url||''),options:opts||{}}).then(function(r){return {ok:r.ok,status:r.status,statusText:r.statusText,text:function(){return Promise.resolve(r.text||'');},json:function(){return Promise.resolve(r.json!==null?r.json:JSON.parse(r.text||'null'));},headers:r.headers||{}};});}};
 window.DrawDream=window.DrawDream||{};window.DrawDream.resize=window.DrawDreamExtension.resize;window.DrawDream.fetch=window.DrawDreamExtension.fetch;
+window.fetch=window.DrawDreamExtension.fetch;
 request('context.get').then(function(c){window.SillyTavern.__context=c;}).catch(function(){});
 request('ready',{capabilities:C}).catch(function(){});
 }())</script>`

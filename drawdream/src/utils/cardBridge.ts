@@ -217,7 +217,8 @@ export function cardBridgeBootstrapScript(options: {
  window.TavernHelper.deleteChatMessages=function(ids){return request('message.update',{deleteIds:Array.isArray(ids)?ids:[]});};
  window.TavernHelper.getCurrentMessageId=function(){var c=window.SillyTavern.__context||{};return c.chat&&c.chat.length?c.chat[c.chat.length-1].id:null;};
  window.DrawDream=window.DrawDream||{};
- window.DrawDream.fetch=function(url,opts){return request('http.fetch',{url:String(url||''),options:opts||{}});};
+ window.DrawDream.fetch=function(url,opts){return request('http.fetch',{url:String(url||''),options:opts||{}}).then(function(r){return {ok:r.ok,status:r.status,statusText:r.statusText,text:function(){return Promise.resolve(r.text||'');},json:function(){return Promise.resolve(r.json!==null?r.json:JSON.parse(r.text||'null'));},headers:r.headers||{}};});};
+ window.fetch=window.DrawDream.fetch;
  window.TavernFrame.getContext().then(function(c){window.SillyTavern.__context=c;});
  post({type:'ready',requestId:F+'-ready'});
  }catch(e){}})();</` + `script>`

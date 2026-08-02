@@ -101,13 +101,18 @@ function placeholders(card: CharacterCard): string[] {
 }
 
 function extensionScripts(extensions: Record<string, unknown>, diagnostics: RuntimeDiagnostic[]): Record<string, unknown>[] {
+	const candidates: unknown[] = [];
 	const tavernHelper = asRecord(extensions.tavern_helper ?? extensions.tavernHelper);
-	const scripts = tavernHelper?.scripts;
-	if (!Array.isArray(scripts)) return [];
-	return scripts.slice(0, MAX_SCRIPT_ENTRIES).flatMap((script, index) => {
+	if (tavernHelper?.scripts && Array.isArray(tavernHelper.scripts)) candidates.push(...tavernHelper.scripts);
+	// Also check alternative field paths used by some cards
+	const jsSlashRunner = asRecord(extensions.js_slash_runner ?? extensions.jsSlashRunner);
+	if (jsSlashRunner?.scripts && Array.isArray(jsSlashRunner.scripts)) candidates.push(...jsSlashRunner.scripts);
+	if (Array.isArray(extensions.scripts)) candidates.push(...extensions.scripts);
+	if (!candidates.length) return [];
+	return candidates.slice(0, MAX_SCRIPT_ENTRIES).flatMap((script, index) => {
 		const record = asRecord(script);
 		if (!record) {
-			diagnostics.push({ code: "invalid-extension-script", level: "warning", message: `忽略第 ${index + 1} 个无效扩展脚本`, path: "extensions.tavern_helper.scripts" });
+			diagnostics.push({ code: "invalid-extension-script", level: "warning", message: `忽略第 ${index + 1} 个无效扩展脚本`, path: "extensions.scripts" });
 			return [];
 		}
 		return [{ ...record }];
