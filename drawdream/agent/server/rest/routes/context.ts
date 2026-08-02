@@ -10,6 +10,8 @@ export type RouteCtx = {
 	host: RestHost;
 	query: URLSearchParams;
 	route: string;
+	/** 不含 query string 的 URL path */
+	url: string;
 	/** 流式中拒绝写操作；返回 true 表示已响应 */
 	refuseWhileStreaming: () => boolean;
 };
