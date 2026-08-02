@@ -66,9 +66,9 @@ export function CardHtmlFrame({
 
   const srcDoc = useMemo(() => {
     const base = `<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden;color:inherit;font:inherit}img{max-width:100%}</style>`
-    const csp = runtimeManifest?.csp
-      ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${[...new Set([...runtimeManifest.csp.scriptSrc, "'unsafe-inline'"])].join(' ')}; style-src ${runtimeManifest.csp.styleSrc.join(' ')}; connect-src ${runtimeManifest.csp.connectSrc.join(' ')}; img-src 'self' data:;">`
-      : ''
+     const csp = runtimeManifest?.csp
+       ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${[...new Set([...runtimeManifest.csp.scriptSrc, "'unsafe-inline'"])].join(' ')}; style-src ${[...new Set([...runtimeManifest.csp.styleSrc, "'unsafe-inline'"])].join(' ')}; connect-src ${[...new Set([...runtimeManifest.csp.connectSrc, "http://127.0.0.1:*", "http://localhost:*"])].join(' ')}; img-src 'self' data: http: https:;">`
+       : ''
     const extCode = scripts && runtimeManifest?.extensionScripts?.length
       ? extractExtensionScriptCode(runtimeManifest.extensionScripts)
       : ''

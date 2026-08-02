@@ -28,6 +28,7 @@ export type ExtensionRuntimeRequestType =
   | 'inject.prompt'
   | 'audio.speak'
   | 'parent.resize'
+  | 'http.fetch'
 
 export type ExtensionRuntimeRequest = {
   type: ExtensionRuntimeRequestType
@@ -136,6 +137,29 @@ export async function handleExtensionRuntimeRequest(request: ExtensionRuntimeReq
     }
     case 'parent.resize':
       return { accepted: true, height: Number(payload.height ?? 0) || 0 }
+    case 'http.fetch': {
+      const url = String(payload.url ?? '').trim()
+      if (!url) throw new Error('http.fetch requires url')
+      const options = payload.options as { method?: string; headers?: Record<string, string>; body?: string } | undefined
+      const method = options?.method ?? 'GET'
+      const response = await fetch(url, {
+        method,
+        headers: options?.headers ?? {},
+        body: method !== 'GET' && method !== 'HEAD' ? options?.body : undefined,
+        credentials: 'include',
+      })
+      const text = await response.text()
+      let json: unknown
+      try { json = JSON.parse(text) } catch { json = null }
+      return {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        text,
+        json,
+        headers: Object.fromEntries(response.headers.entries()),
+      }
+    }
     default:
       throw unavailableRuntimeCapability(String(request.type), 'Use DrawDream extension runtime methods')
   }

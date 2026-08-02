@@ -39,6 +39,7 @@ export type CardBridgeRequestType =
   | 'dom.class'
   | 'module.authorize'
   | 'frame.resize'
+  | 'http.fetch'
 
 export type CardBridgeRequest = {
   protocol: typeof CARD_BRIDGE_PROTOCOL
@@ -115,7 +116,7 @@ export function parseCardBridgeRequest(data: unknown): CardBridgeRequest | null 
   if (!isNonEmptyString(record.frameId) || !isNonEmptyString(record.capabilityToken) || !isNonEmptyString(record.requestId)) return null
   const allowed: CardBridgeRequestType[] = [
     'ready', 'context.get', 'variables.get', 'variables.patch', 'variables.schema', 'message.send',
-    'message.update', 'message.create', 'message.snapshot', 'slash.execute', 'event.subscribe', 'asset.resolve', 'dom.query', 'dom.text', 'dom.class', 'frame.resize',
+    'message.update', 'message.create', 'message.snapshot', 'slash.execute', 'event.subscribe', 'asset.resolve', 'dom.query', 'dom.text', 'dom.class', 'frame.resize', 'http.fetch',
   ]
   if (typeof record.type !== 'string' || !allowed.includes(record.type as CardBridgeRequestType)) return null
   return {
@@ -215,6 +216,8 @@ export function cardBridgeBootstrapScript(options: {
  window.TavernHelper.setChatMessages=function(messages){return request('message.update',{messages:Array.isArray(messages)?messages:[]});};
  window.TavernHelper.deleteChatMessages=function(ids){return request('message.update',{deleteIds:Array.isArray(ids)?ids:[]});};
  window.TavernHelper.getCurrentMessageId=function(){var c=window.SillyTavern.__context||{};return c.chat&&c.chat.length?c.chat[c.chat.length-1].id:null;};
+ window.DrawDream=window.DrawDream||{};
+ window.DrawDream.fetch=function(url,opts){return request('http.fetch',{url:String(url||''),options:opts||{}});};
  window.TavernFrame.getContext().then(function(c){window.SillyTavern.__context=c;});
  post({type:'ready',requestId:F+'-ready'});
  }catch(e){}})();</` + `script>`

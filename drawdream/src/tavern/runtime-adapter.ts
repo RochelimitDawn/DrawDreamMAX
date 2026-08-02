@@ -218,6 +218,30 @@ export class TavernRuntimeAdapter {
       }
       case 'frame.resize':
         return { accepted: true }
+      case 'http.fetch': {
+        const payload = jsonObject(request.payload)
+        const url = String(payload.url ?? '').trim()
+        if (!url) throw new Error('http.fetch requires url')
+        const options = payload.options as { method?: string; headers?: Record<string, string>; body?: string } | undefined
+        const method = options?.method ?? 'GET'
+        const response = await fetch(url, {
+          method,
+          headers: options?.headers ?? {},
+          body: method !== 'GET' && method !== 'HEAD' ? options?.body : undefined,
+          credentials: 'include',
+        })
+        const text = await response.text()
+        let json: unknown
+        try { json = JSON.parse(text) } catch { json = null }
+        return {
+          ok: response.ok,
+          status: response.status,
+          statusText: response.statusText,
+          text,
+          json,
+          headers: Object.fromEntries(response.headers.entries()),
+        }
+      }
       default:
         throw unavailableRuntimeCapability(request.type, 'Use the documented TavernFrame or TavernHelper methods')
     }
