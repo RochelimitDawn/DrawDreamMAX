@@ -239,6 +239,29 @@ class SessionStore {
     return true
   }
 
+  patchMessageLocal(id: string, patch: { text?: string; html?: string; scripts?: boolean }): boolean {
+    const tid = id.trim()
+    if (!tid) return false
+    let found = false
+    this.patch({
+      messages: this.snap.messages.map((m) => {
+        if (m.id === tid) {
+          found = true
+          const updated = { ...m }
+          if (patch.text !== undefined) updated.text = patch.text
+          if (patch.html !== undefined) {
+            updated.html = patch.html
+            updated.scripts = patch.scripts ?? true
+            updated.channel = 'html'
+          }
+          return updated
+        }
+        return m
+      }),
+    })
+    return found
+  }
+
   deleteMessage(id: string): boolean {
     if (this.snap.conn !== 'open' || !id.trim()) return false
     this.send({ type: 'message_delete', id: id.trim() })

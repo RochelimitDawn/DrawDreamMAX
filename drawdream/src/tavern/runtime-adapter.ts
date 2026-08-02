@@ -187,11 +187,15 @@ export class TavernRuntimeAdapter {
           const message = jsonObject(item)
           const id = String(message.id ?? '').trim()
           if (!id) continue
-          if (sessionStore.updateMessage(id, {
-            content: message.content ?? message.text ?? message.mes,
-            ...(typeof message.display === 'boolean' ? { display: message.display } : {}),
-            ...(message.details !== undefined ? { details: message.details } : {}),
-          })) accepted += 1
+          const html = typeof message.html === 'string' ? message.html : ''
+          const text = typeof (message.content ?? message.text ?? message.mes) === 'string'
+            ? String(message.content ?? message.text ?? message.mes)
+            : ''
+          if (html) {
+            if (sessionStore.patchMessageLocal(id, { html, text: text || undefined })) accepted += 1
+          } else if (text) {
+            if (sessionStore.patchMessageLocal(id, { text })) accepted += 1
+          }
         }
         for (const id of deleteIds) {
           if (sessionStore.deleteMessage(String(id))) accepted += 1

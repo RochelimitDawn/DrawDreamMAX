@@ -33,9 +33,9 @@ function takeFence(
   return { end: from + m[0].length, html: m[2], scripts: /\bscripts?\b/i.test(lang) }
 }
 
-/** 匹配顶层带 style 的 div 块 */
+/** 匹配顶层带 style 或 class 的 div 块 */
 function takeStyledDiv(src: string, from: number): { end: number; html: string } | null {
-  const re = /<div\b[^>]*\bstyle\s*=/gi
+  const re = /<div\b[^>]*\b(?:style|class)\s*=/gi
   re.lastIndex = from
   const m = re.exec(src)
   if (!m || m.index !== from) {

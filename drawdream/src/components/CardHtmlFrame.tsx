@@ -95,7 +95,7 @@ export function CardHtmlFrame({
        if (!request || request.frameId !== effectiveFrameId || request.capabilityToken !== effectiveCapabilityToken) return
        if (runtimeManifest?.cardFingerprint && request.cardFingerprint !== runtimeManifest.cardFingerprint) return
       const required = requiredCapabilityForRequest(request.type)
-      if (required && !capabilities.includes(required)) {
+      if (required && !effectiveCapabilities.includes(required)) {
         el.contentWindow?.postMessage(createCardBridgeResponse(request, { ok: false, error: `Capability denied: ${required}` }), '*')
         return
       }

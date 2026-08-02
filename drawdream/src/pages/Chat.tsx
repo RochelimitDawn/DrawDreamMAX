@@ -1248,7 +1248,7 @@ export function ChatPage() {
               {m.choice.stopped ? <em>{t('chat.choiceStopped')}</em> : null}
             </div>
           ) : null}
-          {m.text && m.channel !== 'choice' && (prefs.streamReply || !m.streaming) ? (
+          {m.text && m.channel !== 'choice' && !m.html && (prefs.streamReply || !m.streaming) ? (
             <RichMessage
               text={m.text}
               rich={role !== 'user'}
@@ -1369,8 +1369,9 @@ export function ChatPage() {
       {runtimeManifest?.extensionScripts?.length ? (
         <div aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}>
           <CardHtmlFrame
-            html=""
+            html=" "
             scripts
+            capabilities={['context.read', 'variables.read', 'variables.write', 'messages.send', 'messages.update', 'events.subscribe', 'assets.read', 'card.ui', 'external.module', 'slash.execute']}
             runtimeManifest={runtimeManifest}
             title="card-runtime"
           />

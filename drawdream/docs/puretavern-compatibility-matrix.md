@@ -1,6 +1,6 @@
 # PureTavern 兼容矩阵
 
-生成时间：`2026-08-01T15:27:21.534Z`
+生成时间：`2026-08-02T05:17:08.199Z`
 参考仓库：https://github.com/Lianues/PureTavern @ `847c04235a4fa113bef7994929779f7e1eb50871`
 许可证：`AGPL-3.0`
 
