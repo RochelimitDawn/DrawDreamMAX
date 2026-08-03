@@ -1159,7 +1159,7 @@ body:has(.chat-page),
   position: relative;
   width: 32px;
   height: 32px;
-  border-radius: 12px;
+  border-radius: 16px;
   display: grid;
   place-items: center;
   font-size: 13px;
@@ -1219,22 +1219,6 @@ body:has(.chat-page),
 .msg-avatar-system {
   background: var(--bg-muted);
   color: var(--text-secondary);
-}
-
-/* 助手头像金色光点装饰（右下角，比原先更精致） */
-.msg-avatar-assistant::after {
-  content: '';
-  position: absolute;
-  right: -1px;
-  bottom: -1px;
-  width: 9px;
-  height: 9px;
-  z-index: 3;
-  border: 2px solid var(--bg-elevated);
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffe9b0, var(--accent-gold));
-  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--brand) 34%, transparent), 0 2px 6px rgb(0 0 0 / 22%);
-  pointer-events: none;
 }
 
 .msg-role {
@@ -1521,10 +1505,10 @@ body:has(.chat-page),
     width: 100%;
     max-width: none;
     max-height: none;
-    height: 92vh;
-    height: 92dvh;
-    min-height: 92vh;
-    min-height: 92dvh;
+    height: calc(100dvh - 104px);
+    height: calc(100vh - 104px);
+    min-height: calc(100dvh - 104px);
+    min-height: calc(100vh - 104px);
     align-self: stretch;
     border-radius: 20px 20px 0 0;
     box-shadow: 0 -16px 56px color-mix(in srgb, var(--text) 20%, transparent);
@@ -2556,10 +2540,10 @@ body:has(.chat-page),
     width: 100% !important;
     max-width: none !important;
     max-height: none !important;
-    height: 92vh !important;
-    height: 92dvh !important;
-    min-height: 92vh !important;
-    min-height: 92dvh !important;
+    height: calc(100dvh - 104px) !important;
+    height: calc(100vh - 104px) !important;
+    min-height: calc(100dvh - 104px) !important;
+    min-height: calc(100vh - 104px) !important;
     align-self: stretch !important;
     border-radius: 20px 20px 0 0 !important;
     box-shadow: 0 -16px 56px color-mix(in srgb, var(--text) 20%, transparent) !important;
