@@ -167,6 +167,42 @@
   color: color-mix(in srgb, var(--brand) 70%, var(--text));
 }
 
+.asst-card-ops {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding-left: 8px;
+  flex-shrink: 0;
+}
+
+.asst-card-op {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--text-tertiary, var(--text-secondary));
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.asst-card-op:hover {
+  color: var(--text);
+  background: var(--bg-muted);
+  border-color: var(--border-subtle, transparent);
+}
+
+.asst-card-op:active {
+  transform: translateY(0.5px);
+}
+
+
 .asst-card-tag {
   display: inline-flex;
   align-items: center;

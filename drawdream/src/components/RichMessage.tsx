@@ -501,6 +501,8 @@ export interface RichMessageProps {
   rich?: boolean
   /** 流式中：未闭合标签暂缓结构化，减少闪烁 */
   streaming?: boolean
+  /** 仅渲染 markdown：跳过 HTML 检测 / iframe 与 RP 结构化，规避字体与 txt 框问题 */
+  mdOnly?: boolean
   /** 普通文本是否允许推断为自由格式抉择列表 */
   inferFreeformChoice?: boolean
   onChoice?: (opt: string) => void
@@ -539,6 +541,7 @@ export function RichMessage({
   text,
   rich = true,
   streaming = false,
+  mdOnly = false,
   inferFreeformChoice = true,
   onChoice,
   onCharSelect,
@@ -559,15 +562,16 @@ export function RichMessage({
     return expandStatusPlaceholder(replaceMacrosForDisplay(text, { userName, charName }, locale), statusState)
   }, [text, userName, charName, locale, statusState])
 
-  // 先切 HTML 块，再对各 text 段做 RP 解析
-  const htmlChunks = useMemo(() => splitHtmlParts(displayText), [displayText])
-  const hasHtml = htmlChunks.some((c) => c.kind === 'html')
+  // mdOnly：跳过 HTML 检测与 RP 结构化，整段按纯 markdown 渲染
+  const htmlChunks = useMemo(() => (mdOnly ? [] : splitHtmlParts(displayText)), [displayText, mdOnly])
+  const hasHtml = !mdOnly && htmlChunks.some((c) => c.kind === 'html')
 
   const rpParts = useMemo(() => {
+    if (mdOnly) return [{ kind: 'text', text: displayText } as RpPart]
     if (!displayText || hasHtml) return [] as RpPart[]
     if (!rich) return [{ kind: 'text', text: displayText } as RpPart]
     return parseRpText(displayText, { streaming, inferFreeformChoice })
-  }, [displayText, rich, streaming, inferFreeformChoice, hasHtml])
+  }, [displayText, rich, streaming, inferFreeformChoice, hasHtml, mdOnly])
 
   const nameList = useMemo(() => {
     if (!enableReading || !readingPrefs?.colorizeEnabled || !readingPrefs.colorizeRules.name) {

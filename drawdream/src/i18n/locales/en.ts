@@ -506,6 +506,8 @@ export default {
     asstThinkingLive: 'Thinking…',
     asstThinkingDone: 'Thought',
     asstWorking: 'Assistant is working…',
+    copyReply: 'Copy reply',
+    copyFailed: 'Copy failed',
     state: {
       chapter: 'Chapter',
       time: 'Time',

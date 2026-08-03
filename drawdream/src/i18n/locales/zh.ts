@@ -505,6 +505,8 @@ export default {
     asstThinkingLive: '思考中…',
     asstThinkingDone: '已思考',
     asstWorking: '助手正在工作…',
+    copyReply: '复制回复',
+    copyFailed: '复制失败',
     state: {
       chapter: '章节',
       time: '时间',

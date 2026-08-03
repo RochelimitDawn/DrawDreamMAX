@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bot, Sparkles } from 'lucide-react'
+import { Bot, Check, Copy, Sparkles } from 'lucide-react'
 import type { AssistantSnapshot } from '../agent/session-store'
 import type { AssistantMsg } from '../agent/wire.types'
 import { RichMessage } from './RichMessage'
 import { ThinkingBlock } from './ThinkingBlock'
 import { ToolCallList, coalesceActivities } from './ToolCallChip'
 import { ChatComposer } from './ChatComposer'
+import { copyText } from '../utils/clipboard'
+import { toast } from '../utils/toast'
 import './AssistantPanel.css'
 
 export type AssistantPanelProps = {
@@ -102,6 +104,7 @@ function AssistantReplyCard({
   const tools = useMemo(() => coalesceActivities(acts, toolLocale), [acts, toolLocale])
   const hasProcess = Boolean(thinking.trim() || tools.length)
   const [processOpen, setProcessOpen] = useState(true)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (streaming || busy) setProcessOpen(true)
@@ -110,6 +113,18 @@ function AssistantReplyCard({
 
   const showWaiting =
     streaming && busy && !text.trim() && !thinking.trim() && tools.length === 0
+
+  const copyReply = async () => {
+    const content = [thinking.trim() ? `思考：\n${thinking}` : '', text].filter(Boolean).join('\n\n')
+    if (!content.trim()) return
+    try {
+      await copyText(content)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    } catch {
+      toast(t('chat.copyFailed'), 'error')
+    }
+  }
 
   return (
     <article
@@ -122,6 +137,18 @@ function AssistantReplyCard({
         </span>
         <span className="asst-card-name">{t('chat.assistantPanel')}</span>
         {streaming ? <span className="asst-card-tag is-live">{t('chat.typing')}</span> : null}
+        {text.trim() ? (
+          <span className="asst-card-ops">
+            <button
+              type="button"
+              className="asst-card-op"
+              title={t('chat.copyReply')}
+              onClick={() => void copyReply()}
+            >
+              {copied ? <Check size={13} strokeWidth={2} /> : <Copy size={13} strokeWidth={1.8} />}
+            </button>
+          </span>
+        ) : null}
       </header>
 
       {hasProcess ? (
@@ -166,7 +193,7 @@ function AssistantReplyCard({
         <div className={`asst-card-body${streaming ? ' is-stream-md' : ''}`}>
           <RichMessage
             text={text}
-            rich
+            mdOnly
             streaming={!!streaming}
             className="msg-text asst-md"
             userName={userName}
