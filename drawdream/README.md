@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.58`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.59`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.58` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.59` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.58
+└── package.json         # 2.0.0-alpha.1-mobile.59
 ```
 
 ```text
@@ -115,13 +115,14 @@ drawdream/
 
 ---
 
-## 本版要点（mobile.58）
+## 本版要点（mobile.59）
 
+- **模型失败可见**：修复自定义中转返回 401/404/400 时剧情与助手静默无输出——`agent_end` 检测失败消息并广播可见错误提示
+- **助手侧栏纯 markdown**：`RichMessage` 新增 `mdOnly`（跳过 HTML/iframe 与 RP 结构化），助手消息正文规避字体与 txt 框问题；保留工具调用过程条，消息头部新增复制按钮
 - **卡内 UI 全量渲染修复**：提升 `MAX_REPLACEMENT` 到 256KB、显示层默认应用 `markdownOnly` 美化脚本——苏联卡状态栏（34KB）等大 UI 脚本不再被丢弃，占位符正确展开为完整 HTML
 - **卡内 UI 全量渲染**：参考梨园方案重构渲染链路——消息 HTML 直接进同源沙箱 iframe（`HtmlFrame`），卡脚本在消息 iframe 内自管 UI；CSP 放宽至允许 CDN/eval，`</script>` 截断修复，程序卡自动 78vh 高度，流式期间冻结 iframe 避免清屏
 - **皮肤正则服务端应用**：`expandSkinReplacement` 安全模板展开（`$'`/`$`` 保护、长模板字面 `$&`），`{{char}}`/`{{user}}` 宏展开
 - **酒馆助手适配**：`tavern-shim` 提供 TavernHelper.generate / triggerSlash / eventOn 运行时，事件转发到 tavernRuntime 总线
-- **移除扩展页面**：UI 渲染不再依赖酒馆助手，删除 `/extensions` 页面与入口
 - **SillyTavern 原生 API 兼容层**：~140 个 ST 原生端点映射到 DrawDream 数据层
 - **UI 美化**：设置页平板便当盒图标、历史侧边栏重排、头像框暖金渐变描边、RichMessage HtmlFrame 恒 seamless
 
