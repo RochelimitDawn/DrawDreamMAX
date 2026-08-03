@@ -79,3 +79,28 @@ test("applyDisplayRegexScripts 支持 {{char}}/{{user}} 宏展开", () => {
 	const out = applyDisplayRegexScripts("NAME", scripts, { charName: "艾拉", userName: "阿明" });
 	assert.equal(out, "艾拉 对 阿明 说");
 });
+
+test("大 replaceString（程序卡 UI HTML）不被 MAX_REPLACEMENT 丢弃", () => {
+	const bigReplace = `<div style="color:red">${"x".repeat(20000)}</div>`;
+	const scripts = normalizeCardRegexScripts([{
+		scriptName: "状态栏",
+		findRegex: "<StatusPlaceHolderImpl/>",
+		replaceString: bigReplace,
+		placement: [2],
+	}]);
+	assert.equal(scripts.length, 1, "大替换串脚本应被保留");
+	assert.equal(scripts[0]?.replaceString.length, bigReplace.length);
+});
+
+test("markdownOnly 显示脚本在 applyDisplayRegexScripts 中被应用", () => {
+	const scripts = normalizeCardRegexScripts([{
+		scriptName: "状态栏",
+		findRegex: "<StatusPlaceHolderImpl/>",
+		replaceString: "<div class=\"soviet\">状态栏</div>",
+		placement: [2],
+		markdownOnly: true,
+	}]);
+	const out = applyDisplayRegexScripts("正文\n<StatusPlaceHolderImpl/>\n后文", scripts);
+	assert.ok(out.includes("soviet"), "markdownOnly 显示脚本应替换占位符");
+	assert.ok(!out.includes("StatusPlaceHolderImpl"), "占位符应被移除");
+});

@@ -594,21 +594,21 @@ export function RichMessage({
 
   if (!displayText.trim()) return null
 
-  // 纯 HTML 整页：无气泡装饰，直接 iframe
+  // 纯 HTML 整页：无气泡装饰，直接 iframe（无痕贴合正文）
   if (hasHtml && htmlChunks.length === 1 && htmlChunks[0]!.kind === 'html') {
     return (
       <div className={`rp-message is-html-full ${className}`.trim()}>
         <HtmlFrame
           html={htmlChunks[0]!.html}
           scripts={htmlChunks[0]!.scripts}
-          seamless={!!htmlChunks[0]!.scripts}
+          seamless
           streaming={streaming}
         />
       </div>
     )
   }
 
-  // 混排：text → RP 解析；html → 沙箱帧
+  // 混排：text → RP 解析；html → 沙箱帧（无痕贴合正文）
   if (hasHtml) {
     return (
       <div className={`rp-message is-rich is-html-mix ${className}`.trim()}>
@@ -619,7 +619,7 @@ export function RichMessage({
                 key={`h-${i}`}
                 html={chunk.html}
                 scripts={chunk.scripts}
-                seamless={!!chunk.scripts}
+                seamless
                 streaming={streaming}
               />
             )

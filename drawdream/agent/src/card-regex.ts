@@ -1,8 +1,8 @@
 import type { CardRegexScript, MacroContext } from "./types.ts";
 
-const MAX_PATTERN = 1_000;
-const MAX_REPLACEMENT = 8_000;
-const MAX_SCRIPTS = 32;
+const MAX_PATTERN = 8_000;
+const MAX_REPLACEMENT = 256 * 1024;
+const MAX_SCRIPTS = 128;
 /** 超过此长度视为「整页/程序卡」替换串：`$&` 一律按字面，只认 {{match}} */
 const LITERAL_REPLACE_THRESHOLD = 8_000;
 
@@ -150,8 +150,10 @@ export function applyRegexScripts(text: string, scripts: CardRegexScript[], plac
 /**
  * 只执行显示阶段的声明式替换。脚本、网络请求和 ST API 均不会被执行。
  * placement=2 视为显示层；空 placement 也兼容为显示层。
+ * markdownOnly 默认开启：显示层输出即 markdown 渲染，标记为 markdownOnly 的
+ * 美化脚本（状态栏/界面）应当应用。
  * macros 可选：展开 replaceString 中的 {{char}} / {{user}}。
  */
 export function applyDisplayRegexScripts(text: string, scripts: CardRegexScript[], macros?: MacroContext): string {
-	return applyRegexScripts(text, scripts, "display", { macros }).text;
+	return applyRegexScripts(text, scripts, "display", { markdownOnly: true, macros }).text;
 }
