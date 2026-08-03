@@ -330,8 +330,8 @@ class SessionStore {
     return true
   }
 
-  replyChoice(id: string, value?: string, stop?: boolean) {
-    this.send({ type: 'choice_reply', id, value, stop })
+  replyChoice(id: string, value?: string, stop?: boolean, via?: 'option' | 'free') {
+    this.send({ type: 'choice_reply', id, value, stop, via })
   }
 
   assistantPrompt(text: string, webSearch = false) {

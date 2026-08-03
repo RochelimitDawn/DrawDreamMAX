@@ -626,7 +626,24 @@ const ensureSessionCardAndGreeting = async (): Promise<void> => {
 // ---------- 剧情决策门禁：uiContext.select/input ↔ 前端选择卡（choice-gate.ts） ----------
 
 const choiceGate = createChoiceGate(broadcast);
-const settleChoice = choiceGate.settle;
+/** 抉择应答收敛：除回填选择卡外，把用户的选择/自由输入作为一条 user 消息写入历史并广播进正文，
+ *  避免用户输入只在抉择卡工具条里一闪而过（resync 后消失）。 */
+const settleChoice = (id: string, outcome: { value?: string; stop?: boolean; via?: "option" | "free" }) => {
+	if (!outcome.stop && outcome.value?.trim()) {
+		const value = outcome.value.trim();
+		try {
+			session.sessionManager.appendMessage({
+				role: "user",
+				content: value,
+				timestamp: Date.now(),
+			} as never);
+		} catch {
+			/* 落盘失败不影响应答收敛 */
+		}
+		broadcast({ type: "message", message: { channel: "user", name: names.userName, text: value } });
+	}
+	choiceGate.settle(id, outcome);
+};
 const uiContext = choiceGate.uiContext;
 
 const onStoryEvent = createStoryEventHandler({
@@ -1174,9 +1191,17 @@ const assertListedSession = async (path: string) => {
 					resyncAll();
 					break;
 				}
-				case "abort":
-					await session.abort();
+				case "abort": {
+					// 有未决抉择时先收敛（ask_director 返回 terminate toolResult，历史配对完整），
+					// 避免直接 abort 中断工具导致 tool_calls 无配对、后续请求 400。
+					const pendingFrames = choiceGate.pendingFrames();
+					if (pendingFrames.length) {
+						for (const pf of pendingFrames) settleChoice(pf.id, { stop: true });
+					} else {
+						await session.abort();
+					}
 					break;
+				}
 				case "reroll": {
 					if (refuseWhileStreaming(ws, "重新生成")) return;
 					const t = String(frame.text ?? "").trim();
@@ -1278,11 +1303,12 @@ const assertListedSession = async (path: string) => {
 					const id = String(frame.id ?? "");
 					if (frame.stop) {
 						settleChoice(id, { stop: true });
-						await session.abort();
+						// 不粗暴 abort：让 ask_director 正常返回终止型 toolResult（terminate），
+						// 保证 tool_calls 与 toolResult 配对完整、历史不被破坏；agent 由 terminate 收尾。
 					} else {
 						const value = String(frame.value ?? "").trim();
 						if (!value) return;
-						settleChoice(id, { value });
+						settleChoice(id, { value, via: frame.via === "free" ? "free" : "option" });
 					}
 					break;
 				}

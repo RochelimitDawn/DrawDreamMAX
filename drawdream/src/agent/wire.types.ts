@@ -204,7 +204,7 @@ export type ClientFrame =
   | { type: 'compact' }
   | { type: 'sessions' }
   | { type: 'open'; path: string }
-  | { type: 'choice_reply'; id: string; value?: string; stop?: boolean }
+  | { type: 'choice_reply'; id: string; value?: string; stop?: boolean; via?: 'option' | 'free' }
   | { type: 'assistant_prompt'; text: string; webSearch?: boolean }
   | { type: 'assistant_abort' }
   | { type: 'assistant_new' }

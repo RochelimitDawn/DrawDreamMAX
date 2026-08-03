@@ -15,16 +15,16 @@ export type PendingChoice = {
 	question: string;
 	options: string[];
 	placeholder?: string;
-	/** value=字符串应答；undefined=停止本回合 */
-	resolve: (value: string | undefined) => void;
+	/** value=字符串应答；undefined=停止本回合。via 标记应答来源（option 点击选项 / free 自由输入） */
+	resolve: (value: { value: string; via: "option" | "free" } | undefined) => void;
 	settled: boolean;
 };
 
 export type ChoiceGate = {
 	/** 广播选择卡帧 */
-	ask: (question: string, options: string[], placeholder: string | undefined, signal?: AbortSignal) => Promise<string | undefined>;
+	ask: (question: string, options: string[], placeholder: string | undefined, signal?: AbortSignal) => Promise<{ value: string; via: "option" | "free" } | undefined>;
 	/** 收敛一张未决卡 */
-	settle: (id: string, outcome: { value?: string; stop?: boolean }) => void;
+	settle: (id: string, outcome: { value?: string; stop?: boolean; via?: "option" | "free" }) => void;
 	/** 未决卡帧列表（hello 补发） */
 	pendingFrames: () => ServerFrame[];
 	/** 全部未决按停止收敛（dispose 时） */
@@ -52,17 +52,18 @@ export function createChoiceGate(broadcast: (frame: ServerFrame) => void): Choic
 		...(p.placeholder ? { placeholder: p.placeholder } : {}),
 	});
 
-	const settle = (id: string, outcome: { value?: string; stop?: boolean }) => {
+	const settle = (id: string, outcome: { value?: string; stop?: boolean; via?: "option" | "free" }) => {
 		const p = pendingChoices.get(id);
 		if (!p || p.settled) return;
 		p.settled = true;
 		pendingChoices.delete(id);
+		const via = outcome.via === "free" ? "free" : "option";
 		broadcast({ type: "choice_resolved", id, ...(outcome.stop ? { stopped: true } : { answer: outcome.value }) });
-		p.resolve(outcome.stop ? undefined : outcome.value);
+		p.resolve(outcome.stop ? undefined : { value: outcome.value as string, via });
 	};
 
 	const ask = (question: string, options: string[], placeholder: string | undefined, signal?: AbortSignal) =>
-		new Promise<string | undefined>((resolve) => {
+		new Promise<{ value: string; via: "option" | "free" } | undefined>((resolve) => {
 			const id = `c${Date.now().toString(36)}-${++choiceSeq}`;
 			const pending: PendingChoice = { question, options: normalizeChoiceOptions(options), placeholder, resolve, settled: false };
 			pendingChoices.set(id, pending);

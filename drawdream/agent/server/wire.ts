@@ -292,8 +292,8 @@ export type ClientFrame =
 	| { type: "compact" }
 	| { type: "sessions" }
 	| { type: "open"; path: string }
-	/** 剧情决策应答：value=选项原文或自由输入；stop=停止本回合（笔还给用户） */
-	| { type: "choice_reply"; id: string; value?: string; stop?: boolean }
+	/** 剧情决策应答：value=选项原文或自由输入；via=来源（option 点击选项 / free 自由输入）；stop=停止本回合（笔还给用户） */
+	| { type: "choice_reply"; id: string; value?: string; stop?: boolean; via?: "option" | "free" }
 	/** 助手（右栏独立会话）：发话 / 停止 / 新对话 / 请求全量 / 选模型（provider+id 均缺省 = 跟随剧情模型） */
 	| { type: "assistant_prompt"; text: string; webSearch?: boolean }
 	| { type: "assistant_abort" }

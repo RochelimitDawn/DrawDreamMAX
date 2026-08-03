@@ -1871,7 +1871,7 @@ export function ChatPage() {
                             type="button"
                             className="dd-gate-opt"
                             onClick={() => {
-                              store.replyChoice(session.pendingChoice!.id!, opt)
+                              store.replyChoice(session.pendingChoice!.id!, opt, false, 'option')
                               setChoiceFree('')
                             }}
                           >
@@ -1896,7 +1896,7 @@ export function ChatPage() {
                           if (e.key === 'Enter') {
                             const v = choiceFree.trim()
                             if (v && session.pendingChoice?.id) {
-                              store.replyChoice(session.pendingChoice.id, v)
+                              store.replyChoice(session.pendingChoice.id, v, false, 'free')
                               setChoiceFree('')
                             }
                           }
@@ -1908,7 +1908,7 @@ export function ChatPage() {
                         onClick={() => {
                           const v = choiceFree.trim()
                           if (v && session.pendingChoice?.id) {
-                            store.replyChoice(session.pendingChoice.id, v)
+                            store.replyChoice(session.pendingChoice.id, v, false, 'free')
                             setChoiceFree('')
                           }
                         }}

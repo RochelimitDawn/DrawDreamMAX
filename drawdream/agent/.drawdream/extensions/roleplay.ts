@@ -77,6 +77,15 @@ function text(s: string, isError = false) {
 	};
 }
 
+/** 终止型工具结果：本轮立即收尾（不再让模型续问），且 toolResult 正常配对历史。 */
+function terminateText(s: string) {
+	return {
+		content: [{ type: "text" as const, text: s }],
+		details: undefined,
+		terminate: true,
+	};
+}
+
 function loadConfig(cwd: string): RpConfig {
 	const p = resolveConfigPath(cwd);
 	if (!existsSync(p)) return { ...DEFAULT_CONFIG };
@@ -852,8 +861,11 @@ export default function roleplayExtension(pi: ExtensionAPI) {
 					.filter(Boolean);
 				if (opts.length < 2) return text("至少需要 2 个选项", true);
 				const picked = await ctx.ui.select(params.question, opts);
-				if (picked == null) return text("用户取消了抉择", true);
-				return text(`用户选择：${picked}`);
+				if (picked == null) return terminateText("用户取消了抉择");
+				const pickedValue = picked.value;
+				// LLM 标记驱动：区分「点击选项」与「自由输入」，避免自由输入被当作选项选择误判走向
+				const pickedLabel = picked.via === "free" ? "用户自由发言" : "用户选择";
+				return text(`${pickedLabel}：${pickedValue}`);
 			},
 		}),
 	);
