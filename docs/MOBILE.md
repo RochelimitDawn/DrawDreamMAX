@@ -9,7 +9,7 @@
 | 业务代码 | `drawdream/src`（UI）+ `drawdream/agent`（运行时） |
 | 壳与打包 | `drawdream/mobile` |
 | 端口 | **7620**（`/*` · `/api/*` · `/ws`） |
-| 当前规范 Release | **`v2.0.0-alpha.1-mobile.59`** |
+| 当前规范 Release | **`v2.0.0-alpha.1-mobile.60`** |
 
 UI 与 Agent **不是「可删除的网页版副本」**：它们是 APK 内本地 Node 拉起的前端与后端。桌面 `npm run dev` 仅用于构建与联调。
 
@@ -55,7 +55,7 @@ DrawDreamMAX/
 - **业务与协议只维护一份**（UI + agent）。
 - **平台差异集中在 `drawdream/mobile/`**。
 - 大体积产物（`runtime.zip`、`jniLibs/`、Node 二进制）不入库。
-- 远程默认分支仅为 **`main`**；当前发布版本为 `mobile.59`，旧版本历史已清理。
+- 远程默认分支仅为 **`main`**；当前发布版本为 `mobile.60`，旧版本历史已清理。
 
 ---
 
@@ -175,7 +175,7 @@ git push origin v2.0.0-alpha.1-mobile.N
 | 类型 | 约定 |
 | --- | --- |
 | 产品版本 | `drawdream/package.json` → `2.0.0-alpha.1` |
-| 发布线 | 当前 `v2.0.0-alpha.1-mobile.59` Release |
+| 发布线 | 当前 `v2.0.0-alpha.1-mobile.60` Release |
 | 默认分支 | **`main` only** |
 | 历史 | 以当前发布 tag 和 mobile.30 稳定基线作为维护依据 |
 | 主维护面 | **移动端 APK** |
@@ -186,7 +186,7 @@ git push origin v2.0.0-alpha.1-mobile.N
 git checkout main
 git pull
 git describe --tags --exact-match
-# v2.0.0-alpha.1-mobile.59
+# v2.0.0-alpha.1-mobile.60
 ```
 
 ---

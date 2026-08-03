@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.59`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.60`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.59` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.60` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.59
+└── package.json         # 2.0.0-alpha.1-mobile.60
 ```
 
 ```text
@@ -115,16 +115,18 @@ drawdream/
 
 ---
 
-## 本版要点（mobile.59）
+## 本版要点（mobile.60）
 
+- **抉择器改进**：抉择应答作为 user 消息写入历史并广播进正文（不再只在抉择卡工具条一闪而过）；`choice_reply` 区分 `option`/`free`，`ask_director` 回传「用户选择」vs「用户自由发言」，自由输入不再被误判为选项；「停止本回合」不再粗暴 abort，改由终止型 toolResult 收尾，避免 tool_calls 无配对导致历史损坏、后续请求 400
+- **助手 Plan 模式**：新增 `todo_write`/`todo_list` 工具（跨轮次持久子任务清单），助手系统提示词加入「任务拆解」纪律——长任务先拆子任务、逐步更新状态、不遗漏不重复
+- **工具条汉化**：补齐 `world_read`（读取世界书）/`world_write`/`config_*`/`preset_*`/`models_list`/`skill_save`/`todo_*` 等中英文名
+- **工具条去重**：前端折叠相邻「同工具同参数同结果」的重复调用，显示 ×N
+- **消息头像优化**：去掉右下角金色圆点装饰，圆角 12→16px
+- **手机端助手页遮挡修复**：右侧 sheet 高度改为 `calc(100dvh - 104px)`，不再与主对话顶栏重叠
 - **模型失败可见**：修复自定义中转返回 401/404/400 时剧情与助手静默无输出——`agent_end` 检测失败消息并广播可见错误提示
-- **助手侧栏纯 markdown**：`RichMessage` 新增 `mdOnly`（跳过 HTML/iframe 与 RP 结构化），助手消息正文规避字体与 txt 框问题；保留工具调用过程条，消息头部新增复制按钮
-- **卡内 UI 全量渲染修复**：提升 `MAX_REPLACEMENT` 到 256KB、显示层默认应用 `markdownOnly` 美化脚本——苏联卡状态栏（34KB）等大 UI 脚本不再被丢弃，占位符正确展开为完整 HTML
-- **卡内 UI 全量渲染**：参考梨园方案重构渲染链路——消息 HTML 直接进同源沙箱 iframe（`HtmlFrame`），卡脚本在消息 iframe 内自管 UI；CSP 放宽至允许 CDN/eval，`</script>` 截断修复，程序卡自动 78vh 高度，流式期间冻结 iframe 避免清屏
-- **皮肤正则服务端应用**：`expandSkinReplacement` 安全模板展开（`$'`/`$`` 保护、长模板字面 `$&`），`{{char}}`/`{{user}}` 宏展开
-- **酒馆助手适配**：`tavern-shim` 提供 TavernHelper.generate / triggerSlash / eventOn 运行时，事件转发到 tavernRuntime 总线
-- **SillyTavern 原生 API 兼容层**：~140 个 ST 原生端点映射到 DrawDream 数据层
-- **UI 美化**：设置页平板便当盒图标、历史侧边栏重排、头像框暖金渐变描边、RichMessage HtmlFrame 恒 seamless
+- **助手侧栏纯 markdown**：`RichMessage` 新增 `mdOnly`，助手消息正文规避字体与 txt 框问题；保留工具调用过程条，消息头部新增复制按钮
+- **卡内 UI 全量渲染修复**：提升 `MAX_REPLACEMENT` 到 256KB、显示层默认应用 `markdownOnly` 美化脚本
+- 继承 mobile.53-59：卡内 UI iframe 渲染、皮肤正则、酒馆助手适配、ST 兼容层、设置页便当盒
 
 兼容文档：
 
