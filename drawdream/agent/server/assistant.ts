@@ -156,6 +156,55 @@ const parseJsonObject = (raw: string): Record<string, unknown> | null => {
 
 function createStagehandTools(cwd: string, bridge: StoryBridge): ToolDefinition[] {
 	const tools: ToolDefinition[] = [];
+	/** 会话级子任务清单（Plan 模式：todo_write 维护，跨轮次持久，供 todo_list 回顾） */
+	const todoState: Array<{ text: string; status: "pending" | "in_progress" | "done" | "cancelled" }> = [];
+
+	const formatTodos = (list: typeof todoState): string => {
+		if (!list.length) return "（空）";
+		const mark = (s: (typeof list)[number]["status"]) =>
+			s === "done" ? "✓" : s === "in_progress" ? "◐" : s === "cancelled" ? "✕" : "☐";
+		return list.map((t, i) => `${mark(t.status)} ${i + 1}. ${t.text}`).join("\n");
+	};
+
+	tools.push(
+		defineTool({
+			name: "todo_write",
+			label: "任务清单",
+			description:
+				"Maintain the to-do list of subtasks for the current long-running job. Pass the COMPLETE list (every item with its current status) on each call — it REPLACES the previous list. Use when a task spans more than ~3 steps: create the list up front, then update it after each step (mark in_progress while working, done when finished, cancelled when dropped). Keeps the work organized and prevents skipping or repeating steps.",
+			parameters: Type.Object({
+				todos: Type.Array(
+					Type.Object({
+						text: Type.String({ description: "子任务描述" }),
+						status: Type.Union([
+							Type.Literal("pending"),
+							Type.Literal("in_progress"),
+							Type.Literal("done"),
+							Type.Literal("cancelled"),
+						]),
+					}),
+				),
+			}),
+			async execute(_id, params) {
+				todoState.length = 0;
+				for (const t of params.todos) {
+					const text = String(t.text ?? "").trim();
+					if (text) todoState.push({ text, status: t.status ?? "pending" });
+				}
+				return text(`已更新任务清单（${todoState.length} 项）：\n${formatTodos(todoState)}`);
+			},
+		}),
+		defineTool({
+			name: "todo_list",
+			label: "查看任务清单",
+			description:
+				"Return the current to-do list of subtasks with their statuses. Call this at the start of a new turn to recall what remains before continuing.",
+			parameters: Type.Object({}),
+			async execute() {
+				return text(`当前任务清单：\n${formatTodos(todoState)}`);
+			},
+		}),
+	);
 
 	tools.push(
 		defineTool({

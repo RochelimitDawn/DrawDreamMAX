@@ -107,6 +107,34 @@ function toolIcon(name: string): ReactNode {
   return <Wrench className={cls} size={14} aria-hidden />
 }
 
+function sameCall(a: ToolCallChipItem, b: ToolCallChipItem): boolean {
+  return (
+    a.name === b.name &&
+    a.status === b.status &&
+    (a.query ?? '') === (b.query ?? '') &&
+    (a.detail ?? '') === (b.detail ?? '')
+  )
+}
+
+/** 折叠相邻「完全同参数同结果」的重复工具调用，避免工具条重复刷屏 */
+function foldRepeatedCalls(items: ToolCallChipItem[]): ToolCallChipItem[] {
+  const out: ToolCallChipItem[] = []
+  let n = 1
+  for (const item of items) {
+    const prev = out[out.length - 1]
+    if (prev && sameCall(prev, item)) {
+      n += 1
+      const count = n > 2 ? ` ×${n}` : ' ×2'
+      const title = prev.title?.replace(/ ×\d+$/, '') ?? ''
+      out[out.length - 1] = { ...prev, title: `${title}${count}` }
+      continue
+    }
+    n = 1
+    out.push(item)
+  }
+  return out
+}
+
 export function coalesceActivities(
   list: WireActivity[],
   locale: ToolLabelLocale = 'zh',
@@ -171,7 +199,7 @@ export function coalesceActivities(
       title: toolCallTitle(name || 'note', a.detail, a.isError ? 'error' : 'note', locale),
     })
   }
-  return out
+  return foldRepeatedCalls(out)
 }
 
 function StatusIcon({ status }: { status: ToolCallChipItem['status'] }) {

@@ -62,6 +62,7 @@ export function buildStagehandPrompt({ config, skills }: StagehandPromptOptions)
 	const toolLines = [
 		`# 工具`,
 		`只读：story_info / story_read / story_search · lorebook_search · config_read / preset_read / world_read / models_list`,
+		`任务：todo_write / todo_list（长任务拆分子任务清单，见下方「任务拆解」）`,
 		`剧情命令 story_command（限 ${STORY_COMMANDS.map((c) => `/${c}`).join(" ")}）：/reroll · /rewind N · /compact · /branch · /store 等；生成中会排队到本轮结束。`,
 		`改前确认：config_write · preset_toggle · world_write（补丁语义）`,
 		`资产写入：panel_write（markdown 纯文本/标题列表；svg 需 viewBox；html 仅完整页）· lorebook_write · codex_* · card_create（不自动切换当前卡）`,
@@ -91,6 +92,13 @@ export function buildStagehandPrompt({ config, skills }: StagehandPromptOptions)
 - 引用「第 N 楼」前先查工具。
 	- 实时信息：本轮联网开启时用 smart_search；工具自动处理时间锚点；禁止凭记忆答实时事实。
 - 使用${config.language}，简洁；用 Markdown 结构，禁用方括号组件标签。`,
+	);
+
+	sections.push(
+		`# 任务拆解（Plan 模式）
+- 遇到需要多步骤推进的任务（预计超过 ~3 步），先用 \`todo_write\` 把任务拆成子任务清单，再逐步执行。
+- 开始某一步时把它标为 in_progress，完成后续写整份清单（done/cancelled）；新的一轮开始时可用 \`todo_list\` 回顾剩余步骤，不要凭空记忆。
+- 清单帮助你不遗漏、不返工：**同一文件、同一接口、同一查询只调用一次**；需要再次参考时先看本轮的调用结果，不要重复调用同一工具同一参数。`,
 	);
 
 	sections.push(
