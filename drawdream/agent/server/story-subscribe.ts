@@ -26,6 +26,7 @@ export type StorySessionEvent = {
 	willRetry?: boolean;
 	assistantMessageEvent?: { type?: string; delta?: string };
 	message?: unknown;
+	messages?: unknown[];
 	toolName?: string;
 	args?: unknown;
 	result?: unknown;
@@ -52,6 +53,31 @@ export function createStoryEventHandler(deps: StorySubscribeDeps): (event: Story
 				break;
 			case "agent_end":
 				if (!event.willRetry) {
+					// 模型请求失败（stopReason=error 且无可显示正文）时，wire 会过滤空文本
+					// 消息，导致前端「无输出无提示」静默结束。这里显式广播失败原因。
+					const failed = (event.messages ?? [])
+						.slice()
+						.reverse()
+						.find(
+							(m: { role?: string; stopReason?: string; errorMessage?: string }) =>
+								m?.role === "assistant" && m.stopReason === "error",
+						) as { stopReason?: string; errorMessage?: string } | undefined;
+					if (failed) {
+						const detail = (failed.errorMessage || "未知错误").trim();
+						const friendly = /401|403|404|auth|api.?key|invalid|unauthorized|wrong.?api|model.?not.?found/i.test(detail)
+							? `模型请求失败（可能是渠道 Key、接口地址或模型名配置问题）：${detail}。请到「设置 → API」检查。`
+							: `模型请求失败：${detail}`;
+						deps.broadcast({ type: "error", text: friendly, errorClass: "unknown" });
+						deps.broadcast({ type: "stream", state: "clear" });
+						deps.broadcast({ type: "agent", state: "end" });
+						deps.resyncAll();
+						try {
+							deps.onAgentEnd?.();
+						} catch {
+							/* scribe 不得打断主流程 */
+						}
+						return;
+					}
 					const id = generationId ?? `generation-${++generationNumber}`;
 					emitGeneration({
 						type: "generation",

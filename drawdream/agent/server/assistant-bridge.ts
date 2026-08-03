@@ -110,6 +110,7 @@ export type AssistantEvent = {
 	willRetry?: boolean;
 	assistantMessageEvent?: { type?: string; delta?: string };
 	message?: { role?: string };
+	messages?: unknown[];
 	toolName?: string;
 	args?: unknown;
 	result?: unknown;
@@ -128,9 +129,25 @@ export function createAssistantEventHandler(
 			case "agent_start":
 				broadcast({ type: "assistant_state", state: "start" });
 				break;
-			case "agent_end":
-				if (!ev.willRetry) broadcast({ type: "assistant_state", state: "end" });
-				break;
+		case "agent_end":
+			if (!ev.willRetry) {
+				const failed = (ev.messages ?? [])
+					.slice()
+					.reverse()
+					.find(
+						(m: { role?: string; stopReason?: string; errorMessage?: string }) =>
+							m?.role === "assistant" && m.stopReason === "error",
+					) as { stopReason?: string; errorMessage?: string } | undefined;
+				if (failed) {
+					const detail = (failed.errorMessage || "未知错误").trim();
+					const friendly = /401|403|404|auth|api.?key|invalid|unauthorized|wrong.?api|model.?not.?found/i.test(detail)
+						? `模型请求失败（可能是渠道 Key、接口地址或模型名配置问题）：${detail}。请到「设置 → API」检查。`
+						: `模型请求失败：${detail}`;
+					broadcast({ type: "error", text: friendly, errorClass: "unknown" });
+				}
+				broadcast({ type: "assistant_state", state: "end" });
+			}
+			break;
 			case "message_update": {
 				const e = ev.assistantMessageEvent;
 				if (e?.type === "text_delta") broadcast({ type: "assistant_delta", kind: "text", delta: e.delta ?? "" });
