@@ -34,7 +34,7 @@
 | **代码结构** | `mobile` 壳 + **同一套** React UI + DrawDream Agent |
 | **入口端口** | **7620**（`/*` UI · `/api/*` REST · `/ws` Wire） |
 | **LLM** | 云端 API（壳内不内嵌模型权重） |
-| **当前发布版本** | `v2.0.0-alpha.1-mobile.42` |
+| **当前发布版本** | `v2.0.0-alpha.1-mobile.58` |
 
 > 仓库**只维护移动端主线**。`drawdream/src`（UI）与 `drawdream/agent`（运行时）是 APK 的必要组成部分，属于本地 Node 运行时之上的 Web UI 层，**请勿当作「可删的网页产品」拆除**。桌面 `npm run dev` 仅用于开发构建与联调。
 
@@ -98,12 +98,12 @@ flowchart LR
 3. 启动后先使用旧 runtime 进入界面，再后台准备新 runtime 并完成健康检查
 4. **设置 → API** 配置云端 Key 与模型后即可开聊
 
-当前仓库以 `v2.0.0-alpha.1-mobile.42` 作为移动端发布版本，采用清理后的单一主线。
+当前仓库以 `v2.0.0-alpha.1-mobile.58` 作为移动端发布版本，采用清理后的单一主线。
 
-mobile.42 APK：
+mobile.58 APK：
 
 ```bash
-https://github.com/RochelimitDawn/DrawDreamMAX/releases/tag/v2.0.0-alpha.1-mobile.42
+https://github.com/RochelimitDawn/DrawDreamMAX/releases/tag/v2.0.0-alpha.1-mobile.58
 ```
 
 远程仓库策略：默认分支仅 **`main`**；发布版本使用 `v2.0.0-alpha.1-mobile.N` 标签，GitHub Release 保留当前交付版本。
@@ -241,15 +241,17 @@ DrawDreamMAX/
 | --- | --- |
 | 产品 | **Alpha 2.0** |
 | 包 | `2.0.0-alpha.1` |
-| 当前 Release | **`v2.0.0-alpha.1-mobile.42`** |
+| 当前 Release | **`v2.0.0-alpha.1-mobile.58`** |
 | Agent | DrawDream Agent（手机内嵌 Node） |
 
-### mobile.42 要点
+### mobile.58 要点
 
-- 修复 Agent 启动崩溃：兼容模块未包含在手机 runtime 包内
-- 将 `contracts/errors/inventory/bundled-extensions/report/tavern-helper` 复制到 `agent/src/tavern/compat/`
-- 修复 `extension-installer.ts` 包外导入
-- 继承 mobile.40-41：PureTavern 兼容适配、扩展安装器、受控 iframe 与 facade
+- 修复卡内 UI 脚本被 `MAX_REPLACEMENT` 限制丢弃（程序卡 UI HTML 可达数十 KB），提升到 256KB；显示层默认应用 `markdownOnly` 美化脚本
+- 卡内 UI 全量渲染：消息 HTML 直接进同源沙箱 iframe，卡脚本在消息 iframe 内自管 UI（参考梨园方案自研重构）
+- 皮肤正则服务端应用（`expandSkinReplacement` 安全模板展开、宏展开）
+- SillyTavern 原生 API 兼容层（~140 端点映射到 DrawDream 数据层）
+- UI 美化：设置页便当盒、历史侧边栏重排、头像框暖金描边；RichMessage HtmlFrame 恒 seamless
+- 继承 mobile.53-57：酒馆助手适配、移除扩展页面、`message_received` 事件、能力校验
 
 ---
 

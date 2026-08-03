@@ -2,7 +2,7 @@
 
 日期：2026-08-02
 参考项目：https://github.com/weidu12123/Liyuan（master 分支，已克隆到 /tmp/opencode/liyuan 研究）
-状态：研究完成，方案待评审
+状态：已实施（mobile.56-58）——`HtmlFrame` 同源沙箱 iframe、`frameDoc`、`tavern-shim`、`expandSkinReplacement` 皮肤正则、`splitHtmlParts` 围栏 HTML 识别均已落地
 
 ## 一、问题陈述
 
