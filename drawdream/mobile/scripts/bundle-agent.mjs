@@ -59,24 +59,35 @@ export async function bundleAgent() {
       cwd: agentSrc,
       stdio: ['ignore', 'pipe', 'pipe'],
     })
+    let smokeBuf = ''
     const ok = await new Promise((resolve) => {
-      let buf = ''
       const timer = setTimeout(() => resolve(false), 8000)
       p.stdout.on('data', (d) => {
-        buf += d.toString()
-        if (buf.includes('listening')) {
+        smokeBuf += d.toString()
+        if (smokeBuf.includes('listening')) {
           clearTimeout(timer)
           resolve(true)
         }
       })
-      p.stderr.on('data', () => {})
+      p.stderr.on('data', (d) => {
+        smokeBuf += d.toString()
+      })
       p.on('exit', () => {
         clearTimeout(timer)
         resolve(false)
       })
     })
     p.kill()
-    if (!ok) throw new Error('single.mjs smoke failed: no "listening" within 8s')
+    if (!ok) {
+      console.error('[bundle-agent] smoke server output:\n' + smokeBuf)
+      throw new Error('single.mjs smoke failed: no "listening" within 8s')
+    }
+    if (process.env.SMOKE_PRINT_LOG === '1') {
+      console.log('[bundle-agent] smoke server output:\n' + smokeBuf)
+      const fs = await import('node:fs')
+      const dd = join(agentSrc, '.drawdream')
+      console.log('[bundle-agent] .drawdream entries after smoke:', fs.existsSync(dd) ? fs.readdirSync(dd).join(', ') : '(missing)')
+    }
     log('smoke OK (single.mjs started)')
   }
   return outFile

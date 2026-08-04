@@ -488,7 +488,9 @@ async function prepareAgent() {
     console.error('[prepare-runtime] single.mjs bundle failed:', err?.message || err)
     throw err
   }
-  log('DEBUG after bundle, .drawdream exists =', existsSync(join(agentSrc, '.drawdream')))
+  {
+    const dd = join(agentSrc, '.drawdream')
+    log('DEBUG after bundle, .drawdream exists =', existsSync(dd), existsSync(dd) ? 'entries: ' + readdirSync(dd).join(',') : '')
 
   // 4) 裁剪运行时树：只保留 bundle + 数据/扩展，不携带 server/src/packages/node_modules
   const filter = (src) => {
