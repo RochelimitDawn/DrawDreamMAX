@@ -55,6 +55,17 @@ jobs:
           sudo apt-get update -y
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y binutils patchelf xz-utils zstd rsync
 
+      - name: Debug agent tree
+        working-directory: .
+        run: |
+          echo "=== agent dir ==="
+          ls -la drawdream/agent/ | head -30
+          echo "=== .drawdream ==="
+          ls -la drawdream/agent/.drawdream/ 2>&1 || echo "NO .drawdream dir"
+          ls -la drawdream/agent/.drawdream/extensions/ 2>&1 || echo "NO extensions dir"
+          echo "=== git tracked ==="
+          cd drawdream/agent && git ls-files | grep drawdream
+
       - name: Build UI + runtime
         env:
           NODE_ARCH: arm64
