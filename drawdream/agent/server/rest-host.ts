@@ -36,8 +36,54 @@ import type { CurrentModelInfo, RestHost, SessionInfoLite, SessionSearchHit } fr
 import { entryMsgText, isSameSessionPath, type CardCache, type PreviewCache } from "./session-files.ts";
 import type { ServerFrame } from "./wire.ts";
 import { loadConfig } from "./rest/config.ts";
+import { loadAgentConfig } from "../src/agent-config.ts";
+import { probeThinkingLevels, fallbackThinkingLevels } from "../src/thinking-probe.ts";
 
 /** 角色卡路径归一：反斜杠、前导 ./ */
+
+/** 思考档位主动探测缓存：key = `${provider}::${modelId}` → 探测结果 */
+const thinkingProbeCache = new Map<string, { levels: string[]; at: number }>();
+const THINKING_PROBE_TTL_MS = 10 * 60 * 1000;
+const probingSet = new Set<string>();
+
+function probeCacheKey(provider: string, id: string): string {
+	return `${provider}::${id}`;
+}
+
+/**
+ * 从 Agent 配置渠道拿 baseUrl/api/apiKey（apiKey 必须为实值，非占位/引用）。
+ * 找不到或不可用返回 null（跳过探测，用内置目录兜底）。
+ */
+function probeTargetFromConfig(
+	cwd: string,
+	provider: string,
+	modelId: string,
+): { baseUrl: string; api: string; apiKey: string } | null {
+	try {
+		const { config } = loadAgentConfig(cwd);
+		const p = config.providers?.[provider];
+		if (!p) return null;
+		const baseUrl = typeof p.baseUrl === "string" ? p.baseUrl.trim().replace(/\/+$/, "") : "";
+		const key = typeof p.apiKey === "string" ? p.apiKey.trim() : "";
+		if (!baseUrl || !key || key === "placeholder" || key.startsWith("$") || key.startsWith("!")) {
+			return null;
+		}
+		const api = typeof p.api === "string" && p.api ? p.api : "openai-completions";
+		return { baseUrl, api, apiKey: key };
+	} catch {
+		return null;
+	}
+}
+
+/** 读取模型的内置思考能力数据（若渠道模型条目自带 thinkingLevelMap / reasoning） */
+function builtinThinkingMap(sessionModel: { thinkingLevelMap?: unknown; reasoning?: unknown } | null) {
+	if (!sessionModel) return null;
+	const tlm = sessionModel.thinkingLevelMap;
+	if (tlm && typeof tlm === "object" && Object.keys(tlm as Record<string, unknown>).length) {
+		return tlm as Record<string, string | null>;
+	}
+	return null;
+}
 function normalizeCardRel(p: string): string {
 	return p.trim().replace(/\\/g, "/").replace(/^\.\//, "");
 }
@@ -154,12 +200,20 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 		const m = session.model;
 		// Agent 内核默认 unknown 占位：对 UI 视为「未选模型」
 		if (!m || m.provider === "unknown" || m.id === "unknown") return null;
+		const sessionLevels = session.getAvailableThinkingLevels();
+		const cached = thinkingProbeCache.get(probeCacheKey(m.provider, m.id));
+		const availableLevels =
+			cached && Date.now() - cached.at < THINKING_PROBE_TTL_MS
+				? cached.levels
+				: sessionLevels.length
+					? sessionLevels
+					: fallbackThinkingLevels({ reasoning: m.reasoning, thinkingLevelMap: builtinThinkingMap(m) });
 		return {
 			provider: m.provider,
 			id: m.id,
 			name: m.name || m.id,
 			thinkingLevel: session.thinkingLevel,
-			availableLevels: session.getAvailableThinkingLevels(),
+			availableLevels,
 			contextWindow: m.contextWindow ?? 0,
 			maxTokens: typeof m.maxTokens === "number" && m.maxTokens > 0 ? m.maxTokens : undefined,
 		};
@@ -191,6 +245,31 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 			const m = session.modelRegistry.find(provider, id);
 			if (!m) throw new Error(`模型不存在：${provider}/${id}`);
 			await session.setModel(m);
+			// 主动探测该模型真实支持的思考档位（缓存 + 防并发重入）
+			const cacheKey = probeCacheKey(provider, id);
+			const cached = thinkingProbeCache.get(cacheKey);
+			if (
+				m.reasoning &&
+				(!cached || Date.now() - cached.at >= THINKING_PROBE_TTL_MS) &&
+				!probingSet.has(cacheKey)
+			) {
+				probingSet.add(cacheKey);
+				const target = probeTargetFromConfig(deps.getCwd(), provider, id);
+				void (async () => {
+					try {
+						if (target) {
+							const map = builtinThinkingMap(m);
+							const levels = map ? Object.keys(map) : (["off", "low", "medium", "high"] as const);
+							const r = await probeThinkingLevels({ ...target, modelId: id }, levels);
+							if (r.reason === "probe" && r.accepted.length) {
+								thinkingProbeCache.set(cacheKey, { levels: r.accepted, at: Date.now() });
+							}
+						}
+					} finally {
+						probingSet.delete(cacheKey);
+					}
+				})();
+			}
 			const current = currentModelInfo();
 			if (!current) throw new Error("模型切换后状态异常");
 			return current;

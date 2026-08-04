@@ -1,0 +1,19 @@
+/* 处理过程时间线：思考块与工具 chip 按发生顺序交错 */
+
+.dd-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 6px 0 2px;
+}
+
+.dd-timeline > .dd-think {
+  width: 100%;
+}
+
+.dd-timeline > .tool-call-chip-wrap,
+.dd-timeline > .tool-call-chip {
+  width: fit-content;
+  max-width: 100%;
+}

@@ -324,7 +324,7 @@ function createStagehandTools(
 			name: "smart_search",
 			label: "智能搜索",
 			description:
-				"Real-time Tavily search. Automatically reuses a 60-second world-time anchor, expands Chinese and English query perspectives, and ranks deduplicated single/multi-route evidence. Use when this turn's web-search switch is enabled. Query must contain the user's concrete entities and intent. Returns original/executed queries plus evidence snippets. Requires Tavily API key in settings.",
+				"Real-time Tavily search. Automatically reuses a 60-second world-time anchor. Search mode (single vs multi-route) is controlled by the user's settings, do not decide it yourself. Use when this turn's web-search switch is enabled. Query must contain the user's concrete entities and intent. Returns original/executed queries plus evidence snippets. Requires Tavily API key in settings.",
 			parameters: Type.Object({
 				query: Type.String({ description: "Search keywords or a natural question (Chinese or English)" }),
 				topic: Type.Optional(
@@ -353,6 +353,8 @@ function createStagehandTools(
 			async execute(_id, params, signal) {
 				try {
 					const config = loadConfig(cwd);
+					// 单路/多路由用户设置决定：设置 mode 优先，忽略模型自主选择
+					const cfgMode = config.smartSearch?.mode === "multi" ? "multi" : "simple";
 					const data = await runSmartSearch(
 						config.smartSearch,
 						{
@@ -369,7 +371,7 @@ function createStagehandTools(
 							params.search_depth === "ultra-fast"
 								? { search_depth: params.search_depth }
 								: {}),
-							...(params.mode === "simple" || params.mode === "multi" ? { mode: params.mode } : {}),
+							mode: cfgMode,
 							...(typeof params.limit === "number" ? { limit: params.limit } : {}),
 						},
 						signal,

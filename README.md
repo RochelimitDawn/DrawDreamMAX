@@ -34,7 +34,7 @@
 | **代码结构** | `mobile` 壳 + **同一套** React UI + DrawDream Agent |
 | **入口端口** | **7620**（`/*` UI · `/api/*` REST · `/ws` Wire） |
 | **LLM** | 云端 API（壳内不内嵌模型权重） |
-| **当前发布版本** | `v2.0.0-alpha.1-mobile.62` |
+| **当前发布版本** | `v2.0.0-alpha.1-mobile.63` |
 
 > 仓库**只维护移动端主线**。`drawdream/src`（UI）与 `drawdream/agent`（运行时）是 APK 的必要组成部分，属于本地 Node 运行时之上的 Web UI 层，**请勿当作「可删的网页产品」拆除**。桌面 `npm run dev` 仅用于开发构建与联调。
 
@@ -98,12 +98,12 @@ flowchart LR
 3. 启动后先使用旧 runtime 进入界面，再后台准备新 runtime 并完成健康检查
 4. **设置 → API** 配置云端 Key 与模型后即可开聊
 
-当前仓库以 `v2.0.0-alpha.1-mobile.62` 作为移动端发布版本，采用清理后的单一主线。
+当前仓库以 `v2.0.0-alpha.1-mobile.63` 作为移动端发布版本，采用清理后的单一主线。
 
-mobile.62 APK：
+mobile.63 APK：
 
 ```bash
-https://github.com/RochelimitDawn/DrawDreamMAX/releases/tag/v2.0.0-alpha.1-mobile.62
+https://github.com/RochelimitDawn/DrawDreamMAX/releases/tag/v2.0.0-alpha.1-mobile.63
 ```
 
 远程仓库策略：默认分支仅 **`main`**；发布版本使用 `v2.0.0-alpha.1-mobile.N` 标签，GitHub Release 保留当前交付版本。
@@ -241,8 +241,20 @@ DrawDreamMAX/
 | --- | --- |
 | 产品 | **Alpha 2.0** |
 | 包 | `2.0.0-alpha.1` |
-| 当前 Release | **`v2.0.0-alpha.1-mobile.62`** |
+| 当前 Release | **`v2.0.0-alpha.1-mobile.63`** |
 | Agent | DrawDream Agent（手机内嵌 Node） |
+
+### mobile.63 要点
+
+- 思考强度自动探测：按渠道实际推理档位探测 off/low/medium/high，浮动面板快捷切换，历史消息按档位归档
+- 思考/工具交错时间线：`thinking` 段与工具调用按到达顺序交错展示，相邻重复工具折叠，过程更贴近 Monkey Code 风格
+- 助手侧栏布局修复：高瘦屏下输入栏不再被挤出、顶栏不再被推出屏幕
+- 任务清单折叠：`todo_write` 清单可折叠为单行，保留标题/进度/进行中徽标
+- 处理中 3D spinner：助手生成时卡片头像展示暖金双层旋转动画（reduced-motion 回退静态）
+- 向量模型（Embedding）配置：渠道可指定向量模型，记忆/世界书启用向量召回，留空回退纯词法
+- 环境页优化：参考 1Panel 增加运行时/端口/工具就绪/数据占用概览条与工具链状态圆点
+- 联网搜索单路/多路修复：搜索模式由用户设置决定，不再由模型自主选择
+- 继承 mobile.62：单文件 agent 运行时（17MB）、环境工具链修正、任务清单、记忆双路检索
 
 ### mobile.62 要点
 

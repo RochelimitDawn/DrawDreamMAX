@@ -254,6 +254,85 @@
   line-height: 1;
 }
 
+/* 思考强度浮动面板：点击思考按钮原地向上展开 */
+.dd-think-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.dd-think-popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  min-width: 132px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-elevated, var(--bg)) 97%, var(--bg-muted));
+  box-shadow:
+    0 12px 32px color-mix(in srgb, var(--text) 18%, transparent),
+    0 2px 8px color-mix(in srgb, var(--text) 10%, transparent);
+  animation: dd-think-pop-in 0.16s ease;
+}
+
+@keyframes dd-think-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dd-think-popover-title {
+  padding: 4px 8px 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  color: var(--text-tertiary, var(--text-secondary));
+  letter-spacing: 0.03em;
+}
+
+.dd-think-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease;
+}
+
+.dd-think-opt:hover {
+  background: var(--bg-muted);
+}
+
+.dd-think-opt.is-active {
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+}
+
+.dd-think-opt-check {
+  font-size: 11px;
+  color: var(--brand);
+}
+
 .dd-composer-send {
   width: calc(var(--ddc-h) - 10px);
   height: calc(var(--ddc-h) - 10px);

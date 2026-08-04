@@ -2,10 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bot, Check, Copy, Sparkles } from 'lucide-react'
 import type { AssistantSnapshot } from '../agent/session-store'
-import type { AssistantMsg } from '../agent/wire.types'
+import type { AssistantMsg, ProcessStep } from '../agent/wire.types'
 import { RichMessage } from './RichMessage'
 import { ThinkingBlock } from './ThinkingBlock'
 import { ToolCallList, coalesceActivities } from './ToolCallChip'
+import { ProcessTimeline } from './ProcessTimeline'
 import { ChatComposer } from './ChatComposer'
 import { ToDoList } from './ToDoList'
 import { copyText } from '../utils/clipboard'
@@ -28,6 +29,7 @@ export type AssistantPanelProps = {
   thinkingLevel?: string
   thinkingLevels?: string[]
   onThinkingCycle?: () => void
+  onThinkingSelect?: (level: string) => void
   onPickImage?: (file: File) => void | Promise<void>
   onPickFile?: (file: File) => void | Promise<void>
   uploading?: boolean
@@ -81,6 +83,7 @@ function AssistantReplyCard({
   streaming,
   streamThinking,
   streamText,
+  streamTimeline,
   liveActs,
   busy,
   userName,
@@ -92,6 +95,7 @@ function AssistantReplyCard({
   streaming?: boolean
   streamThinking?: string
   streamText?: string
+  streamTimeline?: ProcessStep[]
   liveActs?: AssistantSnapshot['liveActs']
   busy?: boolean
   userName?: string
@@ -102,8 +106,9 @@ function AssistantReplyCard({
   const thinking = streaming ? streamThinking || '' : m?.thinking || ''
   const text = streaming ? streamText || '' : m?.text || ''
   const acts = streaming ? liveActs || [] : m?.activities || []
+  const timeline = streaming ? streamTimeline || [] : m?.timeline || []
   const tools = useMemo(() => coalesceActivities(acts, toolLocale), [acts, toolLocale])
-  const hasProcess = Boolean(thinking.trim() || tools.length)
+  const hasProcess = Boolean(timeline.length || thinking.trim() || tools.length)
   const [processOpen, setProcessOpen] = useState(true)
   const [copied, setCopied] = useState(false)
 
@@ -133,8 +138,8 @@ function AssistantReplyCard({
       aria-busy={streaming || undefined}
     >
       <header className="asst-card-head">
-        <span className="asst-card-avatar" aria-hidden>
-          <Bot size={14} strokeWidth={1.9} />
+        <span className={`asst-card-avatar${streaming ? ' is-spinner' : ''}`} aria-hidden>
+          {streaming ? <span className="dd-spinner" aria-hidden /> : <Bot size={14} strokeWidth={1.9} />}
         </span>
         <span className="asst-card-name">{t('chat.assistantPanel')}</span>
         {streaming ? <span className="asst-card-tag is-live">{t('chat.typing')}</span> : null}
@@ -156,7 +161,7 @@ function AssistantReplyCard({
         <div className="asst-process">
           <ProcessMeta
             busy={!!(streaming || busy)}
-            stepCount={tools.length + (thinking.trim() ? 1 : 0)}
+            stepCount={timeline.length || tools.length + (thinking.trim() ? 1 : 0)}
             expanded={processOpen}
             onToggle={() => setProcessOpen((v) => !v)}
             labels={{
@@ -167,17 +172,31 @@ function AssistantReplyCard({
           />
           {processOpen ? (
             <div className="asst-process-body">
-              {thinking.trim() || (streaming && busy) ? (
-                <ThinkingBlock
-                  text={thinking}
-                  streaming={!!streaming && !!busy && !text.trim()}
-                  autoCollapseOnEnd={!streaming}
-                  labelIdle={t('chat.thinking')}
-                  labelLive={t('chat.asstThinkingLive')}
-                  labelDone={t('chat.asstThinkingDone')}
+              {timeline.length ? (
+                <ProcessTimeline
+                  steps={timeline}
+                  thinkingLabels={{
+                    labelIdle: t('chat.thinking'),
+                    labelLive: t('chat.asstThinkingLive'),
+                    labelDone: t('chat.asstThinkingDone'),
+                    autoCollapseOnEnd: !streaming,
+                  }}
                 />
-              ) : null}
-              {tools.length ? <ToolCallList items={tools} max={12} /> : null}
+              ) : (
+                <>
+                  {thinking.trim() || (streaming && busy) ? (
+                    <ThinkingBlock
+                      text={thinking}
+                      streaming={!!streaming && !!busy && !text.trim()}
+                      autoCollapseOnEnd={!streaming}
+                      labelIdle={t('chat.thinking')}
+                      labelLive={t('chat.asstThinkingLive')}
+                      labelDone={t('chat.asstThinkingDone')}
+                    />
+                  ) : null}
+                  {tools.length ? <ToolCallList items={tools} max={12} /> : null}
+                </>
+              )}
             </div>
           ) : null}
         </div>
@@ -234,6 +253,7 @@ export function AssistantPanel({
   thinkingLevel = '',
   thinkingLevels = [],
   onThinkingCycle,
+  onThinkingSelect,
   onPickImage,
   onPickFile,
   uploading = false,
@@ -363,6 +383,7 @@ export function AssistantPanel({
             busy={asst.busy}
             streamThinking={asst.streamThinking}
             streamText={asst.streamText}
+            streamTimeline={asst.streamTimeline}
             liveActs={asst.liveActs}
             userName={userName}
             charName={charName}
@@ -388,6 +409,7 @@ export function AssistantPanel({
           thinkingLevel={thinkingLevel}
           thinkingLevels={thinkingLevels}
           onThinkingCycle={onThinkingCycle}
+          onThinkingSelect={onThinkingSelect}
           onPickImage={onPickImage}
           onPickFile={onPickFile}
           uploading={uploading}

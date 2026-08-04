@@ -1,6 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Cpu, Database, HardDrive, RefreshCw, Terminal, X } from 'lucide-react'
+import {
+  Activity,
+  Boxes,
+  Check,
+  Cpu,
+  Database,
+  HardDrive,
+  HeartPulse,
+  RefreshCw,
+  Terminal,
+  Wrench,
+  X,
+} from 'lucide-react'
 import { fetchEnvironment, type EnvironmentInfo } from '../agent/rest'
 import './EnvironmentPanel.css'
 
@@ -31,6 +43,7 @@ function ToolRow({
   const { t } = useTranslation()
   return (
     <div className="env-row">
+      <span className={`env-dot ${probe?.ok ? 'is-ok' : probe ? 'is-missing' : 'is-loading'}`} aria-hidden />
       <span className="env-row-label">{name}</span>
       {probe ? (
         <>
@@ -78,6 +91,18 @@ export function EnvironmentPanel() {
     { key: 'cards', label: t('settings.envDiskCards') },
   ]
 
+  const tools = info
+    ? [
+        { name: 'node', probe: info.toolchain.node },
+        { name: 'bun', probe: info.toolchain.bun },
+        { name: 'ffmpeg', probe: info.toolchain.ffmpeg },
+        { name: 'python3', probe: info.toolchain.python },
+      ]
+    : []
+  const readyCount = tools.filter((x) => x.probe?.ok).length
+  const totalDisk = info ? Object.values(info.disk).reduce((a, b) => a + (b ?? 0), 0) : 0
+  const runtimeHealthy = info?.runtime && info.service ? true : false
+
   return (
     <div className="env-block">
       <div className="env-toolbar">
@@ -99,77 +124,125 @@ export function EnvironmentPanel() {
       {loading && !info ? <div className="env-empty">{t('settings.envLoading')}</div> : null}
 
       {info ? (
-        <div className="env-grid">
-          <section className="env-card">
-            <h4>
-              <Cpu size={14} /> {t('settings.envRuntime')}
-            </h4>
-            <div className="env-row">
-              <span className="env-row-label">{t('settings.envRuntimeName')}</span>
-              <span className="env-version">
-                {info.runtime.name}
-                {info.runtime.version ? ` · ${info.runtime.version}` : ''}
+        <>
+          <div className="env-stats">
+            <div className="env-stat">
+              <span className="env-stat-icon is-brand" aria-hidden>
+                <HeartPulse size={16} strokeWidth={2} />
+              </span>
+              <span className="env-stat-body">
+                <span className="env-stat-value">{runtimeHealthy ? t('settings.envHealthy') : t('settings.envUnhealthy')}</span>
+                <span className="env-stat-label">{t('settings.envRuntime')}</span>
               </span>
             </div>
-            <div className="env-row">
-              <span className="env-row-label">{t('settings.envPlatform')}</span>
-              <span className="env-version">{info.runtime.platform}/{info.runtime.arch}</span>
+            <div className="env-stat">
+              <span className="env-stat-icon is-gold" aria-hidden>
+                <Terminal size={16} strokeWidth={2} />
+              </span>
+              <span className="env-stat-body">
+                <span className="env-stat-value">{info.service.port}</span>
+                <span className="env-stat-label">{t('settings.envPort')}</span>
+              </span>
             </div>
-            <div className="env-row">
-              <span className="env-row-label">{t('settings.envPid')}</span>
-              <span className="env-version">{info.runtime.pid}</span>
+            <div className="env-stat">
+              <span className="env-stat-icon is-gold" aria-hidden>
+                <Wrench size={16} strokeWidth={2} />
+              </span>
+              <span className="env-stat-body">
+                <span className="env-stat-value">
+                  {readyCount}/{tools.length}
+                </span>
+                <span className="env-stat-label">{t('settings.envToolReady')}</span>
+              </span>
             </div>
-            <div className="env-row">
-              <span className="env-row-label">{t('settings.envUptime')}</span>
-              <span className="env-version">{fmtUptime(info.runtime.uptimeMs)}</span>
+            <div className="env-stat">
+              <span className="env-stat-icon is-brand" aria-hidden>
+                <HardDrive size={16} strokeWidth={2} />
+              </span>
+              <span className="env-stat-body">
+                <span className="env-stat-value">{formatBytes(totalDisk)}</span>
+                <span className="env-stat-label">{t('settings.envDiskTotal')}</span>
+              </span>
             </div>
-          </section>
+          </div>
 
-          <section className="env-card">
-            <h4>
-              <Terminal size={14} /> {t('settings.envService')}
-            </h4>
-            <div className="env-row">
-              <span className="env-row-label">{t('settings.envPort')}</span>
-              <span className="env-version">{info.service.port}</span>
-            </div>
-            <div className="env-row">
-              <span className="env-row-label">{t('settings.envWorkspace')}</span>
-              <span className="env-path" title={info.service.cwd}>
-                {info.service.cwd}
-              </span>
-            </div>
-            <div className="env-row">
-              <span className="env-row-label">{t('settings.envAgentDir')}</span>
-              <span className="env-path" title={info.service.agentDir}>
-                {info.service.agentDir}
-              </span>
-            </div>
-          </section>
-
-          <section className="env-card">
-            <h4>
-              <HardDrive size={14} /> {t('settings.envDisk')}
-            </h4>
-            {diskRows.map((r) => (
-              <div className="env-row" key={r.key}>
-                <span className="env-row-label">{r.label}</span>
-                <span className="env-version">{formatBytes(info.disk[r.key] ?? 0)}</span>
+          <div className="env-grid">
+            <section className="env-card">
+              <h4>
+                <Cpu size={14} /> {t('settings.envRuntime')}
+              </h4>
+              <div className="env-row">
+                <span className="env-row-label">{t('settings.envRuntimeName')}</span>
+                <span className="env-version">
+                  {info.runtime.name}
+                  {info.runtime.version ? ` · ${info.runtime.version}` : ''}
+                </span>
               </div>
-            ))}
-          </section>
+              <div className="env-row">
+                <span className="env-row-label">{t('settings.envPlatform')}</span>
+                <span className="env-version">{info.runtime.platform}/{info.runtime.arch}</span>
+              </div>
+              <div className="env-row">
+                <span className="env-row-label">{t('settings.envPid')}</span>
+                <span className="env-version">{info.runtime.pid}</span>
+              </div>
+              <div className="env-row">
+                <span className="env-row-label">{t('settings.envUptime')}</span>
+                <span className="env-version">{fmtUptime(info.runtime.uptimeMs)}</span>
+              </div>
+            </section>
 
-          <section className="env-card">
-            <h4>
-              <Database size={14} /> {t('settings.envToolchain')}
-            </h4>
-            <ToolRow name="node" probe={info.toolchain.node} />
-            <ToolRow name="bun" probe={info.toolchain.bun} />
-            <ToolRow name="ffmpeg" probe={info.toolchain.ffmpeg} />
-            <ToolRow name="python3" probe={info.toolchain.python} />
-            <p className="env-toolchain-hint">{t('settings.envToolchainHint')}</p>
-          </section>
-        </div>
+            <section className="env-card">
+              <h4>
+                <Activity size={14} /> {t('settings.envService')}
+              </h4>
+              <div className="env-row">
+                <span className="env-row-label">{t('settings.envPort')}</span>
+                <span className="env-version">{info.service.port}</span>
+              </div>
+              <div className="env-row">
+                <span className="env-row-label">{t('settings.envStreaming')}</span>
+                <span className={`env-badge ${info.service.streaming ? 'is-ok' : 'is-missing'}`}>
+                  {info.service.streaming ? t('settings.envOn') : t('settings.envOff')}
+                </span>
+              </div>
+              <div className="env-row">
+                <span className="env-row-label">{t('settings.envWorkspace')}</span>
+                <span className="env-path" title={info.service.cwd}>
+                  {info.service.cwd}
+                </span>
+              </div>
+              <div className="env-row">
+                <span className="env-row-label">{t('settings.envAgentDir')}</span>
+                <span className="env-path" title={info.service.agentDir}>
+                  {info.service.agentDir}
+                </span>
+              </div>
+            </section>
+
+            <section className="env-card">
+              <h4>
+                <Database size={14} /> {t('settings.envDisk')}
+              </h4>
+              {diskRows.map((r) => (
+                <div className="env-row" key={r.key}>
+                  <span className="env-row-label">{r.label}</span>
+                  <span className="env-version">{formatBytes(info.disk[r.key] ?? 0)}</span>
+                </div>
+              ))}
+            </section>
+
+            <section className="env-card">
+              <h4>
+                <Boxes size={14} /> {t('settings.envToolchain')}
+              </h4>
+              {tools.map((tool) => (
+                <ToolRow key={tool.name} name={tool.name} probe={tool.probe} />
+              ))}
+              <p className="env-toolchain-hint">{t('settings.envToolchainHint')}</p>
+            </section>
+          </div>
+        </>
       ) : null}
     </div>
   )

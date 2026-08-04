@@ -46,6 +46,72 @@
   font-size: 13px;
 }
 
+/* ── 顶部概览统计条（1Panel 风格状态卡） ── */
+.env-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.env-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+  min-width: 0;
+}
+
+.env-stat-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.env-stat-icon.is-brand {
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 12%, var(--bg-muted));
+}
+
+.env-stat-icon.is-gold {
+  color: var(--accent-gold);
+  background: color-mix(in srgb, var(--accent-gold) 12%, var(--bg-muted));
+}
+
+.env-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.env-stat-value {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.env-stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-ui);
+  color: var(--text-tertiary, var(--text-secondary));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .env-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -84,6 +150,38 @@
   gap: 8px;
   min-width: 0;
   font-size: 12px;
+}
+
+.env-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.env-dot.is-ok {
+  background: #1e8e5a;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #1e8e5a 18%, transparent);
+}
+
+.env-dot.is-missing {
+  background: #c0392b;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #c0392b 14%, transparent);
+}
+
+.env-dot.is-loading {
+  background: var(--text-tertiary, var(--text-secondary));
+  animation: env-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes env-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .env-row-label {

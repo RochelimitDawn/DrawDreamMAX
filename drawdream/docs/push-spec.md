@@ -8,6 +8,35 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.63 变更摘要
+
+1. **思考强度自动探测**
+   - 借鉴 frakiowork capability-probe：对渠道发最小 chat 请求，按 `reasoning_effort` 探测 off/low/medium/high，按 api 类型适配请求体
+   - `availableLevels` 以探测结果优先，10 分钟 TTL 缓存 + 防重入；失败/未完成回退内置目录
+   - 思考按钮点击后原地向上展开浮动面板，当前档位高亮，切换即关，外部/Esc 关闭
+
+2. **思考/工具交错时间线**
+   - `ProcessTimeline` 组件：`thinking` 段与工具调用按到达顺序交错展示，相邻重复工具折叠 ×n
+   - 主对话与助手流式按到达顺序构建 `streamTimeline` 并落泡保存；历史消息回退旧分组
+
+3. **助手与任务清单 UI**
+   - 助手侧栏布局修复：高瘦屏下输入栏不再被挤出、顶栏不再被推出屏幕
+   - `todo_write` 清单支持折叠为单行（标题/进度/进行中徽标）
+   - 助手生成时卡片头像展示暖金双层 3D spinner（reduced-motion 回退静态）
+
+4. **向量模型（Embedding）配置**
+   - 设置页渠道编辑可指定向量模型（`kind='embedding'`），记忆/世界书启用向量召回，留空回退纯词法
+   - `ChannelPublic.models` 增加 `kind` 字段
+
+5. **环境页优化**
+   - 参考 1Panel 增加运行时/端口/工具就绪/数据占用概览条与工具链状态圆点
+
+6. **联网搜索单路/多路修复**
+   - 工具描述改为「模式由用户设置决定」；`execute` 中 `mode` 强制取 `config.smartSearch.mode`，忽略模型自主选择
+
+7. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.63` 触发 APK workflow
+
 ## mobile.39 变更摘要
 
 1. **酒馆兼容内核**

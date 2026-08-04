@@ -565,7 +565,7 @@ export interface ChannelPublic {
   name: string
   baseUrl: string
   api: string
-  models: Array<{ id: string; name?: string; reasoning?: boolean; contextWindow?: number }>
+  models: Array<{ id: string; name?: string; reasoning?: boolean; contextWindow?: number; kind?: string }>
   hasKey: boolean
   keyKind?: string
   modelCount: number

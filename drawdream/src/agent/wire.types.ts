@@ -88,6 +88,19 @@ export interface WireActivity {
   isError?: boolean
 }
 
+/** 处理过程时间线条目：思考段 / 工具事件 按发生顺序交错 */
+export type ProcessStep =
+  | { kind: 'think'; text: string; streaming?: boolean }
+  | { kind: 'tool'; activity: WireActivity; streaming?: boolean }
+
+/** 把合并的 thinking 单串 + activities 数组还原为无时间线信息的兜底顺序 */
+export function stepsFromLegacy(thinking?: string, activities?: WireActivity[]): ProcessStep[] {
+  const steps: ProcessStep[] = []
+  if (thinking && thinking.trim()) steps.push({ kind: 'think', text: thinking })
+  for (const a of activities ?? []) steps.push({ kind: 'tool', activity: a })
+  return steps
+}
+
 export interface WorldState {
   time: string
   location: string
@@ -119,6 +132,8 @@ export interface AssistantMsg {
   thinking?: string
   mid?: boolean
   activities?: WireActivity[]
+  /** 处理过程时间线（思考/工具交错）；缺省时用 thinking+activities 兜底 */
+  timeline?: ProcessStep[]
   media?: { src: string; kind: 'image' | 'audio' | 'video'; caption?: string }
 }
 

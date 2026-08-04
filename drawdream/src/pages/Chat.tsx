@@ -61,6 +61,7 @@ import { HtmlFrame } from '../components/HtmlFrame'
 import { RichMessage } from '../components/RichMessage'
 import { StickyChapterBar } from '../components/StickyChapterBar'
 import { ToolCallList, coalesceActivities } from '../components/ToolCallChip'
+import { ProcessTimeline } from '../components/ProcessTimeline'
 import { AssistantPanel } from '../components/AssistantPanel'
 import { ThinkingBlock } from '../components/ThinkingBlock'
 import { gsap, prefersReducedMotion, useGSAP } from '../motion'
@@ -699,6 +700,19 @@ export function ChatPage() {
       setCurrentProvider(cur.provider)
       setThinkingLevelState(cur.thinkingLevel || '')
       setAvailableLevels(cur.availableLevels ?? [])
+      // 主动探测思考档位需要 1-3s：轮询重拉，拿到真实可用档位后更新按钮面板
+      for (let i = 0; i < 6; i++) {
+        await new Promise((r) => setTimeout(r, 500))
+        try {
+          const { current } = await fetchModels()
+          if (current && (current.availableLevels ?? []).length > (cur.availableLevels ?? []).length) {
+            setAvailableLevels(current.availableLevels ?? [])
+            break
+          }
+        } catch {
+          /* 网络波动忽略，下一轮再试 */
+        }
+      }
       toast(t('chat.toastModel'), 'success')
     } catch (e) {
       toast(e instanceof Error ? e.message : t('chat.agentOffline'), 'error')
@@ -715,14 +729,6 @@ export function ChatPage() {
     } catch (e) {
       toast(e instanceof Error ? e.message : t('chat.agentOffline'), 'error')
     }
-  }
-
-  const cycleThinking = () => {
-    if (thinkingOptions.length < 2) return
-    const vals = thinkingOptions.map((o) => o.value)
-    const idx = Math.max(0, vals.indexOf(thinkingLevel))
-    const next = vals[(idx + 1) % vals.length]!
-    void onThinkingChange(next)
   }
 
   const onProbe = async () => {
@@ -1215,20 +1221,33 @@ export function ChatPage() {
               ) : null}
             </div>
           </div>
-          {m.thinking && (prefs.streamReply || !m.streaming) ? (
-            <ThinkingBlock
-              text={m.thinking}
-              streaming={!!m.streaming}
-              autoCollapseOnEnd
-              defaultOpen={false}
-              labelIdle={t('chat.thinking')}
-              labelLive={t('chat.asstThinkingLive')}
-              labelDone={t('chat.asstThinkingDone')}
+          {m.timeline?.length ? (
+            <ProcessTimeline
+              steps={m.timeline}
+              thinkingLabels={{
+                labelIdle: t('chat.thinking'),
+                labelLive: t('chat.asstThinkingLive'),
+                labelDone: t('chat.asstThinkingDone'),
+              }}
             />
-          ) : null}
-          {m.activities?.length ? (
-            <ToolCallList items={coalesceActivities(m.activities, toolLocale)} max={8} />
-          ) : null}
+          ) : (
+            <>
+              {m.thinking && (prefs.streamReply || !m.streaming) ? (
+                <ThinkingBlock
+                  text={m.thinking}
+                  streaming={!!m.streaming}
+                  autoCollapseOnEnd
+                  defaultOpen={false}
+                  labelIdle={t('chat.thinking')}
+                  labelLive={t('chat.asstThinkingLive')}
+                  labelDone={t('chat.asstThinkingDone')}
+                />
+              ) : null}
+              {m.activities?.length ? (
+                <ToolCallList items={coalesceActivities(m.activities, toolLocale)} max={8} />
+              ) : null}
+            </>
+          )}
           {m.channel === 'image' && m.src ? (
             <img className="msg-media" src={m.src} alt={m.text || ''} />
           ) : null}
@@ -1982,7 +2001,7 @@ export function ChatPage() {
                   onWebSearchChange={onSessionWebSearch}
                   thinkingLevel={thinkingLevel}
                   thinkingLevels={thinkingOptions.map((o) => o.value)}
-                  onThinkingCycle={cycleThinking}
+                  onThinkingSelect={(lv) => void onThinkingChange(lv)}
                   onPickImage={(f) => handleComposerUpload(f, 'image')}
                   onPickFile={(f) => handleComposerUpload(f, 'file')}
                   uploading={uploading}
@@ -2109,7 +2128,7 @@ export function ChatPage() {
                 onWebSearchChange={onAsstWebSearch}
                 thinkingLevel={thinkingLevel}
                 thinkingLevels={thinkingOptions.map((o) => o.value)}
-                onThinkingCycle={cycleThinking}
+                onThinkingSelect={(lv) => void onThinkingChange(lv)}
                 onPickImage={(f) => handleAsstUpload(f, 'image')}
                 onPickFile={(f) => handleAsstUpload(f, 'file')}
                 uploading={asstUploading}

@@ -248,6 +248,7 @@ export function SettingsPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [manualModel, setManualModel] = useState('')
+  const [embeddingModelId, setEmbeddingModelId] = useState('')
   const autoPullRef = useRef<string>('')
 
   const [wiDepth, setWiDepth] = useState('4')
@@ -293,7 +294,10 @@ export function SettingsPage() {
       setChannelName((prev) => {
         if (prev && ch.channels.some((c) => c.name === prev)) {
           const keep = ch.channels.find((c) => c.name === prev)
-          if (keep) setEndpoint(keep.baseUrl)
+          if (keep) {
+            setEndpoint(keep.baseUrl)
+            setEmbeddingModelId(keep.models.find((m) => m.kind === 'embedding' || m.kind === 'embed' || m.kind === 'embeddings')?.id ?? '')
+          }
           return prev
         }
         return ''
@@ -423,7 +427,10 @@ export function SettingsPage() {
     }
     setChannelName(name)
     const ch = channels.find((c) => c.name === name)
-    if (ch) setEndpoint(ch.baseUrl)
+    if (ch) {
+      setEndpoint(ch.baseUrl)
+      setEmbeddingModelId(ch.models.find((m) => m.kind === 'embedding' || m.kind === 'embed' || m.kind === 'embeddings')?.id ?? '')
+    }
     setApiKey('')
     setProbe(null)
     const first = models.find((m) => m.provider === name)
@@ -466,12 +473,25 @@ export function SettingsPage() {
     }
     try {
       const [provider, id] = modelKey.split('::')
+      // 向量模型：在当前渠道模型列表上叠加 kind=embedding 标记
+      let models: unknown
+      if (channelModels.length > 0) {
+        const embedId = embeddingModelId.trim()
+        models = channelModels.map((m) => ({
+          id: m.id,
+          name: m.name,
+          ...(m.reasoning !== undefined ? { reasoning: m.reasoning } : {}),
+          ...(m.contextWindow !== undefined ? { contextWindow: m.contextWindow } : {}),
+          ...(m.id === embedId ? { kind: 'embedding' } : {}),
+        }))
+      }
       await updateChannel({
         name: channelName,
         baseUrl: endpoint.trim() || undefined,
         apiKey: apiKey.trim() || undefined,
         setDefault: true,
         modelId: provider === channelName ? id : undefined,
+        ...(models !== undefined ? { models } : {}),
       })
       setApiKey('')
       setDefaultProvider(channelName)
@@ -1265,6 +1285,39 @@ export function SettingsPage() {
                       </button>
                     </div>
                   </div>
+                  <div>
+                    <label className="field-label">{t('settings.embeddingModel')}</label>
+                    <Select
+                      fullWidth
+                      value={embeddingModelId}
+                      onChange={(v) => {
+                        setEmbeddingModelId(v)
+                        if (v) {
+                          toast(
+                            t('settings.embeddingApplied', {
+                              name: channelModels.find((m) => m.id === v)?.name || v,
+                            }),
+                            'success',
+                          )
+                        } else {
+                          toast(t('settings.embeddingCleared'), 'info')
+                        }
+                      }}
+                      options={[
+                        { value: '', label: t('settings.embeddingNone') },
+                        ...channelModels.map((m) => ({
+                          value: m.id,
+                          label: m.name || m.id,
+                          meta: channelName,
+                        })),
+                      ]}
+                    />
+                    <p className="settings-item-desc" style={{ marginTop: 6 }}>
+                      {t('settings.embeddingModelHint')}
+                      <br />
+                      {t('settings.embeddingSaveHint')}
+                    </p>
+                  </div>
                   {probe ? (
                     <div className={`probe-result ${probe.ok ? 'is-ok' : 'is-fail'}`}>
                       <Activity size={16} />
@@ -1923,7 +1976,7 @@ export function SettingsPage() {
               </div>
               <p>{t('settings.aboutText')}</p>
               <div className="chip">
-                {t('settings.version')} 2.0.0-alpha.1 · mobile.62 · DrawDream Agent
+                {t('settings.version')} 2.0.0-alpha.1 · mobile.63 · DrawDream Agent
               </div>
               <div className="settings-list" style={{ marginTop: 16 }}>
                 <a

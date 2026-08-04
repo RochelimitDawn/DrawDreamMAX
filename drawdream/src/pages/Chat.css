@@ -2578,20 +2578,20 @@ body:has(.chat-page),
   .chat-right .asst-panel {
     flex: 1 1 0% !important;
     min-height: 0 !important;
-    max-height: none !important;
+    max-height: 100% !important;
     overflow: hidden !important;
     display: grid !important;
     grid-template-rows: auto auto minmax(0, 1fr) auto !important;
     position: relative !important;
     z-index: 70 !important;
-    height: auto !important;
+    height: 100% !important;
     width: 100% !important;
     min-width: 0 !important;
   }
 
   .chat-right .asst-stream {
     min-height: 0 !important;
-    height: 100% !important;
+    height: auto !important;
     overflow-y: scroll !important;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;

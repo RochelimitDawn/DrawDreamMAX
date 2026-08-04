@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.62`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.63`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.62` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.63` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.62
+└── package.json         # 2.0.0-alpha.1-mobile.63
 ```
 
 ```text
@@ -115,17 +115,17 @@ drawdream/
 
 ---
 
-## 本版要点（mobile.62）
+## 本版要点（mobile.63）
 
-- **安装包大幅精简**：移动端运行时树从 ~80MB 裁到 **17MB**——agent 全部依赖打包进单文件 `single.mjs`，不再携带 `node_modules`；APK 预计从 ~105MB 降到 ~40MB 级
-- **环境工具链修正**：node 显示为「当前 Agent 运行时，恒可用」，不再误报缺失；bun/ffmpeg/python 保留 PATH 真实探测并加提示（termux 扩展需自行安装）
-- **助手任务清单 UI**：`todo_write` 子任务清单实时展示（勾选动画/删除线/完成烟花，暖金主题），`assistant_todo` 帧刷新
-- **记忆双路检索**：`memory_search` 向量+词法双路（配 embedding 模型自动启用，否则降级词法）；每轮摘要自动固化进记忆；「记忆宫」更名「记忆」
-- **设置页「环境」分页**：运行时/端口/工作区、磁盘占用、工具链探测（`GET /api/environment`）
-- **Agent 单文件打包**：`bundle-agent.mjs` 产出 14MB `single.mjs`（不依赖 node_modules）
-- **抉择器改进**：抉择应答进正文；`option`/`free` 区分；停止本回合安全收尾
-- **工具条汉化 + 去重**；**消息头像优化**；**模型失败可见**；**助手纯 markdown**
-- 继承 mobile.53-61：卡内 UI iframe、ST 兼容层、设置页便当盒
+- **思考强度自动探测**：按渠道实际推理档位探测 off/low/medium/high，浮动面板快捷切换，历史消息按档位归档
+- **思考/工具交错时间线**：`thinking` 段与工具调用按到达顺序交错展示，相邻重复工具折叠，过程更贴近 Monkey Code 风格
+- **助手侧栏布局修复**：高瘦屏下输入栏不再被挤出、顶栏不再被推出屏幕
+- **任务清单折叠**：`todo_write` 清单可折叠为单行，保留标题/进度/进行中徽标
+- **处理中 3D spinner**：助手生成时卡片头像展示暖金双层旋转动画（reduced-motion 回退静态）
+- **向量模型（Embedding）配置**：渠道可指定向量模型，记忆/世界书启用向量召回，留空回退纯词法
+- **环境页优化**：参考 1Panel 增加运行时/端口/工具就绪/数据占用概览条与工具链状态圆点
+- **联网搜索单路/多路修复**：搜索模式由用户设置决定，不再由模型自主选择
+- 继承 mobile.62：单文件 agent 运行时（17MB）、环境工具链修正、任务清单、记忆双路检索
 
 兼容文档：
 

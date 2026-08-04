@@ -3,6 +3,7 @@ import type {
   AssistantMsg,
   AssistantTodoItem,
   ClientFrame,
+  ProcessStep,
   RpPanel,
   ServerFrame,
   WireActivity,
@@ -27,6 +28,8 @@ export type LiveBubble = {
   scripts?: boolean
   swipe?: WireMsg['swipe']
   streaming?: boolean
+  /** 处理过程时间线（思考/工具交错）；缺省时用 thinking+activities 兜底 */
+  timeline?: ProcessStep[]
   /** 本地接收时间戳（ms），用于「显示时间戳」偏好 */
   at?: number
   /** 用量 / 耗时（气泡底栏） */
@@ -43,6 +46,8 @@ export type AssistantSnapshot = {
   follow: boolean
   streamText: string
   streamThinking: string
+  /** 流式中按到达顺序构建的处理过程时间线（思考/工具交错） */
+  streamTimeline: ProcessStep[]
   liveActs: WireActivity[]
   todos: AssistantTodoItem[]
 }
@@ -130,6 +135,7 @@ function emptyAssistant(): AssistantSnapshot {
     follow: true,
     streamText: '',
     streamThinking: '',
+    streamTimeline: [],
     liveActs: [],
     todos: [],
   }
@@ -425,6 +431,12 @@ class SessionStore {
         if (canHangActs) {
           b.activities = [...(b.activities ?? []), ...liveActs]
         }
+        // 流式气泡上的处理过程时间线（思考/工具交错）随落定保留
+        const prevStream = this.snap.messages.find((m) => m.id === sid)
+        const streamTimeline = prevStream?.timeline?.length ? prevStream.timeline : undefined
+        if (streamTimeline) {
+          b.timeline = streamTimeline
+        }
         this.turnStartedAt = null
         this.firstTokenAt = null
         // 去掉流式临时气泡（按 id 或 streaming 标记），再挂最终消息
@@ -467,6 +479,7 @@ class SessionStore {
             name: this.snap.charName,
             text: kind === 'text' ? delta : '',
             thinking: kind === 'thinking' ? delta : undefined,
+            timeline: kind === 'thinking' ? [{ kind: 'think', text: delta, streaming: true }] : [],
             streaming: true,
             at: Date.now(),
           })
@@ -475,7 +488,15 @@ class SessionStore {
           messages = messages.map((m) => {
             if (m.id !== this.streamId) return m
             if (kind === 'text') return { ...m, text: m.text + delta }
-            return { ...m, thinking: (m.thinking ?? '') + delta }
+            const thinking = (m.thinking ?? '') + delta
+            const tl = [...(m.timeline ?? [])]
+            const last = tl[tl.length - 1]
+            if (last && last.kind === 'think') {
+              tl[tl.length - 1] = { kind: 'think', text: last.text + delta, streaming: true }
+            } else {
+              tl.push({ kind: 'think', text: delta, streaming: true })
+            }
+            return { ...m, thinking, timeline: tl }
           })
         }
         this.patch({ messages })
@@ -533,7 +554,23 @@ class SessionStore {
         break
       }
       case 'activity': {
-        this.patch({ activities: [...this.snap.activities, frame.activity] })
+        const next = [...this.snap.activities, frame.activity]
+        const patch: Partial<SessionSnapshot> = { activities: next }
+        // 流式中把工具事件按发生顺序挂进时间线（与思考段交错）
+        if (this.streamId) {
+          const messages = this.snap.messages.map((m) => {
+            if (m.id !== this.streamId) return m
+            return {
+              ...m,
+              timeline: [
+                ...(m.timeline ?? []),
+                { kind: 'tool' as const, activity: frame.activity, streaming: true },
+              ],
+            }
+          })
+          patch.messages = messages
+        }
+        this.patch(patch)
         break
       }
       case 'state': {
@@ -635,6 +672,7 @@ class SessionStore {
           follow: frame.follow,
           streamText: '',
           streamThinking: '',
+          streamTimeline: [],
           liveActs: [],
           todos: frame.todos ?? [],
         })
@@ -649,6 +687,7 @@ class SessionStore {
           messages: [...this.snap.assistant.messages, msg],
           streamText: '',
           streamThinking: '',
+          streamTimeline: [],
           liveActs: [],
         })
         break
@@ -657,18 +696,34 @@ class SessionStore {
         if (frame.kind === 'text') {
           this.patchAssistant({ streamText: this.snap.assistant.streamText + frame.delta })
         } else {
-          this.patchAssistant({ streamThinking: this.snap.assistant.streamThinking + frame.delta })
+          const prev = this.snap.assistant.streamThinking
+          const thinking = prev + frame.delta
+          const tl = [...this.snap.assistant.streamTimeline]
+          const last = tl[tl.length - 1]
+          if (last && last.kind === 'think') {
+            tl[tl.length - 1] = { kind: 'think', text: last.text + frame.delta, streaming: true }
+          } else {
+            tl.push({ kind: 'think', text: frame.delta, streaming: true })
+          }
+          this.patchAssistant({ streamThinking: thinking, streamTimeline: tl })
         }
         break
       }
       case 'assistant_state': {
         if (frame.state === 'start') {
-          this.patchAssistant({ busy: true, liveActs: [], streamText: '', streamThinking: '' })
+          this.patchAssistant({
+            busy: true,
+            liveActs: [],
+            streamText: '',
+            streamThinking: '',
+            streamTimeline: [],
+          })
         } else {
           this.promptPending = false
           const stream = this.snap.assistant.streamText.trim()
           const thinking = this.snap.assistant.streamThinking.trim()
           const acts = this.snap.assistant.liveActs
+          const tl = this.snap.assistant.streamTimeline
           let messages = this.snap.assistant.messages
           if (stream) {
             messages = [
@@ -678,6 +733,7 @@ class SessionStore {
                 text: stream,
                 ...(thinking ? { thinking } : {}),
                 ...(acts.length ? { activities: acts } : {}),
+                ...(tl.length ? { timeline: tl } : {}),
               },
             ]
           }
@@ -686,6 +742,7 @@ class SessionStore {
             messages,
             streamText: '',
             streamThinking: '',
+            streamTimeline: [],
             liveActs: [],
           })
         }
@@ -694,6 +751,10 @@ class SessionStore {
       case 'assistant_activity': {
         this.patchAssistant({
           liveActs: [...this.snap.assistant.liveActs, frame.activity],
+          streamTimeline: [
+            ...this.snap.assistant.streamTimeline,
+            { kind: 'tool', activity: frame.activity, streaming: true },
+          ],
         })
         break
       }

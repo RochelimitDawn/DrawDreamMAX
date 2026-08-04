@@ -4,8 +4,7 @@
   flex: 1 1 0%;
   gap: 10px;
   min-height: 0;
-  height: auto;
-  max-height: 100%;
+  height: 100%;
   width: 100%;
   min-width: 0;
   /* 仅内部 .asst-stream 滚动，避免与 chat-right 双重滚动抢事件 */
@@ -43,7 +42,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  height: 100%;
+  height: auto;
   width: 100%;
   gap: 12px;
   overflow-x: hidden;
@@ -151,8 +150,82 @@
   box-shadow: 0 2px 8px color-mix(in srgb, var(--brand) 28%, transparent);
 }
 
+/* 处理中：暖金 3D 双层旋转 spinner（Uiverse Nawsome 风格，缩小适配 22px 头像） */
+.asst-card-avatar.is-spinner {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 4px;
+  perspective: 340px;
+  perspective-origin: 50% 50%;
+  overflow: visible;
+}
+
+.asst-card-avatar.is-spinner .dd-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  transform-style: preserve-3d;
+  transform-origin: 50%;
+  animation: none;
+}
+
+.asst-card-avatar.is-spinner .dd-spinner::before,
+.asst-card-avatar.is-spinner .dd-spinner::after {
+  box-sizing: border-box;
+  content: '';
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -10px 0 0 -10px;
+  width: 20px;
+  height: 20px;
+  transform-style: preserve-3d;
+  transform-origin: 50%;
+  perspective-origin: 50% 50%;
+  perspective: 340px;
+  background-size: 20px 20px;
+  background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+Cjxzdmcgd2lkdGg9IjI2NnB4IiBoZWlnaHQ9IjI5N3B4IiB2aWV3Qm94PSIwIDAgMjY2IDI5NyIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWxuczpza2V0Y2g9Imh0dHA6Ly93d3cuYm9oZW1pYW5jb2RpbmcuY29tL3NrZXRjaC9ucyI+CiAgICA8dGl0bGU+c3Bpbm5lcjwvdGl0bGU+CiAgICA8ZGVzY3JpcHRpb24+Q3JlYXRlZCB3aXRoIFNrZXRjaCAoaHR0cDovL3d3dy5ib2hlbWlhbmNvZGluZy5jb20vc2tldGNoKTwvZGVzY3JpcHRpb24+CiAgICA8ZGVmcz48L2RlZnM+CiAgICA8ZyBpZD0iUGFnZS0xIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBza2V0Y2g6dHlwZT0iTVNQYWdlIj4KICAgICAgICA8cGF0aCBkPSJNMTcxLjUwNzgxMywzLjI1MDAwMDM4IEMyMjYuMjA4MTgzLDEyLjg1NzcxMTEgMjk3LjExMjcyMiw3MS40OTEyODIzIDI1MC44OTU1OTksMTA4LjQxMDE1NSBDMjE2LjU4MjAyNCwxMzUuODIwMzEgMTg2LjUyODQwNSw5Ny4wNjI0OTY0IDE1Ni44MDA3NzQsODUuNzczNDM0NiBDMTI3LjA3MzE0Myw3NC40ODQzNzIxIDc2Ljg4ODQ2MzIsODQuMjE2MTQ2MiA2MC4xMjg5MDY1LDEwOC40MTAxNTMgQy0xNS45ODA0Njg1LDIxOC4yODEyNDcgMTQ1LjI3NzM0NCwyOTYuNjY3OTY4IDE0NS4yNzczNDQsMjk2LjY2Nzk2OCBDMTQ1LjI3NzM0NCwyOTYuNjY3OTY4IC0yNS40NDkyMTg3LDI1Ny4yNDIxOTggMy4zOTg0Mzc1LDEwOC40MTAxNTUgQzE2LjMwNzA2NjEsNDEuODExNDE3NCA4NC43Mjc1ODI5LC0xMS45OTIyOTg1IDE3MS41MDc4MTMsMy4yNTAwMDAzOCBaIiBpZD0iUGF0aC0xIiBmaWxsPSIjMDAwMDAwIiBza2V0Y2g6dHlwZT0iTVNTaGFwZUdyb3VwIj48L3BhdGg+CiAgICA8L2c+Cjwvc3ZnPg==");
+}
+
+.asst-card-avatar.is-spinner .dd-spinner::before {
+  transform: rotateX(60deg) rotateY(45deg) rotateZ(45deg);
+  animation: dd-rotate-before 750ms infinite linear reverse;
+}
+
+.asst-card-avatar.is-spinner .dd-spinner::after {
+  transform: rotateX(240deg) rotateY(45deg) rotateZ(45deg);
+  animation: dd-rotate-after 750ms infinite linear;
+}
+
+@keyframes dd-rotate-before {
+  from {
+    transform: rotateX(60deg) rotateY(45deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(60deg) rotateY(45deg) rotateZ(-360deg);
+  }
+}
+
+@keyframes dd-rotate-after {
+  from {
+    transform: rotateX(240deg) rotateY(45deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(240deg) rotateY(45deg) rotateZ(360deg);
+  }
+}
+
 .asst-card.is-streaming .asst-card-avatar {
   animation: asst-avatar-breath 1.9s ease-in-out infinite;
+}
+
+/* spinner 模式禁用外层呼吸动画，避免与 3D 旋转叠加抖动 */
+.asst-card.is-streaming .asst-card-avatar.is-spinner {
+  animation: none;
 }
 
 .asst-card-name {
@@ -469,6 +542,12 @@
   .asst-process-label.is-shiny,
   .asst-waiting-text.is-shiny {
     animation: none;
+  }
+
+  .asst-card-avatar.is-spinner .dd-spinner::before,
+  .asst-card-avatar.is-spinner .dd-spinner::after {
+    animation: none;
+    transform: rotateX(60deg) rotateY(45deg) rotateZ(0deg);
   }
 
   .asst-process-label.is-shiny,

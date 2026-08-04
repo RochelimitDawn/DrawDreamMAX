@@ -24,7 +24,10 @@ export type ChatComposerProps = {
   /** 深度思考档；空数组则按钮禁用 */
   thinkingLevel?: string
   thinkingLevels?: string[]
+  /** 点击思考按钮直接循环切换（旧行为） */
   onThinkingCycle?: () => void
+  /** 从浮动面板选定具体档位（新行为，优先于 onThinkingCycle） */
+  onThinkingSelect?: (level: string) => void
   onPickImage?: (file: File) => void | Promise<void>
   onPickFile?: (file: File) => void | Promise<void>
   uploading?: boolean
@@ -47,6 +50,7 @@ export function ChatComposer({
   thinkingLevel = '',
   thinkingLevels = [],
   onThinkingCycle,
+  onThinkingSelect,
   onPickImage,
   onPickFile,
   uploading = false,
@@ -56,11 +60,31 @@ export function ChatComposer({
   const taRef = useRef<HTMLTextAreaElement>(null)
   const imageRef = useRef<HTMLInputElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const thinkWrapRef = useRef<HTMLDivElement>(null)
   const [focused, setFocused] = useState(false)
+  const [thinkOpen, setThinkOpen] = useState(false)
   const hasText = value.trim().length > 0
   const canThink = (thinkingLevels?.length ?? 0) >= 2
   const expanded = focused || hasText || busy
   const ph = placeholder || t('chat.composerPlaceholder')
+
+  // 点击面板外部关闭
+  useEffect(() => {
+    if (!thinkOpen) return
+    const onDocDown = (e: MouseEvent) => {
+      const el = thinkWrapRef.current
+      if (el && !el.contains(e.target as Node)) setThinkOpen(false)
+    }
+    const onDocKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') setThinkOpen(false)
+    }
+    document.addEventListener('mousedown', onDocDown)
+    document.addEventListener('keydown', onDocKey)
+    return () => {
+      document.removeEventListener('mousedown', onDocDown)
+      document.removeEventListener('keydown', onDocKey)
+    }
+  }, [thinkOpen])
 
   useEffect(() => {
     const el = taRef.current
@@ -184,19 +208,53 @@ export function ChatComposer({
       </div>
 
       <div className="dd-composer-end">
-        <button
-          type="button"
-          className={`dd-composer-think${canThink && thinkingLevel && !/^(off|none|disabled|false|0)$/i.test(thinkingLevel) ? ' is-on' : ''}`}
-          title={thinkLabel}
-          aria-label={thinkLabel}
-          disabled={disabled || !canThink || !onThinkingCycle}
-          onClick={() => onThinkingCycle?.()}
-        >
-          <Brain size={compact ? 15 : 16} strokeWidth={1.85} />
-          {!compact && canThink && thinkingLevel ? (
-            <span className="dd-composer-think-lv">{thinkingLevel}</span>
+        <div className="dd-think-wrap" ref={thinkWrapRef}>
+          <button
+            type="button"
+            className={`dd-composer-think${canThink && thinkingLevel && !/^(off|none|disabled|false|0)$/i.test(thinkingLevel) ? ' is-on' : ''}`}
+            title={thinkLabel}
+            aria-label={thinkLabel}
+            aria-expanded={thinkOpen}
+            disabled={disabled || !canThink}
+            onClick={() => {
+              if (!canThink) return
+              if (onThinkingSelect) {
+                setThinkOpen((v) => !v)
+              } else {
+                onThinkingCycle?.()
+              }
+            }}
+          >
+            <Brain size={compact ? 15 : 16} strokeWidth={1.85} />
+            {!compact && canThink && thinkingLevel ? (
+              <span className="dd-composer-think-lv">{thinkingLevel}</span>
+            ) : null}
+          </button>
+          {canThink && onThinkingSelect && thinkOpen ? (
+            <div className="dd-think-popover" role="menu">
+              <div className="dd-think-popover-title">{t('chat.thinkingLevel')}</div>
+              {thinkingLevels.map((lv) => {
+                const active = lv === thinkingLevel
+                return (
+                  <button
+                    key={lv}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={active}
+                    className={`dd-think-opt${active ? ' is-active' : ''}`}
+                    onClick={() => {
+                      onThinkingSelect?.(lv)
+                      setThinkOpen(false)
+                    }}
+                  >
+                    <span className="dd-think-opt-name">{lv}</span>
+                    {active ? <span className="dd-think-opt-check">✓</span> : null}
+                  </button>
+                )
+              })}
+            </div>
           ) : null}
-        </button>
+        </div>
 
         {busy ? (
           <button
