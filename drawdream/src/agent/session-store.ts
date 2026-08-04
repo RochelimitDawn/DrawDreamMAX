@@ -1,6 +1,7 @@
 import type {
   AssistantModelInfo,
   AssistantMsg,
+  AssistantTodoItem,
   ClientFrame,
   RpPanel,
   ServerFrame,
@@ -43,6 +44,7 @@ export type AssistantSnapshot = {
   streamText: string
   streamThinking: string
   liveActs: WireActivity[]
+  todos: AssistantTodoItem[]
 }
 
 function normalizeChoiceOptions(options: string[]): string[] {
@@ -129,6 +131,7 @@ function emptyAssistant(): AssistantSnapshot {
     streamText: '',
     streamThinking: '',
     liveActs: [],
+    todos: [],
   }
 }
 
@@ -633,6 +636,7 @@ class SessionStore {
           streamText: '',
           streamThinking: '',
           liveActs: [],
+          todos: frame.todos ?? [],
         })
         break
       }
@@ -691,6 +695,10 @@ class SessionStore {
         this.patchAssistant({
           liveActs: [...this.snap.assistant.liveActs, frame.activity],
         })
+        break
+      }
+      case 'assistant_todo': {
+        this.patchAssistant({ todos: frame.todos ?? [] })
         break
       }
       default:

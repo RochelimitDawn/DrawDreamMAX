@@ -1,0 +1,282 @@
+/* 子任务清单（Plan 模式）
+   结构/动效参考 Uiverse checklist（JkHuger）：
+   - 勾选时打勾动画（check-01/02）+ 删除线滑入（slice）+ 完成烟花（firework）+ 文本位移（move）
+   - 配色改为 DrawDream 暖金主题（--brand / --accent-gold），非交互（readOnly）仅作进度展示 */
+
+.asst-todos {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-gold) 32%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-elevated) 82%, var(--accent-gold) 6%);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--text) 7%, transparent);
+}
+
+.asst-todos-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.asst-todos-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+}
+
+.asst-todos-title::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  background: linear-gradient(145deg, var(--accent-gold), var(--brand));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-gold) 40%, transparent);
+}
+
+.asst-todos-count {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  color: color-mix(in srgb, var(--accent-gold) 75%, var(--text-secondary));
+}
+
+.asst-todos-body {
+  display: grid;
+  gap: 6px;
+}
+
+.asst-todo-item {
+  --check: var(--brand);
+  --disabled: var(--text-tertiary, var(--text-secondary));
+  display: grid;
+  grid-template-columns: 16px auto auto;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  color: var(--text);
+  cursor: default;
+  transition: color 0.3s ease;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.asst-todo-text {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.asst-todo-text::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 2px;
+  width: 0;
+  background: var(--disabled);
+  border-radius: 2px;
+  transform: translateY(-50%);
+}
+
+.asst-todo-text::after {
+  content: '';
+  position: absolute;
+  right: -16px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--check);
+  opacity: 0;
+  transform: translateY(-50%);
+}
+
+.asst-todo-state {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.asst-todo-state.is-active {
+  color: var(--accent-gold);
+  background: color-mix(in srgb, var(--accent-gold) 14%, transparent);
+}
+
+.asst-todo-state.is-cancelled {
+  color: var(--text-tertiary, var(--text-secondary));
+  background: color-mix(in srgb, var(--text-tertiary, var(--text-secondary)) 12%, transparent);
+}
+
+.asst-todo-item input[type='checkbox'] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative;
+  height: 15px;
+  width: 15px;
+  outline: none;
+  border: 0;
+  margin: 0;
+  cursor: default;
+  background: var(--bg-elevated);
+  display: grid;
+  align-items: center;
+  justify-self: start;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--border-strong, var(--border)) 70%, transparent);
+  flex-shrink: 0;
+}
+
+.asst-todo-item input[type='checkbox']::before,
+.asst-todo-item input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  height: 2px;
+  top: auto;
+  background: var(--check);
+  border-radius: 2px;
+}
+
+.asst-todo-item input[type='checkbox']::before {
+  width: 0px;
+  right: 60%;
+  transform-origin: right bottom;
+}
+
+.asst-todo-item input[type='checkbox']::after {
+  width: 0px;
+  left: 40%;
+  transform-origin: left bottom;
+}
+
+.asst-todo-item input[type='checkbox']:checked::before {
+  animation: dd-check-01 0.4s ease forwards;
+}
+
+.asst-todo-item input[type='checkbox']:checked::after {
+  animation: dd-check-02 0.4s ease forwards;
+}
+
+.asst-todo-item input[type='checkbox']:checked + .asst-todo-text {
+  color: var(--disabled);
+  animation: dd-move 0.3s ease 0.1s forwards;
+}
+
+.asst-todo-item input[type='checkbox']:checked + .asst-todo-text::before {
+  animation: dd-slice 0.4s ease forwards;
+}
+
+.asst-todo-item input[type='checkbox']:checked + .asst-todo-text::after {
+  animation: dd-firework 0.5s ease forwards 0.1s;
+}
+
+.asst-todo-item.is-active input[type='checkbox'] {
+  box-shadow: inset 0 0 0 1.5px var(--accent-gold);
+}
+
+.asst-todo-item.is-active .asst-todo-text {
+  color: var(--accent-gold);
+}
+
+.asst-todo-item.is-cancelled .asst-todo-text {
+  color: var(--text-tertiary, var(--text-secondary));
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--text-tertiary, var(--text-secondary)) 60%, transparent);
+  opacity: 0.7;
+}
+
+@keyframes dd-move {
+  50% {
+    padding-left: 8px;
+    padding-right: 0px;
+  }
+  100% {
+    padding-right: 4px;
+  }
+}
+
+@keyframes dd-slice {
+  0% {
+    width: 0;
+  }
+  60% {
+    width: 100%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes dd-check-01 {
+  0% {
+    width: 4px;
+    top: auto;
+    transform: rotate(0);
+  }
+  50% {
+    width: 0px;
+    top: auto;
+    transform: rotate(0);
+  }
+  51% {
+    width: 0px;
+    top: 8px;
+    transform: rotate(45deg);
+  }
+  100% {
+    width: 5px;
+    top: 8px;
+    transform: rotate(45deg);
+  }
+}
+
+@keyframes dd-check-02 {
+  0% {
+    width: 4px;
+    top: auto;
+    transform: rotate(0);
+  }
+  50% {
+    width: 0px;
+    top: auto;
+    transform: rotate(0);
+  }
+  51% {
+    width: 0px;
+    top: 8px;
+    transform: rotate(-45deg);
+  }
+  100% {
+    width: 10px;
+    top: 8px;
+    transform: rotate(-45deg);
+  }
+}
+
+@keyframes dd-firework {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 0 -2px var(--brand), 0 0 0 -2px var(--brand), 0 0 0 -2px var(--brand), 0 0 0 -2px var(--brand), 0 0 0 -2px var(--brand), 0 0 0 -2px var(--brand);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    box-shadow: 0 -15px 0 0px var(--brand), 14px -8px 0 0px var(--brand), 14px 8px 0 0px var(--brand), 0 15px 0 0px var(--brand), -14px 8px 0 0px var(--brand), -14px -8px 0 0px var(--brand);
+  }
+}

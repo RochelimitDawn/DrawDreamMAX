@@ -121,6 +121,8 @@ export interface AssistantHost {
 	follows(): boolean;
 	/** 会话历史（wire 层转 AssistantMsg） */
 	messages(): unknown[];
+	/** 当前子任务清单（Plan 模式） */
+	todos(): AssistantTodoItem[];
 	isStreaming(): boolean;
 	dispose(): Promise<void>;
 }
@@ -154,14 +156,23 @@ const parseJsonObject = (raw: string): Record<string, unknown> | null => {
 
 // ---------- 助手工具面（白名单写 + 只读剧情面） ----------
 
-function createStagehandTools(cwd: string, bridge: StoryBridge): ToolDefinition[] {
+export type AssistantTodoItem = {
+	text: string;
+	status: "pending" | "in_progress" | "done" | "cancelled";
+};
+
+function createStagehandTools(
+	cwd: string,
+	bridge: StoryBridge,
+	onTodos?: (todos: AssistantTodoItem[]) => void,
+): ToolDefinition[] {
 	const tools: ToolDefinition[] = [];
 	/** 会话级子任务清单（Plan 模式：todo_write 维护，跨轮次持久，供 todo_list 回顾） */
-	const todoState: Array<{ text: string; status: "pending" | "in_progress" | "done" | "cancelled" }> = [];
+	const todoState: AssistantTodoItem[] = [];
 
-	const formatTodos = (list: typeof todoState): string => {
+	const formatTodos = (list: AssistantTodoItem[]): string => {
 		if (!list.length) return "（空）";
-		const mark = (s: (typeof list)[number]["status"]) =>
+		const mark = (s: AssistantTodoItem["status"]) =>
 			s === "done" ? "✓" : s === "in_progress" ? "◐" : s === "cancelled" ? "✕" : "☐";
 		return list.map((t, i) => `${mark(t.status)} ${i + 1}. ${t.text}`).join("\n");
 	};
@@ -190,6 +201,11 @@ function createStagehandTools(cwd: string, bridge: StoryBridge): ToolDefinition[
 				for (const t of params.todos) {
 					const text = String(t.text ?? "").trim();
 					if (text) todoState.push({ text, status: t.status ?? "pending" });
+				}
+				try {
+					onTodos?.([...todoState]);
+				} catch {
+					/* 广播失败不影响工具结果 */
 				}
 				return text(`已更新任务清单（${todoState.length} 项）：\n${formatTodos(todoState)}`);
 			},
@@ -823,6 +839,8 @@ export async function createAssistantHost(opts: CreateAssistantHostOptions): Pro
 	let unsubscribe: (() => void) | undefined;
 	let webSearchEnabled = false;
 	let assistantToolNames: string[] | null = null;
+	/** 子任务清单（Plan 模式；todo_write 回调更新，assistant_hello 携带） */
+	let assistantTodos: AssistantTodoItem[] = [];
 
 	const selfInfo = () => ({ model: modelInfo(), follow: follows() });
 
@@ -876,7 +894,11 @@ export async function createAssistantHost(opts: CreateAssistantHostOptions): Pro
 			agentDir,
 			authStorage,
 			modelRegistry,
-			customTools: createStagehandTools(cwd, bridge),
+			customTools: createStagehandTools(cwd, bridge, (todos) => {
+				assistantTodos = todos;
+				// todo 清单变更 → 透传给 wire 层广播 assistant_todo 帧（前端 ToDoList UI 刷新）
+				onEvent({ type: "todo_update", todos });
+			}),
 			// backendControl 关 = 分发模式：助手也不给本机工具（read/bash/edit/write），只留领域工具
 			...(config.backendControl === false ? { noTools: "builtin" as const } : {}),
 			resourceLoader: loader,
@@ -1042,6 +1064,7 @@ export async function createAssistantHost(opts: CreateAssistantHostOptions): Pro
 		modelInfo,
 		follows,
 		messages: () => session.messages as unknown[],
+		todos: () => assistantTodos,
 		isStreaming: () => session.isStreaming,
 		async dispose() {
 			unsubscribe?.();

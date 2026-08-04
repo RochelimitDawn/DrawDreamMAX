@@ -117,6 +117,7 @@ export type AssistantEvent = {
 	isError?: boolean;
 	attempt?: number;
 	maxAttempts?: number;
+	todos?: Array<{ text: string; status: "pending" | "in_progress" | "done" | "cancelled" }>;
 };
 
 /** 助手会话事件 → assistant_* wire 帧 */
@@ -129,6 +130,9 @@ export function createAssistantEventHandler(
 			case "agent_start":
 				broadcast({ type: "assistant_state", state: "start" });
 				break;
+		case "todo_update":
+			broadcast({ type: "assistant_todo", todos: Array.isArray(ev.todos) ? ev.todos : [] });
+			break;
 		case "agent_end":
 			if (!ev.willRetry) {
 				const failed = (ev.messages ?? [])

@@ -830,6 +830,7 @@ const assistantHelloFrame = (): ServerFrame => ({
 	busy: assistantHost?.isStreaming() ?? false,
 	model: assistantHost?.modelInfo() ?? null,
 	follow: assistantHost?.follows() ?? true,
+	todos: assistantHost?.todos() ?? [],
 });
 
 const onAssistantEvent = createAssistantEventHandler(broadcast);

@@ -196,6 +196,12 @@ export interface AssistantModelInfo {
 	name: string;
 }
 
+/** 子任务清单项（Plan 模式；todo_write/todo_list 维护） */
+export interface AssistantTodoItem {
+	text: string;
+	status: "pending" | "in_progress" | "done" | "cancelled";
+}
+
 /** Server → Client 帧 */
 export type ServerFrame =
 	| {
@@ -250,11 +256,15 @@ export type ServerFrame =
 			model: AssistantModelInfo | null;
 			/** true=未单独指定，跟随剧情模型 */
 			follow: boolean;
+			/** 当前子任务清单（Plan 模式） */
+			todos?: AssistantTodoItem[];
 	  }
 	| { type: "assistant_message"; message: AssistantMsg }
 	| { type: "assistant_delta"; kind: "text" | "thinking"; delta: string }
 	| { type: "assistant_state"; state: "start" | "end" }
 	| { type: "assistant_activity"; activity: WireActivity }
+	/** 子任务清单更新（todo_write 后广播，前端 ToDoList 刷新） */
+	| { type: "assistant_todo"; todos: AssistantTodoItem[] }
 	/** Novel Forge 作业进度（按用户工作区广播） */
 	| {
 			type: "forge_progress";

@@ -128,6 +128,12 @@ export interface AssistantModelInfo {
   name: string
 }
 
+/** 子任务清单项（Plan 模式；todo_write/todo_list 维护） */
+export interface AssistantTodoItem {
+  text: string
+  status: 'pending' | 'in_progress' | 'done' | 'cancelled'
+}
+
 export type ServerFrame =
   | {
       type: 'hello'
@@ -172,11 +178,13 @@ export type ServerFrame =
       busy: boolean
       model: AssistantModelInfo | null
       follow: boolean
+      todos?: AssistantTodoItem[]
     }
   | { type: 'assistant_message'; message: AssistantMsg }
   | { type: 'assistant_delta'; kind: 'text' | 'thinking'; delta: string }
   | { type: 'assistant_state'; state: 'start' | 'end' }
   | { type: 'assistant_activity'; activity: WireActivity }
+  | { type: 'assistant_todo'; todos: AssistantTodoItem[] }
   | {
       type: 'forge_progress'
       jobId: string

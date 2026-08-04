@@ -7,6 +7,7 @@ import { RichMessage } from './RichMessage'
 import { ThinkingBlock } from './ThinkingBlock'
 import { ToolCallList, coalesceActivities } from './ToolCallChip'
 import { ChatComposer } from './ChatComposer'
+import { ToDoList } from './ToDoList'
 import { copyText } from '../utils/clipboard'
 import { toast } from '../utils/toast'
 import './AssistantPanel.css'
@@ -327,6 +328,8 @@ export function AssistantPanel({
           {t('chat.assistantNew')}
         </button>
       </div>
+
+      <ToDoList todos={asst.todos} />
 
       <div className="asst-stream" ref={streamRef}>
         {empty ? (
