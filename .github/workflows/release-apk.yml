@@ -66,6 +66,16 @@ jobs:
           echo "=== git tracked ==="
           cd drawdream/agent && git ls-files | grep drawdream
 
+      - name: Debug after UI build
+        working-directory: .
+        run: |
+          npm run build
+          echo "=== after npm run build ==="
+          ls -la drawdream/agent/.drawdream/extensions/ 2>&1 || echo "NO .drawdream after UI build"
+          node mobile/scripts/fetch-android-node.mjs 2>&1 | tail -3
+          echo "=== after fetch-android-node ==="
+          ls -la drawdream/agent/.drawdream/extensions/ 2>&1 || echo "NO .drawdream after fetch-node"
+
       - name: Build UI + runtime
         env:
           NODE_ARCH: arm64
