@@ -455,12 +455,14 @@ import { existsSync, readdirSync } from 'node:fs'
 const here = dirname(fileURLToPath(import.meta.url))
 const root = join(here, '..')
 const main = join(here, 'server', 'main.ts')
+const single = join(here, 'single.mjs')
 
 console.log('[mobile-entry] start', process.version, process.arch, process.platform)
 console.log('[mobile-entry] execPath', process.execPath)
 console.log('[mobile-entry] cwd', process.cwd())
 console.log('[mobile-entry] here', here)
 console.log('[mobile-entry] main', main, 'exists=', existsSync(main))
+console.log('[mobile-entry] single', single, 'exists=', existsSync(single))
 console.log('[mobile-entry] package.json exists=', existsSync(join(here, 'package.json')))
 const dd = join(here, 'node_modules', '@drawdream')
 console.log('[mobile-entry] @drawdream', existsSync(dd) ? readdirSync(dd).join(',') : 'MISSING')
@@ -481,17 +483,23 @@ if (existsSync(libDir)) {
 process.chdir(here)
 
 try {
-  // 实体路径预检（package exports 可能无 CJS main，createRequire 会误报）
-  for (const rel of [
-    'node_modules/ws/package.json',
-    'node_modules/@drawdream/agent-runtime/dist/index.js',
-    'node_modules/@drawdream/agent-runtime/dist/web.js',
-    'node_modules/@drawdream/ai/dist/index.js',
-  ]) {
-    const p = join(here, rel)
-    console.log('[mobile-entry] check', rel, existsSync(p) ? 'OK' : 'MISSING')
+  // 单文件优先（不依赖 node_modules）；缺失回退 server/main.ts
+  if (existsSync(single)) {
+    console.log('[mobile-entry] loading single.mjs (bundle)')
+    await import(pathToFileURL(single).href)
+  } else {
+    // 实体路径预检（package exports 可能无 CJS main，createRequire 会误报）
+    for (const rel of [
+      'node_modules/ws/package.json',
+      'node_modules/@drawdream/agent-runtime/dist/index.js',
+      'node_modules/@drawdream/agent-runtime/dist/web.js',
+      'node_modules/@drawdream/ai/dist/index.js',
+    ]) {
+      const p = join(here, rel)
+      console.log('[mobile-entry] check', rel, existsSync(p) ? 'OK' : 'MISSING')
+    }
+    await import(pathToFileURL(main).href)
   }
-  await import(pathToFileURL(main).href)
 } catch (err) {
   console.error('[mobile-entry] fatal', err)
   if (err && err.stack) console.error(err.stack)
@@ -501,7 +509,7 @@ try {
   writeFileSync(join(agentOut, 'mobile-entry.mjs'), launcher)
 }
 
-function prepareAgent() {
+async function prepareAgent() {
   const agentSrc = join(projectRoot, 'agent')
   const agentOut = join(outRoot, 'agent')
   rmSync(agentOut, { recursive: true, force: true })
@@ -553,6 +561,15 @@ function prepareAgent() {
   flattenSymlinks(agentOut)
   writeMobileEntry(agentOut)
   verifyMobileAgentTree(agentOut)
+
+  // 4) 生成单文件入口（single.mjs）：真机优先加载，不依赖 node_modules。
+  //    失败不阻断整体（node_modules 树仍在，作为兜底入口）
+  try {
+    const { bundleAgent } = await import('./bundle-agent.mjs')
+    await bundleAgent()
+  } catch (err) {
+    console.error('[prepare-runtime] single.mjs bundle skipped:', err?.message || err)
+  }
 
   // 启动期 import 预检（与真机相同 ESM 路径）
   const importCheck = spawnSync(
@@ -620,7 +637,7 @@ async function main() {
   log('outRoot', outRoot)
   await prepareNode()
   prepareUi()
-  prepareAgent()
+  await prepareAgent()
   writeVersion()
   packTarball()
   ensureDir(join(mobileRoot, 'android/app/src/main/assets'))

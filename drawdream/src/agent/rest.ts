@@ -85,6 +85,31 @@ export const apiPost = <T,>(path: string, body: unknown) =>
   api<T>(path, { method: 'POST', body: JSON.stringify(body) })
 export const apiPut = <T,>(path: string, body: unknown) =>
   api<T>(path, { method: 'PUT', body: JSON.stringify(body) })
+
+// ---- 环境信息（设置 → 环境分页） ----
+
+export interface EnvToolProbe {
+  ok: boolean
+  version?: string
+}
+
+export interface EnvironmentInfo {
+  runtime: {
+    name: 'node' | 'bun'
+    version?: string
+    pid: number
+    platform: string
+    arch: string
+    uptimeMs: number
+  }
+  service: { port: number; cwd: string; agentDir: string; streaming: boolean }
+  disk: Record<string, number>
+  toolchain: { node: EnvToolProbe; bun: EnvToolProbe; ffmpeg: EnvToolProbe; python: EnvToolProbe }
+}
+
+export function fetchEnvironment(): Promise<EnvironmentInfo> {
+  return apiGet<EnvironmentInfo>('/api/environment', { bypassCache: true })
+}
 export const apiDelete = <T,>(path: string) => api<T>(path, { method: 'DELETE' })
 
 export async function importSillyTavernChat(content: string, tag?: string): Promise<{ messages: number; warnings: string[] }> {

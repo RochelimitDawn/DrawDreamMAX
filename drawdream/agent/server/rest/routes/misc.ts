@@ -2,8 +2,12 @@
  * 命令/TTS/世界线/上传/面板/状态/导入 路由。
  */
 
+import { execFile } from "node:child_process";
 import {
 	existsSync,
+	lstatSync,
+	readdirSync,
+	statSync,
 	unlinkSync,
 } from "node:fs";
 import { join } from "node:path";
@@ -28,6 +32,8 @@ import type { RouteCtx } from "./context.ts";
 export async function handleMiscRoutes(ctx: RouteCtx): Promise<boolean> {
 	const { req, res, host, query } = ctx;
 	const refuseWhileStreaming = ctx.refuseWhileStreaming;
+
+	if (await handleEnvironmentRoute(ctx)) return true;
 
 	switch (ctx.route) {
 			case "GET /api/commands": {
@@ -188,4 +194,100 @@ export async function handleMiscRoutes(ctx: RouteCtx): Promise<boolean> {
 			default:
 				return false;
 	}
+}
+
+// ---------- 环境信息（设置 → 环境分页） ----------
+
+/** 递归统计目录字节数（软链跳过，避免循环） */
+function dirBytes(dir: string): number {
+	if (!existsSync(dir)) return 0;
+	let total = 0;
+	const stack = [dir];
+	while (stack.length) {
+		const cur = stack.pop()!;
+		let entries: string[] = [];
+		try {
+			entries = readdirSync(cur);
+		} catch {
+			continue;
+		}
+		for (const name of entries) {
+			const p = join(cur, name);
+			let st;
+			try {
+				st = lstatSync(p);
+			} catch {
+				continue;
+			}
+			if (st.isDirectory()) stack.push(p);
+			else if (st.isFile()) total += st.size;
+		}
+	}
+	return total;
+}
+
+/** 探测某个命令是否可用并取版本（短超时，失败即不可用） */
+function probeCommand(cmd: string): Promise<{ ok: boolean; version?: string }> {
+	return new Promise((resolve) => {
+		execFile(cmd, ["--version"], { timeout: 3000 }, (err, stdout) => {
+			if (err) {
+				resolve({ ok: false });
+				return;
+			}
+			resolve({ ok: true, version: String(stdout ?? "").trim().split("\n")[0] || undefined });
+		});
+	});
+}
+
+export async function handleEnvironmentRoute(ctx: RouteCtx): Promise<boolean> {
+	const { res, host, url } = ctx;
+	if (ctx.route !== "GET /api/environment") return false;
+	const port = Number(process.env.PORT || "7620");
+
+	// 运行时
+	const runtimeName = (process.versions as { bun?: string }).bun ? "bun" : "node";
+	const runtime = {
+		name: runtimeName,
+		version: runtimeName === "bun" ? (process.versions as { bun?: string }).bun : process.versions.node,
+		pid: process.pid,
+		platform: process.platform,
+		arch: process.arch,
+		uptimeMs: Math.round(process.uptime() * 1000),
+	};
+
+	// 目录与磁盘
+	const cwd = host.cwd;
+	const agentDir = host.agentDir();
+	const dataDirs: Record<string, number> = {};
+	for (const [key, rel] of [
+		["palace", "palace"],
+		["summaries", "summaries"],
+		["state", "state"],
+		["lore", "assets/lore"],
+		["cards", "assets/cards"],
+	] as const) {
+		dataDirs[key] = dirBytes(join(cwd, rel));
+	}
+	const disk = {
+		workspace: dirBytes(cwd),
+		...dataDirs,
+	};
+
+	// 工具链探测
+	const [node, bun, ffmpeg, python] = await Promise.all([
+		probeCommand("node"),
+		probeCommand("bun"),
+		probeCommand("ffmpeg"),
+		probeCommand("python3"),
+	]);
+	const toolchain = { node, bun, ffmpeg, python };
+
+	sendJson(res, 200, {
+		runtime,
+		service: { port, cwd, agentDir, streaming: host.isStreaming() },
+		disk,
+		toolchain,
+		_echo: url,
+	});
+	return true;
 }

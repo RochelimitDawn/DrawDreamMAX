@@ -1,0 +1,140 @@
+/* 设置 → 环境分页：运行时/服务/磁盘/工具链状态 */
+
+.env-block {
+  display: grid;
+  gap: 14px;
+}
+
+.env-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.env-toolbar-title {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  color: var(--text-secondary);
+}
+
+.env-toolbar .icon-btn .is-spin {
+  animation: env-spin 0.9s linear infinite;
+}
+
+@keyframes env-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.env-error {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #c0392b 40%, var(--border));
+  background: color-mix(in srgb, #c0392b 8%, var(--bg-elevated));
+  color: #c0392b;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.env-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.env-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.env-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.env-card h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  color: var(--text-secondary);
+}
+
+.env-card h4 svg {
+  color: var(--accent-gold);
+}
+
+.env-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.env-row-label {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  min-width: 72px;
+}
+
+.env-version {
+  color: var(--text);
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.env-path {
+  color: var(--text-secondary);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+
+.env-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  flex-shrink: 0;
+}
+
+.env-badge.is-ok {
+  color: #1e8e5a;
+  background: color-mix(in srgb, #1e8e5a 12%, transparent);
+}
+
+.env-badge.is-missing {
+  color: #c0392b;
+  background: color-mix(in srgb, #c0392b 10%, transparent);
+}
+
+.env-badge.is-loading {
+  color: var(--text-tertiary, var(--text-secondary));
+  background: color-mix(in srgb, var(--text-tertiary, var(--text-secondary)) 10%, transparent);
+}

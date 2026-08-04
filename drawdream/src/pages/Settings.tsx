@@ -9,6 +9,7 @@ import {
   MessageCircle,
   BookOpen,
   Settings2,
+  Cpu,
   Info,
   type LucideIcon,
 } from 'lucide-react'
@@ -31,6 +32,7 @@ import {
   type ModelInfo,
 } from '../agent/rest'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { EnvironmentPanel } from '../components/EnvironmentPanel'
 import { PresetPicker } from '../components/PresetPicker'
 import { ProviderIcon } from '../components/ProviderIcon'
 import { ColorPicker } from '../components/ColorPicker'
@@ -70,6 +72,7 @@ type Tab =
   | 'chat'
   | 'reading'
   | 'advanced'
+  | 'environment'
   | 'about'
 
 const TAB_KEYS: Tab[] = [
@@ -79,6 +82,7 @@ const TAB_KEYS: Tab[] = [
   'chat',
   'reading',
   'advanced',
+  'environment',
   'about',
 ]
 
@@ -86,12 +90,12 @@ const TAB_KEYS: Tab[] = [
  * 设置导航三大分区：
  * - 基础与模型：通用 + API
  * - 观感：界面 + 阅读
- * - 对话与系统：对话行为 + 高级 + 关于
+ * - 对话与系统：对话行为 + 高级 + 环境 + 关于
  */
 const NAV_GROUPS: Array<{ id: string; keys: Tab[]; groupKey?: string }> = [
   { id: 'core', keys: ['general', 'api'], groupKey: 'settings.groupCore' },
   { id: 'look', keys: ['ui', 'reading'], groupKey: 'settings.groupLook' },
-  { id: 'system', keys: ['chat', 'advanced', 'about'], groupKey: 'settings.groupSystem' },
+  { id: 'system', keys: ['chat', 'advanced', 'environment', 'about'], groupKey: 'settings.groupSystem' },
 ]
 
 /** 每个设置子页对应的图标（平板/移动端导航项展示，桌面端仅 hover 高亮） */
@@ -102,6 +106,7 @@ const TAB_ICONS: Record<Tab, LucideIcon> = {
   chat: MessageCircle,
   reading: BookOpen,
   advanced: Settings2,
+  environment: Cpu,
   about: Info,
 }
 
@@ -1907,6 +1912,8 @@ export function SettingsPage() {
               </div>
             </div>
           )}
+
+          {tab === 'environment' && <EnvironmentPanel />}
 
           {tab === 'about' && (
             <div className="about-block">
