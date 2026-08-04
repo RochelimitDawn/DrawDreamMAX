@@ -79,6 +79,7 @@ jobs:
       - name: Build UI + runtime
         env:
           NODE_ARCH: arm64
+          SMOKE_PRINT_LOG: "1"
           # 默认 fetch Termux aarch64 Node（bionic）；勿设 FORCE_LINUX_NODE
         run: |
           npm run build
