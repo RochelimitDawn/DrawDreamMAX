@@ -21,6 +21,7 @@ import {
   rmSync,
   readFileSync,
   writeFileSync,
+  copyFileSync,
   chmodSync,
   statSync,
   lstatSync,
@@ -391,18 +392,7 @@ function flattenSymlinks(root) {
 function verifyMobileAgentTree(agentOut) {
   const checks = [
     'package.json',
-    'server/main.ts',
-    'server/user-host.ts',
-    'node_modules/ws/package.json',
-    'node_modules/@drawdream/agent-runtime/package.json',
-    'node_modules/@drawdream/agent-runtime/dist/web.js',
-    'node_modules/@drawdream/agent-runtime/dist/index.js',
-    'node_modules/@drawdream/ai/package.json',
-    'node_modules/@drawdream/ai/dist/index.js',
-    'node_modules/@drawdream/agent-core/package.json',
-    'node_modules/@drawdream/agent-core/dist/index.js',
-    'node_modules/@drawdream/tui/package.json',
-    'node_modules/@drawdream/tui/dist/index.js',
+    'single.mjs',
     '.drawdream/extensions/roleplay.ts',
   ]
   const missing = []
@@ -417,30 +407,10 @@ function verifyMobileAgentTree(agentOut) {
       }
     }
   }
-  // @drawdream/* 不得仍是绝对路径链
-  const dd = join(agentOut, 'node_modules', '@drawdream')
-  if (existsSync(dd)) {
-    for (const n of readdirSync(dd)) {
-      const p = join(dd, n)
-      if (lstatSync(p).isSymbolicLink()) {
-        missing.push(`@drawdream/${n} still symlink`)
-      }
-    }
-  }
-  // package exports 子路径：确保 package.json 声明 ./web 且文件存在
-  try {
-    const rtPkg = JSON.parse(
-      readFileSync(join(agentOut, 'node_modules/@drawdream/agent-runtime/package.json'), 'utf8'),
-    )
-    const webExp = rtPkg.exports?.['./web']
-    if (!webExp) missing.push('agent-runtime package.json missing exports["./web"]')
-  } catch (e) {
-    missing.push('agent-runtime package.json unreadable: ' + (e.message || e))
-  }
   if (missing.length) {
     throw new Error('mobile agent tree incomplete:\n  - ' + missing.join('\n  - '))
   }
-  log('verifyMobileAgentTree OK')
+  log('verifyMobileAgentTree OK (trimmed: single.mjs + assets/.drawdream)')
 }
 
 function writeMobileEntry(agentOut) {
@@ -451,21 +421,16 @@ function writeMobileEntry(agentOut) {
  */
 import { pathToFileURL, fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 const here = dirname(fileURLToPath(import.meta.url))
 const root = join(here, '..')
-const main = join(here, 'server', 'main.ts')
 const single = join(here, 'single.mjs')
 
 console.log('[mobile-entry] start', process.version, process.arch, process.platform)
 console.log('[mobile-entry] execPath', process.execPath)
 console.log('[mobile-entry] cwd', process.cwd())
 console.log('[mobile-entry] here', here)
-console.log('[mobile-entry] main', main, 'exists=', existsSync(main))
 console.log('[mobile-entry] single', single, 'exists=', existsSync(single))
-console.log('[mobile-entry] package.json exists=', existsSync(join(here, 'package.json')))
-const dd = join(here, 'node_modules', '@drawdream')
-console.log('[mobile-entry] @drawdream', existsSync(dd) ? readdirSync(dd).join(',') : 'MISSING')
 
 process.env.HOST = process.env.HOST || '127.0.0.1'
 process.env.PORT = process.env.PORT || '7620'
@@ -483,23 +448,13 @@ if (existsSync(libDir)) {
 process.chdir(here)
 
 try {
-  // 单文件优先（不依赖 node_modules）；缺失回退 server/main.ts
-  if (existsSync(single)) {
-    console.log('[mobile-entry] loading single.mjs (bundle)')
-    await import(pathToFileURL(single).href)
-  } else {
-    // 实体路径预检（package exports 可能无 CJS main，createRequire 会误报）
-    for (const rel of [
-      'node_modules/ws/package.json',
-      'node_modules/@drawdream/agent-runtime/dist/index.js',
-      'node_modules/@drawdream/agent-runtime/dist/web.js',
-      'node_modules/@drawdream/ai/dist/index.js',
-    ]) {
-      const p = join(here, rel)
-      console.log('[mobile-entry] check', rel, existsSync(p) ? 'OK' : 'MISSING')
-    }
-    await import(pathToFileURL(main).href)
+  // 单文件入口（bundle 全部依赖，运行时不依赖 node_modules）
+  if (!existsSync(single)) {
+    console.error('[mobile-entry] single.mjs missing')
+    process.exit(1)
   }
+  console.log('[mobile-entry] loading single.mjs (bundle)')
+  await import(pathToFileURL(single).href)
 } catch (err) {
   console.error('[mobile-entry] fatal', err)
   if (err && err.stack) console.error(err.stack)
@@ -515,19 +470,21 @@ async function prepareAgent() {
   rmSync(agentOut, { recursive: true, force: true })
   ensureDir(agentOut)
 
-  // 1) 先保证依赖齐全（含 dev，供 tsgo/shx 构建 packages）
+  // 1) agentSrc 依赖齐全（esbuild bundle 需解析全部依赖）
   if (!skipAgentInstall) {
     run('npm', ['install'], { cwd: agentSrc })
   }
 
-  // 2) 编译 packages dist（必须在 omit=dev 之前）
-  ensureAgentPackagesBuilt(agentSrc)
-
-  // 3) 再裁剪为生产依赖树
-  if (!skipAgentInstall && process.env.KEEP_AGENT_DEV !== '1') {
-    run('npm', ['prune', '--omit=dev'], { cwd: agentSrc })
+  // 2) 生成单文件入口（bundle 全部依赖；运行时不依赖 node_modules）
+  try {
+    const { bundleAgent } = await import('./bundle-agent.mjs')
+    await bundleAgent()
+  } catch (err) {
+    console.error('[prepare-runtime] single.mjs bundle failed:', err?.message || err)
+    throw err
   }
 
+  // 3) 裁剪运行时树：只保留 bundle + 数据/扩展，不携带 server/src/packages/node_modules
   const filter = (src) => {
     const base = src.replace(agentSrc, '')
     if (base.includes('/.git')) return false
@@ -536,18 +493,7 @@ async function prepareAgent() {
     if (base.includes('/examples/')) return false
     return true
   }
-
-  for (const name of [
-    'server',
-    'src',
-    'packages',
-    'package.json',
-    'package-lock.json',
-    'node_modules',
-    'assets',
-    // 产品接线层（roleplay 扩展）；缺失会导致 /rprefresh 与剧情工具不可用
-    '.drawdream',
-  ]) {
+  for (const name of ['assets', '.drawdream']) {
     const from = join(agentSrc, name)
     if (!existsSync(from)) {
       log('skip missing', name)
@@ -556,47 +502,37 @@ async function prepareAgent() {
     log('copy', name, '(dereference)')
     copyPath(from, join(agentOut, name), filter)
   }
+  copyFileSync(join(agentSrc, 'package.json'), join(agentOut, 'package.json'))
 
-  materializeWorkspaceLinks(agentOut)
   flattenSymlinks(agentOut)
   writeMobileEntry(agentOut)
   verifyMobileAgentTree(agentOut)
 
-  // 4) 生成单文件入口（single.mjs）：真机优先加载，不依赖 node_modules。
-  //    失败不阻断整体（node_modules 树仍在，作为兜底入口）
-  try {
-    const { bundleAgent } = await import('./bundle-agent.mjs')
-    await bundleAgent()
-  } catch (err) {
-    console.error('[prepare-runtime] single.mjs bundle skipped:', err?.message || err)
-  }
-
-  // 启动期 import 预检（与真机相同 ESM 路径）
-  const importCheck = spawnSync(
+  // 4) 冒烟：在裁剪树里用 single.mjs 启动（不依赖 node_modules）
+  const smokePort = 17630 + Math.floor(Math.random() * 200)
+  const smoke = spawnSync(
     process.execPath,
-    [
-      '--input-type=module',
-      '-e',
-      `
-import { pathToFileURL } from 'node:url'
-import { join } from 'node:path'
-const root = ${JSON.stringify(agentOut)}
-process.chdir(root)
-await import('@drawdream/agent-runtime/web')
-await import('@drawdream/ai')
-console.log('[prepare-runtime] import smoke OK')
-`,
-    ],
-    { encoding: 'utf8', cwd: agentOut, env: { ...process.env, NODE_PATH: '' } },
+    [join(agentOut, 'single.mjs')],
+    {
+      encoding: 'utf8',
+      timeout: 15000,
+      env: {
+        ...process.env,
+        PORT: String(smokePort),
+        HOST: '127.0.0.1',
+        DD_AUTH_MODE: 'single',
+        NODE_PATH: '',
+      },
+    },
   )
-  if (importCheck.status !== 0) {
-    console.error(importCheck.stdout || '')
-    console.error(importCheck.stderr || '')
-    throw new Error('import smoke failed for @drawdream/agent-runtime/web (see above)')
+  const out = `${smoke.stdout || ''}${smoke.stderr || ''}`
+  if (!out.includes('listening')) {
+    console.error(out.slice(0, 1200))
+    throw new Error('trimmed agent smoke failed: no "listening" (see above)')
   }
-  log((importCheck.stdout || '').trim() || 'import smoke OK')
+  log('trimmed agent smoke OK')
 
-  log('agent staged', agentOut)
+  log('agent staged (trimmed)', agentOut)
 }
 
 function writeVersion() {
