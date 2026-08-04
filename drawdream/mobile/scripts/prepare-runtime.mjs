@@ -475,7 +475,10 @@ async function prepareAgent() {
     run('npm', ['install'], { cwd: agentSrc })
   }
 
-  // 2) 生成单文件入口（bundle 全部依赖；运行时不依赖 node_modules）
+  // 2) 构建 packages/* 的 dist（CI 干净克隆无 dist；@drawdream/* 的 exports 指向 dist）
+  ensureAgentPackagesBuilt(agentSrc)
+
+  // 3) 生成单文件入口（bundle 全部依赖；运行时不依赖 node_modules）
   try {
     const { bundleAgent } = await import('./bundle-agent.mjs')
     await bundleAgent()
@@ -484,7 +487,7 @@ async function prepareAgent() {
     throw err
   }
 
-  // 3) 裁剪运行时树：只保留 bundle + 数据/扩展，不携带 server/src/packages/node_modules
+  // 4) 裁剪运行时树：只保留 bundle + 数据/扩展，不携带 server/src/packages/node_modules
   const filter = (src) => {
     const base = src.replace(agentSrc, '')
     if (base.includes('/.git')) return false
