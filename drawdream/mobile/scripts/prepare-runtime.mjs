@@ -474,11 +474,9 @@ async function prepareAgent() {
   if (!skipAgentInstall) {
     run('npm', ['install'], { cwd: agentSrc })
   }
-  log('DEBUG after npm install, .drawdream exists =', existsSync(join(agentSrc, '.drawdream')))
 
   // 2) 构建 packages/* 的 dist（CI 干净克隆无 dist；@drawdream/* 的 exports 指向 dist）
   ensureAgentPackagesBuilt(agentSrc)
-  log('DEBUG after ensureAgentPackagesBuilt, .drawdream exists =', existsSync(join(agentSrc, '.drawdream')))
 
   // 3) 生成单文件入口（bundle 全部依赖；运行时不依赖 node_modules）
   try {
@@ -487,10 +485,6 @@ async function prepareAgent() {
   } catch (err) {
     console.error('[prepare-runtime] single.mjs bundle failed:', err?.message || err)
     throw err
-  }
-  {
-    const dd = join(agentSrc, '.drawdream')
-    log('DEBUG after bundle, .drawdream exists =', existsSync(dd), existsSync(dd) ? 'entries: ' + readdirSync(dd).join(',') : '')
   }
 
   // 4) 裁剪运行时树：只保留 bundle + 数据/扩展，不携带 server/src/packages/node_modules
@@ -519,22 +513,28 @@ async function prepareAgent() {
 
   // 4) 冒烟：在裁剪树里用 single.mjs 启动（不依赖 node_modules）
   const smokePort = 17630 + Math.floor(Math.random() * 200)
+  const smokeRoot = join(agentOut, '.smoke')
+  ensureDir(smokeRoot)
   const smoke = spawnSync(
     process.execPath,
     [join(agentOut, 'single.mjs')],
     {
       encoding: 'utf8',
       timeout: 15000,
+      cwd: smokeRoot,
       env: {
         ...process.env,
         PORT: String(smokePort),
         HOST: '127.0.0.1',
         DD_AUTH_MODE: 'single',
         NODE_PATH: '',
+        DD_DATA_ROOT: join(smokeRoot, 'data'),
+        DRAWDREAM_CODING_AGENT_DIR: join(smokeRoot, 'agent-home'),
       },
     },
   )
   const out = `${smoke.stdout || ''}${smoke.stderr || ''}`
+  rmSync(smokeRoot, { recursive: true, force: true })
   if (!out.includes('listening')) {
     console.error(out.slice(0, 1200))
     throw new Error('trimmed agent smoke failed: no "listening" (see above)')

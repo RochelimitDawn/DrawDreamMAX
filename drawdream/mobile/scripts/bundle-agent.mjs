@@ -9,7 +9,7 @@
  *   SKIP_SMOKE=1 跳过启动冒烟
  */
 
-import { existsSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, rmSync, statSync } from 'node:fs'
 import { spawn, spawnSync } from 'node:child_process'
 import { join, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -54,9 +54,20 @@ export async function bundleAgent() {
 
   if (process.env.SKIP_SMOKE !== '1') {
     const port = 18980 + Math.floor(Math.random() * 200)
+    // smoke 在 outDir 下启动，避免 server 的 auth 迁移逻辑把 agentSrc/.drawdream
+    // 重命名搬进 data/users/<id>/workspace（CI 全新环境会触发）。
+    const smokeRoot = join(outDir, '.smoke')
+    mkdirSync(smokeRoot, { recursive: true })
     const p = spawn(process.execPath, [outFile], {
-      env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', DD_AUTH_MODE: 'single' },
-      cwd: agentSrc,
+      env: {
+        ...process.env,
+        PORT: String(port),
+        HOST: '127.0.0.1',
+        DD_AUTH_MODE: 'single',
+        DD_DATA_ROOT: join(smokeRoot, 'data'),
+        DRAWDREAM_CODING_AGENT_DIR: join(smokeRoot, 'agent-home'),
+      },
+      cwd: smokeRoot,
       stdio: ['ignore', 'pipe', 'pipe'],
     })
     let smokeBuf = ''
@@ -78,15 +89,10 @@ export async function bundleAgent() {
       })
     })
     p.kill()
+    rmSync(smokeRoot, { recursive: true, force: true })
     if (!ok) {
       console.error('[bundle-agent] smoke server output:\n' + smokeBuf)
       throw new Error('single.mjs smoke failed: no "listening" within 8s')
-    }
-    if (process.env.SMOKE_PRINT_LOG === '1') {
-      console.log('[bundle-agent] smoke server output:\n' + smokeBuf)
-      const fs = await import('node:fs')
-      const dd = join(agentSrc, '.drawdream')
-      console.log('[bundle-agent] .drawdream entries after smoke:', fs.existsSync(dd) ? fs.readdirSync(dd).join(', ') : '(missing)')
     }
     log('smoke OK (single.mjs started)')
   }

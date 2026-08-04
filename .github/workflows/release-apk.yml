@@ -55,31 +55,9 @@ jobs:
           sudo apt-get update -y
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y binutils patchelf xz-utils zstd rsync
 
-      - name: Debug agent tree
-        working-directory: .
-        run: |
-          echo "=== agent dir ==="
-          ls -la drawdream/agent/ | head -30
-          echo "=== .drawdream ==="
-          ls -la drawdream/agent/.drawdream/ 2>&1 || echo "NO .drawdream dir"
-          ls -la drawdream/agent/.drawdream/extensions/ 2>&1 || echo "NO extensions dir"
-          echo "=== git tracked ==="
-          cd drawdream/agent && git ls-files | grep drawdream
-
-      - name: Debug after UI build
-        working-directory: drawdream
-        run: |
-          npm run build
-          echo "=== after npm run build ==="
-          ls -la agent/.drawdream/extensions/ 2>&1 || echo "NO .drawdream after UI build"
-          node mobile/scripts/fetch-android-node.mjs 2>&1 | tail -3
-          echo "=== after fetch-android-node ==="
-          ls -la agent/.drawdream/extensions/ 2>&1 || echo "NO .drawdream after fetch-node"
-
       - name: Build UI + runtime
         env:
           NODE_ARCH: arm64
-          SMOKE_PRINT_LOG: "1"
           # 默认 fetch Termux aarch64 Node（bionic）；勿设 FORCE_LINUX_NODE
         run: |
           npm run build
