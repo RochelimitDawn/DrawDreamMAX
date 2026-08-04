@@ -167,6 +167,7 @@ export function EnvironmentPanel() {
             <ToolRow name="bun" probe={info.toolchain.bun} />
             <ToolRow name="ffmpeg" probe={info.toolchain.ffmpeg} />
             <ToolRow name="python3" probe={info.toolchain.python} />
+            <p className="env-toolchain-hint">{t('settings.envToolchainHint')}</p>
           </section>
         </div>
       ) : null}

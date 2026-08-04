@@ -273,14 +273,19 @@ export async function handleEnvironmentRoute(ctx: RouteCtx): Promise<boolean> {
 		...dataDirs,
 	};
 
-	// 工具链探测
-	const [node, bun, ffmpeg, python] = await Promise.all([
-		probeCommand("node"),
+	// 工具链探测：node 即当前运行时（agent 就跑在其上，恒可用）；
+	// 其余工具走 PATH 探测（Android 沙箱未安装 termux 扩展时显示缺失，提示到环境安装）
+	const [bun, ffmpeg, python] = await Promise.all([
 		probeCommand("bun"),
 		probeCommand("ffmpeg"),
 		probeCommand("python3"),
 	]);
-	const toolchain = { node, bun, ffmpeg, python };
+	const toolchain = {
+		node: { ok: true, version: process.version },
+		bun,
+		ffmpeg,
+		python,
+	};
 
 	sendJson(res, 200, {
 		runtime,

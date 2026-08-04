@@ -138,3 +138,10 @@
   color: var(--text-tertiary, var(--text-secondary));
   background: color-mix(in srgb, var(--text-tertiary, var(--text-secondary)) 10%, transparent);
 }
+
+.env-toolchain-hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-tertiary, var(--text-secondary));
+}

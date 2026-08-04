@@ -665,6 +665,7 @@ export default {
     envDiskLore: '世界书',
     envDiskCards: '角色卡',
     envToolchain: '工具链',
+    envToolchainHint: '缺失表示系统 PATH 中未安装该工具（如 termux 扩展需自行安装）；node 为当前 Agent 运行时，恒可用。',
     readColorize: '文本上色',
     readColorizeDesc: '按对白、心理、动作等规则为叙事正文着色。',
     readRuleDialogue: '对白',

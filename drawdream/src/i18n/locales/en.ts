@@ -666,6 +666,7 @@ export default {
     envDiskLore: 'Lore',
     envDiskCards: 'Cards',
     envToolchain: 'Toolchain',
+    envToolchainHint: 'Missing means the tool is not on the system PATH (e.g. termux extensions need manual install); node is the running Agent runtime and is always ready.',
     readColorize: 'Text colorize',
     readColorizeDesc: 'Color dialogue, thoughts, actions, and more in narrative text.',
     readRuleDialogue: 'Dialogue',
