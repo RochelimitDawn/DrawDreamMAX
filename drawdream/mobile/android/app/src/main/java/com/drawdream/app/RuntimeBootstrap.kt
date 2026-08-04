@@ -20,8 +20,8 @@ import java.util.zip.ZipInputStream
 object RuntimeBootstrap {
     private const val TAG = "RuntimeBootstrap"
     const val MARKER = "runtime.ready"
-    /** schema=4：强制校验 agent-runtime/dist/web.js 等实体文件 */
-    private const val READY_SCHEMA = 4
+    /** schema=5：裁剪树（single.mjs + assets + .drawdream），不含 server/node_modules */
+    private const val READY_SCHEMA = 5
     const val DEFAULT_NODE_JNI = "libdrawdream_node.so"
 
     private fun appStorage(ctx: Context): File =
@@ -218,13 +218,9 @@ object RuntimeBootstrap {
             }
             val requiredAfterExtract = listOf(
                 "agent/mobile-entry.mjs",
-                "agent/server/main.ts",
-                "agent/server/user-host.ts",
-                "agent/node_modules/@drawdream/agent-runtime/package.json",
-                "agent/node_modules/@drawdream/agent-runtime/dist/web.js",
-                "agent/node_modules/@drawdream/agent-runtime/dist/index.js",
-                "agent/node_modules/@drawdream/ai/dist/index.js",
-                "agent/node_modules/@drawdream/agent-core/dist/index.js",
+                "agent/single.mjs",
+                "agent/package.json",
+                "agent/.drawdream/extensions/roleplay.ts",
                 "ui/index.html",
             )
             val missing = requiredAfterExtract.filter { !File(staged, it).exists() }
