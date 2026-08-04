@@ -442,7 +442,7 @@ export interface TurnInjectionOptions {
 	codexIndex?: string;
 	/** 上传区速览（formatUploadIndex 产出，如「地图.png(2MB)、笔记.txt(3KB)」）；空文件夹缺省 */
 	uploadIndex?: string;
-	/** 记忆宫唤醒片段（formatWakeContext 产出的条目列表正文） */
+	/** 记忆唤醒片段（formatWakeContext 产出的条目列表正文） */
 	palaceWake?: string;
 	/** 本轮用户原文（用于求方向检测；ask 档） */
 	userText?: string;
@@ -532,7 +532,7 @@ export function buildTurnInjection({
 	// 故事进度置顶：历史条目稳定、仅尾部增长 → 利于长线与缓存
 	if (turnSummaries) {
 		blocks.push(
-			`【故事进度】跨轮压缩要点（非原文）。细节以世界状态与记忆宫为准；续写时保持与下列进度一致：\n${turnSummaries}`,
+			`【故事进度】跨轮压缩要点（非原文）。细节以世界状态与记忆为准；续写时保持与下列进度一致：\n${turnSummaries}`,
 		);
 	}
 
@@ -552,10 +552,10 @@ export function buildTurnInjection({
 		`【记账要求】本轮叙事结束后，**必须调用 world_state_update** 将变化过的时空、**章节/幕次标题（chapter）**、物品、人际关系、剧情flag等写入状态账本。换幕或换章时务必更新 chapter 字段（粘性章节条读取此值）。这是每轮末尾的硬性要求。`,
 	);
 
-	// 记忆宫：L0/L1 常驻 + L2 情景原文（非摘要），与世界状态互补
+	// 记忆：L0/L1 常驻 + L2 情景原文（非摘要），与世界状态互补
 	if (palaceWake) {
 		blocks.push(
-			`【记忆宫·本会话】以下为当前对话的记忆（常驻层为稳定偏好/承诺/事实；情景层为原文片段，非摘要）。不与其他会话共享。核对细节用 memory_search；新的值得长期保留的事实/偏好用 memory_store；厅室总览用 memory_rooms：\n${palaceWake}`,
+			`【记忆·本会话】以下为当前对话的记忆（常驻层为稳定偏好/承诺/事实；情景层为原文片段，非摘要）。不与其他会话共享。核对细节用 memory_search；新的值得长期保留的事实/偏好用 memory_store；厅室总览用 memory_rooms：\n${palaceWake}`,
 		);
 	}
 

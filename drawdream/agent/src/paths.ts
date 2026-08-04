@@ -27,7 +27,7 @@ export const DIRS = {
 	skills: ".drawdream-skills",
 	uploads: ".drawdream-uploads",
 	worldline: ".drawdream-worldline",
-	/** 记忆宫：原文抽屉（verbatim drawers，按翼/厅索引） */
+	/** 记忆：原文抽屉（verbatim drawers，按翼/厅索引） */
 	palace: ".drawdream-palace",
 	/** 叙事流水线：跨轮故事进度摘要（Turn Summary Store） */
 	summaries: ".drawdream-summaries",

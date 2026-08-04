@@ -46,8 +46,10 @@ import {
 	formatWakeContext,
 	listRooms,
 	searchDrawers,
+	searchDrawersHybrid,
 	sessionWing,
 } from "../../src/palace.ts";
+import { createEmbeddingClient, type EmbeddingClient } from "../../src/embeddings.ts";
 import {
 	activePanels,
 	closePanel,
@@ -68,6 +70,9 @@ import {
 	formatWorldTimePlain,
 } from "../../src/world-time.ts";
 import { DEFAULT_CONFIG, type CharacterCard, type LorebookEntry, type RpConfig } from "../../src/types.ts";
+
+/** 记忆向量客户端（进程内单例；无 embedding 模型时 null → 双路检索自动降级词法） */
+let memoryEmbedClient: EmbeddingClient | null = null;
 
 function text(s: string, isError = false) {
 	return {
@@ -629,11 +634,19 @@ export default function roleplayExtension(pi: ExtensionAPI) {
 			}),
 			async execute(_id, params, _signal, _onUpdate, ctx) {
 				const wing = sessionWing(ctx.sessionManager.getSessionId());
-				const hits = searchDrawers(ctx.cwd, params.query, {
-					wing,
-					limit: params.limit ?? 6,
-					followTunnels: true,
-				});
+				const embedClient: EmbeddingClient | null = (memoryEmbedClient ??= createEmbeddingClient(ctx.cwd));
+				const hits = embedClient
+					? await searchDrawersHybrid(
+							ctx.cwd,
+							params.query,
+							{ wing, limit: params.limit ?? 6, followTunnels: true },
+							(t) => embedClient.embed(t),
+						)
+					: searchDrawers(ctx.cwd, params.query, {
+							wing,
+							limit: params.limit ?? 6,
+							followTunnels: true,
+						});
 				if (!hits.length) return text(`记忆中未找到：${params.query}`);
 				return text(
 					hits.map((h, i) => `${i + 1}. [${h.drawer.hall}] ${h.drawer.text}`).join("\n\n"),
@@ -671,7 +684,7 @@ export default function roleplayExtension(pi: ExtensionAPI) {
 					tags: [],
 				});
 				if (!d) return text("未写入（过短或与已有记忆重复）", true);
-				return text(`已收存到记忆宫 · ${hall}`);
+				return text(`已收存到记忆 · ${hall}`);
 			},
 		}),
 	);
@@ -685,7 +698,7 @@ export default function roleplayExtension(pi: ExtensionAPI) {
 			async execute(_id, _params, _signal, _onUpdate, ctx) {
 				const wing = sessionWing(ctx.sessionManager.getSessionId());
 				const rooms = listRooms(ctx.cwd, wing);
-				if (!rooms.length) return text("本会话记忆宫尚空");
+				if (!rooms.length) return text("本会话记忆尚空");
 				return text(rooms.map((r) => `- ${r.room}/${r.hall}: ${r.count} 条`).join("\n"));
 			},
 		}),

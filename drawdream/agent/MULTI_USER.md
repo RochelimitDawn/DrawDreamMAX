@@ -48,7 +48,7 @@ Cookie 名：`dd_session`（HttpOnly）。
 
 ## 记忆隔离
 
-记忆宫按 **sessionId** 隔离；新开对话不会继承旧对话记忆。
+记忆按 **sessionId** 隔离；新开对话不会继承旧对话记忆。
 
 ## 跨用户并发（UserRuntime 池）
 

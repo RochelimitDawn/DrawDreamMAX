@@ -10,6 +10,7 @@ import { dir } from "../src/paths.ts";
 import { buildScribeTurnPrompt, parseScribeResult } from "../src/scribe.ts";
 import { applyPatch, loadState, saveState } from "../src/state.ts";
 import { appendSummary, countUserTurns } from "../src/turn-summary.ts";
+import { appendDrawer, sessionWing } from "../src/palace.ts";
 import { loadConfig } from "./rest/config.ts";
 import type { WireNames } from "./wire.ts";
 
@@ -130,5 +131,17 @@ export async function runScribeTurn(deps: ScribeRunnerDeps): Promise<void> {
 	if (includeSummary && parsed.summaryEntry) {
 		const maxKeep = config.pipeline?.maxSummaries ?? 40;
 		appendSummary(cwd, sid, { text: parsed.summaryEntry, turn: turnNumber }, maxKeep);
+		// 自动总结固化进记忆（可被向量检索召回；摘要比长原文更适合语义召回）
+		try {
+			appendDrawer(cwd, {
+				wing: sessionWing(sid),
+				hall: "events",
+				text: parsed.summaryEntry,
+				source: "sweep",
+				tags: [],
+			});
+		} catch {
+			/* 记忆落盘失败不影响账本 */
+		}
 	}
 }

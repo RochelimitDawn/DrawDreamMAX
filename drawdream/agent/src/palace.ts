@@ -1,5 +1,5 @@
 /**
- * 记忆宫：原文抽屉 + 厅室索引 + 隧道 + 分层唤醒。
+ * 记忆：原文抽屉 + 厅室索引 + 隧道 + 分层唤醒。
  * 一期：jsonl 抽屉、词法检索、sweep/wake。
  * 二期：L0/L1 分层注入、bigram 检索增强、hall/room 索引、跨翼隧道、更智能 sweep 分类。
  * 向量检索 / 外部 embedding 留待后续。
@@ -466,6 +466,59 @@ export function listRooms(cwd: string, wing: string): RoomIndexEntry[] {
 }
 
 // ---------- Search ----------
+
+/** 余弦相似度（维度不一致返回 0） */
+export function cosineSim(a: number[], b: number[]): number {
+	if (!a?.length || !b?.length || a.length !== b.length) return 0;
+	let dot = 0;
+	let na = 0;
+	let nb = 0;
+	for (let i = 0; i < a.length; i++) {
+		dot += a[i]! * b[i]!;
+		na += a[i]! * a[i]!;
+		nb += b[i]! * b[i]!;
+	}
+	if (!na || !nb) return 0;
+	return dot / (Math.sqrt(na) * Math.sqrt(nb));
+}
+
+/**
+ * 双路检索：词法初筛（复用 searchDrawers）→ 向量精排（余弦相似度融合）。
+ * embed 不可用或抛错时自动回退为纯词法结果，不阻断调用方。
+ */
+export async function searchDrawersHybrid(
+	cwd: string,
+	query: string,
+	opts?: {
+		wing?: string;
+		hall?: PalaceHall;
+		room?: string;
+		limit?: number;
+		followTunnels?: boolean;
+	},
+	embed?: (texts: string[]) => Promise<number[][]>,
+): Promise<PalaceSearchHit[]> {
+	const limit = opts?.limit ?? 5;
+	const lex = searchDrawers(cwd, query, { ...opts, limit: 30 });
+	if (!lex.length) return [];
+	if (!embed) return lex.slice(0, limit);
+	try {
+		const texts = [query, ...lex.map((h) => h.drawer.text)];
+		const vecs = await embed(texts);
+		if (!vecs || vecs.length < texts.length) return lex.slice(0, limit);
+		const qv = vecs[0]!;
+		const scored = lex.map((h, i) => {
+			const cos = cosineSim(qv, vecs[i + 1]!);
+			// 词法分保有话语权，余弦作语义补充（满分约等于 3 个词法 token 命中）
+			const hybrid = h.score * 0.7 + Math.max(0, cos) * 8;
+			return { drawer: h.drawer, score: hybrid };
+		});
+		scored.sort((a, b) => b.score - a.score || b.drawer.ts - a.drawer.ts);
+		return scored.slice(0, limit);
+	} catch {
+		return lex.slice(0, limit);
+	}
+}
 
 /** 分词：中文 bigram + 单字弱权 + 英文词 */
 function tokens(q: string): string[] {
