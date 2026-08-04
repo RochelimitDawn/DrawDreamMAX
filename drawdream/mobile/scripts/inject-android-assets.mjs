@@ -226,16 +226,12 @@ function packRuntimeZip() {
 import os, zipfile
 staging = ${JSON.stringify(staging)}
 out = ${JSON.stringify(zipPath)}
-skip_parts = {'.git', '__pycache__', '.cache'}
+skip_parts = {'.git', '__pycache__', '.cache', '.smoke'}
 must = [
     'agent/mobile-entry.mjs',
-    'agent/server/main.ts',
-    'agent/server/user-host.ts',
-    'agent/node_modules/@drawdream/agent-runtime/package.json',
-    'agent/node_modules/@drawdream/agent-runtime/dist/web.js',
-    'agent/node_modules/@drawdream/agent-runtime/dist/index.js',
-    'agent/node_modules/@drawdream/ai/dist/index.js',
-    'agent/node_modules/@drawdream/agent-core/dist/index.js',
+    'agent/single.mjs',
+    'agent/package.json',
+    'agent/.drawdream/extensions/roleplay.ts',
     'ui/index.html',
 ]
 count = 0
