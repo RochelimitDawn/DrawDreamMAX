@@ -1923,7 +1923,7 @@ export function SettingsPage() {
               </div>
               <p>{t('settings.aboutText')}</p>
               <div className="chip">
-                {t('settings.version')} 2.0.0-alpha.1 · mobile.61 · DrawDream Agent
+                {t('settings.version')} 2.0.0-alpha.1 · mobile.62 · DrawDream Agent
               </div>
               <div className="settings-list" style={{ marginTop: 16 }}>
                 <a

@@ -34,7 +34,7 @@
 | **代码结构** | `mobile` 壳 + **同一套** React UI + DrawDream Agent |
 | **入口端口** | **7620**（`/*` UI · `/api/*` REST · `/ws` Wire） |
 | **LLM** | 云端 API（壳内不内嵌模型权重） |
-| **当前发布版本** | `v2.0.0-alpha.1-mobile.61` |
+| **当前发布版本** | `v2.0.0-alpha.1-mobile.62` |
 
 > 仓库**只维护移动端主线**。`drawdream/src`（UI）与 `drawdream/agent`（运行时）是 APK 的必要组成部分，属于本地 Node 运行时之上的 Web UI 层，**请勿当作「可删的网页产品」拆除**。桌面 `npm run dev` 仅用于开发构建与联调。
 
@@ -98,12 +98,12 @@ flowchart LR
 3. 启动后先使用旧 runtime 进入界面，再后台准备新 runtime 并完成健康检查
 4. **设置 → API** 配置云端 Key 与模型后即可开聊
 
-当前仓库以 `v2.0.0-alpha.1-mobile.61` 作为移动端发布版本，采用清理后的单一主线。
+当前仓库以 `v2.0.0-alpha.1-mobile.62` 作为移动端发布版本，采用清理后的单一主线。
 
-mobile.61 APK：
+mobile.62 APK：
 
 ```bash
-https://github.com/RochelimitDawn/DrawDreamMAX/releases/tag/v2.0.0-alpha.1-mobile.61
+https://github.com/RochelimitDawn/DrawDreamMAX/releases/tag/v2.0.0-alpha.1-mobile.62
 ```
 
 远程仓库策略：默认分支仅 **`main`**；发布版本使用 `v2.0.0-alpha.1-mobile.N` 标签，GitHub Release 保留当前交付版本。
@@ -241,21 +241,20 @@ DrawDreamMAX/
 | --- | --- |
 | 产品 | **Alpha 2.0** |
 | 包 | `2.0.0-alpha.1` |
-| 当前 Release | **`v2.0.0-alpha.1-mobile.61`** |
+| 当前 Release | **`v2.0.0-alpha.1-mobile.62`** |
 | Agent | DrawDream Agent（手机内嵌 Node） |
 
-### mobile.61 要点
+### mobile.62 要点
 
-- 助手任务清单 UI：`todo_write` 清单实时展示于助手面板（勾选动画/删除线/烟花，暖金主题），`assistant_todo` 帧实时刷新
-- 记忆双路检索：`memory_search` 向量+词法双路（配 embedding 模型自动启用，否则降级词法），每轮摘要自动固化进记忆；「记忆宫」更名「记忆」
-- 设置页「环境」分页：运行时/端口/工作区、磁盘占用、node/bun/ffmpeg/python 工具链探测
-- Agent 单文件打包：`bundle-agent.mjs` 产出 14MB `single.mjs`（不依赖 node_modules），移动端入口优先加载
+- 安装包大幅精简：移动端 agent 树 ~80MB → 17MB（单文件 `single.mjs` 承载全部依赖，不再携带 `node_modules`）
+- 环境工具链修正：node 恒显示「可用」，bun/ffmpeg/python 保留真实 PATH 探测并加安装提示
+- 助手任务清单 UI：`todo_write` 清单实时展示（勾选动画/删除线/烟花，暖金主题）
+- 记忆双路检索：`memory_search` 向量+词法双路，每轮摘要自动固化；「记忆宫」更名「记忆」
+- 设置页「环境」分页：运行时/端口/工作区、磁盘占用、工具链探测
+- Agent 单文件打包：`bundle-agent.mjs` 产出 14MB `single.mjs`
 - 抉择器改进：抉择应答进正文、option/free 区分、停止本回合安全收尾
-- 工具条汉化补齐 + 相邻重复调用折叠（×N）
-- 消息头像去金色圆点、圆角 16px；手机端右侧 sheet 避开顶栏
-- 修复模型请求失败静默：剧情与助手两侧均广播可见错误
-- 助手侧栏纯 markdown 渲染 + 复制按钮
-- 继承 mobile.53-60：卡内 UI iframe 全量渲染、`MAX_REPLACEMENT` 256KB、皮肤正则、ST 兼容层、设置页便当盒
+- 工具条汉化 + 相邻重复调用折叠；消息头像优化；模型失败可见；助手纯 markdown
+- 继承 mobile.53-61：卡内 UI iframe 全量渲染、ST 兼容层、设置页便当盒
 
 ---
 
