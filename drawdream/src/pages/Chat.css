@@ -2581,7 +2581,7 @@ body:has(.chat-page),
     max-height: none !important;
     overflow: hidden !important;
     display: grid !important;
-    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    grid-template-rows: auto auto minmax(0, 1fr) auto !important;
     position: relative !important;
     z-index: 70 !important;
     height: auto !important;
