@@ -698,22 +698,32 @@ export function ChatPage() {
     try {
       const cur = await selectModel(provider, id)
       setCurrentProvider(cur.provider)
-      setThinkingLevelState(cur.thinkingLevel || '')
+      const initialLevel = cur.thinkingLevel || ''
+      setThinkingLevelState(initialLevel)
       setAvailableLevels(cur.availableLevels ?? [])
-      // 主动探测思考档位需要 1-3s：轮询重拉，拿到真实可用档位后更新按钮面板
-      for (let i = 0; i < 6; i++) {
+      // 主动探测思考档位需要数秒：轮询重拉，拿到真实档位（后端探测成功后自动应用最低可用档）
+      let finalLevel = initialLevel
+      for (let i = 0; i < 12; i++) {
         await new Promise((r) => setTimeout(r, 500))
         try {
           const { current } = await fetchModels()
-          if (current && (current.availableLevels ?? []).length > (cur.availableLevels ?? []).length) {
-            setAvailableLevels(current.availableLevels ?? [])
-            break
+          if (!current) continue
+          const lvls = current.availableLevels ?? []
+          if (lvls.length) setAvailableLevels(lvls)
+          if (current.thinkingLevel) {
+            finalLevel = current.thinkingLevel
+            setThinkingLevelState(finalLevel)
           }
+          // 档位就绪（可用档已探测 + 已应用）即认为完成
+          if (lvls.length > 0 && finalLevel && finalLevel !== initialLevel) break
         } catch {
           /* 网络波动忽略，下一轮再试 */
         }
       }
       toast(t('chat.toastModel'), 'success')
+      if (finalLevel && finalLevel !== initialLevel) {
+        toast(t('chat.toastThinkingAuto', { level: finalLevel }), 'info')
+      }
     } catch (e) {
       toast(e instanceof Error ? e.message : t('chat.agentOffline'), 'error')
     }

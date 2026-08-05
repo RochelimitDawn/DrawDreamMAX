@@ -17,6 +17,7 @@ interface SelectProps {
   ariaLabel?: string
   fullWidth?: boolean
   size?: 'md' | 'sm'
+  disabled?: boolean
 }
 
 export function Select({
@@ -27,6 +28,7 @@ export function Select({
   ariaLabel,
   fullWidth,
   size = 'md',
+  disabled = false,
 }: SelectProps) {
   const [open, setOpen] = useState(false)
   const resolvedPlaceholder = placeholder ?? '…'
@@ -58,6 +60,7 @@ export function Select({
         aria-expanded={open}
         aria-controls={listId}
         aria-label={ariaLabel}
+        disabled={disabled}
         onClick={() => setOpen((v) => !v)}
       >
         <span className={`dd-select-value ${selected ? '' : 'is-placeholder'}`}>

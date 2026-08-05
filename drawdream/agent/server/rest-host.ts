@@ -41,13 +41,32 @@ import { probeThinkingLevels, fallbackThinkingLevels } from "../src/thinking-pro
 
 /** 角色卡路径归一：反斜杠、前导 ./ */
 
-/** 思考档位主动探测缓存：key = `${provider}::${modelId}` → 探测结果 */
-const thinkingProbeCache = new Map<string, { levels: string[]; at: number }>();
-const THINKING_PROBE_TTL_MS = 10 * 60 * 1000;
+/** 思考档位主动探测缓存：key = `${provider}::${modelId}` → 探测成功的可用档位。
+ * 成功缓存会话期内持久（同一模型不重复探测）；探测失败不写缓存 → 下次选中会重探。 */
+const thinkingProbeCache = new Map<string, string[]>();
 const probingSet = new Set<string>();
 
 function probeCacheKey(provider: string, id: string): string {
 	return `${provider}::${id}`;
+}
+
+/** 收集所有渠道里标记为向量模型（kind=embedding/embed/embeddings）的 key 集合，用于从对话模型列表排除。 */
+export function collectEmbeddingModelKeys(cwd: string): Set<string> {
+	const keys = new Set<string>();
+	try {
+		const { config } = loadAgentConfig(cwd);
+		for (const [p, provider] of Object.entries(config.providers ?? {})) {
+			for (const mdl of provider.models ?? []) {
+				const kind = typeof mdl.kind === "string" ? mdl.kind.toLowerCase() : "";
+				if (kind === "embedding" || kind === "embed" || kind === "embeddings") {
+					if (mdl.id) keys.add(`${p}::${mdl.id}`);
+				}
+			}
+		}
+	} catch {
+		/* 配置不可读时返回空集合（不误过滤） */
+	}
+	return keys;
 }
 
 /**
@@ -203,8 +222,8 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 		const sessionLevels = session.getAvailableThinkingLevels();
 		const cached = thinkingProbeCache.get(probeCacheKey(m.provider, m.id));
 		const availableLevels =
-			cached && Date.now() - cached.at < THINKING_PROBE_TTL_MS
-				? cached.levels
+			cached && cached.length
+				? cached
 				: sessionLevels.length
 					? sessionLevels
 					: fallbackThinkingLevels({ reasoning: m.reasoning, thinkingLevelMap: builtinThinkingMap(m) });
@@ -226,18 +245,23 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 		isStreaming: () => deps.getSession().isStreaming,
 		listModels: () => {
 			const session = deps.getSession();
+			// 收集 kind=embedding 的向量模型 key（provider::id），从对话模型列表排除
+			const embeddingKeys = collectEmbeddingModelKeys(deps.getCwd());
 			return {
 				current: currentModelInfo(),
-				models: session.modelRegistry.getAvailable().map((m) => ({
-					provider: m.provider,
-					providerName: session.modelRegistry.getProviderDisplayName(m.provider),
-					id: m.id,
-					name: m.name || m.id,
-					reasoning: m.reasoning === true,
-					vision: Array.isArray(m.input) && m.input.includes("image"),
-					contextWindow: m.contextWindow ?? 0,
-					maxTokens: typeof m.maxTokens === "number" && m.maxTokens > 0 ? m.maxTokens : undefined,
-				})),
+				models: session.modelRegistry
+					.getAvailable()
+					.filter((m) => !embeddingKeys.has(`${m.provider}::${m.id}`))
+					.map((m) => ({
+						provider: m.provider,
+						providerName: session.modelRegistry.getProviderDisplayName(m.provider),
+						id: m.id,
+						name: m.name || m.id,
+						reasoning: m.reasoning === true,
+						vision: Array.isArray(m.input) && m.input.includes("image"),
+						contextWindow: m.contextWindow ?? 0,
+						maxTokens: typeof m.maxTokens === "number" && m.maxTokens > 0 ? m.maxTokens : undefined,
+					})),
 			};
 		},
 		async selectModel(provider, id) {
@@ -248,11 +272,7 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 			// 主动探测该模型真实支持的思考档位（缓存 + 防并发重入）
 			const cacheKey = probeCacheKey(provider, id);
 			const cached = thinkingProbeCache.get(cacheKey);
-			if (
-				m.reasoning &&
-				(!cached || Date.now() - cached.at >= THINKING_PROBE_TTL_MS) &&
-				!probingSet.has(cacheKey)
-			) {
+			if (m.reasoning && !cached && !probingSet.has(cacheKey)) {
 				probingSet.add(cacheKey);
 				const target = probeTargetFromConfig(deps.getCwd(), provider, id);
 				void (async () => {
@@ -262,7 +282,21 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 							const levels = map ? Object.keys(map) : (["off", "low", "medium", "high"] as const);
 							const r = await probeThinkingLevels({ ...target, modelId: id }, levels);
 							if (r.reason === "probe" && r.accepted.length) {
-								thinkingProbeCache.set(cacheKey, { levels: r.accepted, at: Date.now() });
+								thinkingProbeCache.set(cacheKey, r.accepted);
+								// 探测成功即自动应用「最低可用档位」（排除 off；无则取第一档），
+								// 减少 token 消耗，用户仍可手动调高。
+								const best = r.accepted.find((l) => l !== "off") ?? r.accepted[0];
+								if (best) {
+									try {
+										const s = deps.getSession();
+										const cur = s.model;
+										if (cur && cur.provider === provider && cur.id === id) {
+											s.setThinkingLevel(best as never);
+										}
+									} catch {
+										/* 档位不适配时保持当前 */
+									}
+								}
 							}
 						}
 					} finally {

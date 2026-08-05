@@ -248,7 +248,9 @@ export function SettingsPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [manualModel, setManualModel] = useState('')
-  const [embeddingModelId, setEmbeddingModelId] = useState('')
+  /** 独立向量模型区块：渠道 + 该渠道向量模型 */
+  const [vectorChannel, setVectorChannel] = useState('')
+  const [vectorModelId, setVectorModelId] = useState('')
   const autoPullRef = useRef<string>('')
 
   const [wiDepth, setWiDepth] = useState('4')
@@ -294,14 +296,26 @@ export function SettingsPage() {
       setChannelName((prev) => {
         if (prev && ch.channels.some((c) => c.name === prev)) {
           const keep = ch.channels.find((c) => c.name === prev)
-          if (keep) {
-            setEndpoint(keep.baseUrl)
-            setEmbeddingModelId(keep.models.find((m) => m.kind === 'embedding' || m.kind === 'embed' || m.kind === 'embeddings')?.id ?? '')
-          }
+          if (keep) setEndpoint(keep.baseUrl)
           return prev
         }
         return ''
       })
+      // 独立向量模型区块：从渠道里找已标记 kind=embedding 的渠道+模型回填
+      {
+        let found: { channel: string; model: string } | null = null
+        for (const c of ch.channels) {
+          const m = c.models.find(
+            (x) => x.kind === 'embedding' || x.kind === 'embed' || x.kind === 'embeddings',
+          )
+          if (m) {
+            found = { channel: c.name, model: m.id }
+            break
+          }
+        }
+        setVectorChannel(found?.channel ?? '')
+        setVectorModelId(found?.model ?? '')
+      }
       setWiDepth(String(cfg.config.scanDepth ?? 4))
       setMaxLore(String(cfg.config.maxLoreInjections ?? 3))
       setCreationMode(cfg.config.creationMode === 'silent' ? 'silent' : 'ask')
@@ -429,7 +443,6 @@ export function SettingsPage() {
     const ch = channels.find((c) => c.name === name)
     if (ch) {
       setEndpoint(ch.baseUrl)
-      setEmbeddingModelId(ch.models.find((m) => m.kind === 'embedding' || m.kind === 'embed' || m.kind === 'embeddings')?.id ?? '')
     }
     setApiKey('')
     setProbe(null)
@@ -452,9 +465,29 @@ export function SettingsPage() {
         setAvailableLevels(cur.availableLevels ?? [])
       }
       toast(t('settings.channelActive', { name }), 'success')
+      // 选中默认模型后自动探测思考档位并应用最低档 → 完成后提示
+      const lv = await pollThinkingProbe()
+      if (lv) {
+        setThinking(mapThinkingFromAgent(lv))
+        toast(t('settings.thinkingAuto', { level: lv }), 'info')
+      }
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'error')
     }
+  }
+
+  /** 后台思考档位探测进行中：轮询 /api/models 直到自动应用档位（或超时），返回最终思考档位 */
+  const pollThinkingProbe = async (): Promise<string | null> => {
+    for (let i = 0; i < 12; i++) {
+      await new Promise((r) => setTimeout(r, 500))
+      try {
+        const { current } = await fetchModels()
+        if (current?.thinkingLevel) return current.thinkingLevel
+      } catch {
+        /* 网络波动忽略，下一轮再试 */
+      }
+    }
+    return null
   }
 
   const applyPreset = (presetName: string) => {
@@ -473,25 +506,12 @@ export function SettingsPage() {
     }
     try {
       const [provider, id] = modelKey.split('::')
-      // 向量模型：在当前渠道模型列表上叠加 kind=embedding 标记
-      let models: unknown
-      if (channelModels.length > 0) {
-        const embedId = embeddingModelId.trim()
-        models = channelModels.map((m) => ({
-          id: m.id,
-          name: m.name,
-          ...(m.reasoning !== undefined ? { reasoning: m.reasoning } : {}),
-          ...(m.contextWindow !== undefined ? { contextWindow: m.contextWindow } : {}),
-          ...(m.id === embedId ? { kind: 'embedding' } : {}),
-        }))
-      }
       await updateChannel({
         name: channelName,
         baseUrl: endpoint.trim() || undefined,
         apiKey: apiKey.trim() || undefined,
         setDefault: true,
         modelId: provider === channelName ? id : undefined,
-        ...(models !== undefined ? { models } : {}),
       })
       setApiKey('')
       setDefaultProvider(channelName)
@@ -502,6 +522,45 @@ export function SettingsPage() {
       }
       await loadAgentApi()
       toast(t('common.saved'), 'success')
+      // 保存默认对话模型后自动探测思考档位并应用最低档 → 完成后提示
+      const lv = await pollThinkingProbe()
+      if (lv) {
+        setThinking(mapThinkingFromAgent(lv))
+        toast(t('settings.thinkingAuto', { level: lv }), 'info')
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'error')
+    }
+  }
+
+  /** 独立向量模型区块保存：给所选渠道的所选模型打 kind=embedding，其余模型保留原样 */
+  const saveVectorModel = async () => {
+    if (!vectorChannel) {
+      toast(t('settings.vectorPickChannel'), 'error')
+      return
+    }
+    const ch = channels.find((c) => c.name === vectorChannel)
+    if (!ch) {
+      toast(t('settings.vectorChannelMissing'), 'error')
+      return
+    }
+    const target = vectorModelId.trim()
+    try {
+      const models = ch.models.map((m) => ({
+        id: m.id,
+        name: m.name,
+        ...(m.reasoning !== undefined ? { reasoning: m.reasoning } : {}),
+        ...(m.contextWindow !== undefined ? { contextWindow: m.contextWindow } : {}),
+        ...(m.id === target ? { kind: 'embedding' } : {}),
+      }))
+      await updateChannel({ name: vectorChannel, models })
+      await loadAgentApi()
+      if (target) {
+        const name = ch.models.find((m) => m.id === target)?.name || target
+        toast(t('settings.embeddingApplied', { name }), 'success')
+      } else {
+        toast(t('settings.embeddingCleared'), 'info')
+      }
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'error')
     }
@@ -1134,6 +1193,53 @@ export function SettingsPage() {
 
               {channelCards}
 
+              {/* 独立向量模型区块：与对话模型分开配置 */}
+              <div className="provider-section-head" style={{ marginTop: 20 }}>
+                <h3 className="settings-subhead">{t('settings.vectorSectionTitle')}</h3>
+              </div>
+              <div className="surface-inset">
+                <div>
+                  <label className="field-label">{t('settings.vectorChannel')}</label>
+                  <Select
+                    fullWidth
+                    value={vectorChannel}
+                    onChange={(v) => {
+                      setVectorChannel(v)
+                      setVectorModelId('')
+                    }}
+                    options={[
+                      { value: '', label: t('settings.vectorChannelNone'), meta: '' },
+                      ...channels.map((c) => ({ value: c.name, label: c.name, meta: c.name })),
+                    ]}
+                  />
+                </div>
+                <div>
+                  <label className="field-label">{t('settings.vectorModel')}</label>
+                  <Select
+                    fullWidth
+                    value={vectorModelId}
+                    onChange={(v) => setVectorModelId(v)}
+                    disabled={!vectorChannel}
+                    options={[
+                      { value: '', label: t('settings.embeddingNone'), meta: '' },
+                      ...(channels.find((c) => c.name === vectorChannel)?.models.map((m) => ({
+                        value: m.id,
+                        label: m.name || m.id,
+                        meta: vectorChannel,
+                      })) ?? []),
+                    ]}
+                  />
+                  <p className="settings-item-desc" style={{ marginTop: 6 }}>
+                    {t('settings.embeddingModelHint')}
+                  </p>
+                </div>
+                <div className="form-actions">
+                  <button type="button" className="btn btn-primary" onClick={() => void saveVectorModel()}>
+                    {t('settings.vectorSave')}
+                  </button>
+                </div>
+              </div>
+
               {showAdd ? (
                 <div className="provider-add surface-inset">
                   <PresetPicker
@@ -1284,39 +1390,6 @@ export function SettingsPage() {
                         {t('settings.manualModelApply')}
                       </button>
                     </div>
-                  </div>
-                  <div>
-                    <label className="field-label">{t('settings.embeddingModel')}</label>
-                    <Select
-                      fullWidth
-                      value={embeddingModelId}
-                      onChange={(v) => {
-                        setEmbeddingModelId(v)
-                        if (v) {
-                          toast(
-                            t('settings.embeddingApplied', {
-                              name: channelModels.find((m) => m.id === v)?.name || v,
-                            }),
-                            'success',
-                          )
-                        } else {
-                          toast(t('settings.embeddingCleared'), 'info')
-                        }
-                      }}
-                      options={[
-                        { value: '', label: t('settings.embeddingNone') },
-                        ...channelModels.map((m) => ({
-                          value: m.id,
-                          label: m.name || m.id,
-                          meta: channelName,
-                        })),
-                      ]}
-                    />
-                    <p className="settings-item-desc" style={{ marginTop: 6 }}>
-                      {t('settings.embeddingModelHint')}
-                      <br />
-                      {t('settings.embeddingSaveHint')}
-                    </p>
                   </div>
                   {probe ? (
                     <div className={`probe-result ${probe.ok ? 'is-ok' : 'is-fail'}`}>
