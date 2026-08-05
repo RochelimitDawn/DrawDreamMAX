@@ -2,7 +2,7 @@
 
 .dd-composer {
   --ddc-h: 42px;
-  --ddc-radius: 22px;
+  --ddc-radius: 12px;
   --ddc-pad: 5px;
   --ddc-tool: 32px;
   position: relative;
@@ -16,7 +16,7 @@
 
 .dd-composer.is-compact {
   --ddc-h: 38px;
-  --ddc-radius: 19px;
+  --ddc-radius: 10px;
   --ddc-tool: 28px;
   --ddc-pad: 5px;
 }
@@ -47,6 +47,7 @@
 }
 
 .dd-composer-tool {
+  position: relative;
   width: var(--ddc-tool);
   height: var(--ddc-tool);
   display: grid;
@@ -69,10 +70,28 @@
   transform: scale(1.08);
 }
 
+.dd-composer-tool:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand) 62%, transparent);
+  outline-offset: 1px;
+}
+
 .dd-composer-tool.is-on {
   color: var(--brand);
   background: color-mix(in srgb, var(--brand) 16%, transparent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand) 28%, transparent);
+}
+
+/* 激活状态小圆点（LiveAgent 工具 badge 风格） */
+.dd-composer-tool.is-on::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--input-bg, var(--bg-elevated)) 92%, transparent);
 }
 
 .dd-composer-tool:disabled {
@@ -118,7 +137,13 @@
   min-width: 0;
   margin-left: calc(var(--ddc-tool) * 3 + 10px);
   margin-right: 0;
-  transition: margin 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.05);
+  /* 玻璃胶囊载体：毛玻璃 blur + 饱和度提升（LiveAgent composer-glass-card；textarea 不支持 backdrop-filter，故放父容器） */
+  border-radius: var(--ddc-radius);
+  backdrop-filter: blur(18px) saturate(165%);
+  -webkit-backdrop-filter: blur(18px) saturate(165%);
+  transition:
+    margin 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.05),
+    border-radius 0.2s ease;
   z-index: 1;
 }
 
@@ -133,15 +158,21 @@
   max-height: 160px;
   margin: 0;
   padding: 8px 82px 8px 14px;
-  border: 1px solid color-mix(in srgb, var(--border) 90%, var(--brand) 8%);
+  /* 半透明暖色底：透出 field 层毛玻璃（LiveAgent 玻璃卡片质感） */
+  border: 1px solid color-mix(in srgb, var(--border) 82%, var(--brand) 6%);
   border-radius: var(--ddc-radius);
   outline: none;
   resize: none;
   background:
     linear-gradient(
+      180deg,
+      color-mix(in srgb, #fff 9%, transparent),
+      color-mix(in srgb, #fff 0%, transparent) 46%
+    ),
+    linear-gradient(
       145deg,
-      color-mix(in srgb, var(--input-bg, var(--bg-elevated)) 94%, var(--brand) 4%),
-      var(--input-bg, var(--bg-elevated))
+      color-mix(in srgb, var(--input-bg, var(--bg-elevated)) 58%, var(--brand) 5%),
+      color-mix(in srgb, var(--input-bg, var(--bg-elevated)) 62%, transparent)
     );
   color: var(--text);
   font: inherit;
@@ -149,9 +180,12 @@
   font-weight: 500;
   line-height: 1.45;
   font-family: var(--font-ui, inherit);
+  /* 顶部 rim-light 高光 + 底部微阴影 + 环境投影（LiveAgent composer-glass-card 层次） */
   box-shadow:
     0 6px 18px color-mix(in srgb, var(--bg) 40%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent);
+    0 2px 6px -2px color-mix(in srgb, var(--bg) 22%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--bg) 8%, transparent);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
@@ -165,27 +199,30 @@
   max-height: 72px;
 }
 
-.dd-composer.has-text .dd-composer-input,
-.dd-composer:focus-within .dd-composer-input {
-  border-radius: 18px;
-}
-
-.dd-composer.is-compact.has-text .dd-composer-input,
-.dd-composer.is-compact:focus-within .dd-composer-input {
-  border-radius: 16px;
-}
-
 .dd-composer-input::placeholder {
   color: var(--text-tertiary, var(--text-secondary));
   font-weight: 500;
 }
 
 .dd-composer-input:focus {
-  border-color: color-mix(in srgb, var(--brand) 42%, var(--border));
+  border-color: color-mix(in srgb, var(--brand) 46%, var(--border));
+  /* 聚焦：背景更实、品牌色光晕增强（LiveAgent focus-within 反馈） */
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #fff 12%, transparent),
+      color-mix(in srgb, #fff 0%, transparent) 46%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--input-bg, var(--bg-elevated)) 74%, var(--brand) 6%),
+      color-mix(in srgb, var(--input-bg, var(--bg-elevated)) 78%, transparent)
+    );
   box-shadow:
-    0 8px 24px color-mix(in srgb, var(--brand) 12%, transparent),
-    0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
+    0 10px 30px color-mix(in srgb, var(--brand) 14%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--brand) 16%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 60%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--bg) 6%, transparent);
 }
 
 .dd-composer-input:disabled {
@@ -372,6 +409,11 @@
     0 6px 16px color-mix(in srgb, var(--brand) 36%, transparent),
     inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
   transform: scale(1.04);
+}
+
+.dd-composer-send:not(.is-stop):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand) 62%, transparent);
+  outline-offset: 2px;
 }
 
 .dd-composer-send:not(.is-stop):active:not(:disabled) {
