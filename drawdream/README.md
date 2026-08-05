@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.64`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.65`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.64` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.65` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.64
+└── package.json         # 2.0.0-alpha.1-mobile.65
 ```
 
 ```text
@@ -115,7 +115,14 @@ drawdream/
 
 ---
 
-## 本版要点（mobile.64）
+## 本版要点（mobile.65）
+
+- **子拓展（Subagent）并行编排**：助手可派发多个后台子 agent 并行执行独立子任务，复用任务清单面板实时展示状态（启动/执行/停滞/完成），结果自动回传主会话整合
+- **对话框玻璃态升级**：主对话与助手对话框采用 LiveAgent 风格毛玻璃质感（半透明 + 背景模糊 + 顶部高光），圆角收窄为方框微圆角，扩大可读空间，保留原有胶囊展开动效
+- **向量模型独立配置**：设置页新增独立"向量模型"区块（渠道 + 模型），与对话模型分开配置，对话模型列表自动排除向量模型
+- **思考档位自动应用**：选中默认对话模型或切换模型时自动侦测可用档位并应用最低档（降低 token 消耗），完成有 Toast 提示；同一模型不重复侦测除非报错
+- 修复：助手展开/折叠按钮改用清晰图标、工具调用条流式宽度对齐
+- 继承 mobile.64：助手输入条贴底、头像暖金配色、思考强度自动探测、交错时间线、任务清单、向量记忆召回
 
 - **助手输入条贴底**：助手面板改为 flex 列布局，消息流独占剩余空间并内部滚动，输入条在横屏/竖屏下始终贴底，不再遮挡消息或被挤出屏幕
 - **空对话稳定贴底**：空状态自适应面板高度，输入条不再悬浮于屏幕中部

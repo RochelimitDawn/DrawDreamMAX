@@ -8,6 +8,34 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.65 变更摘要
+
+1. **子拓展（Subagent）并行编排**
+   - 助手可派发多个后台子 agent 并行执行独立子任务（进程内独立 AgentSession，`server/subagent-host.ts`）
+   - 复用任务清单面板新增「子拓展」实时状态区：状态彩点/名称/任务/时长，完成可展开结果；状态经 `assistant_subagents` 帧实时推送
+   - 子 agent 完成/失败结果自动回传主助手整合；并发上限配置 `subagents.maxConcurrent`（默认 2）
+   - 参考：pi-interactive-subagents（异步子 agent 模型，不使用终端 pane）
+
+2. **对话框玻璃态升级**
+   - 主对话与助手对话框参考 LiveAgent composer-glass-card：半透明 + 背景模糊 + 饱和度提升 + 顶部 rim-light 高光 + 内 gloss 渐变 + 聚焦品牌光晕
+   - 圆角由胶囊（22px/19px）收窄为方框微圆角（12px/10px），扩大可读空间；保留原有胶囊展开/聚焦/浮动面板动效
+   - 工具按钮聚焦环 + 激活小圆点；textarea 不支持 backdrop-filter，毛玻璃置于父容器 `.dd-composer-field`
+
+3. **向量模型与对话模型分开配置**
+   - 设置页新增独立「向量模型」区块（选择渠道 + 该渠道向量模型，保存打 `kind=embedding`）；渠道编辑区仅保留对话模型
+   - `GET /api/models` 对话模型列表自动排除 `kind=embedding` 向量模型
+
+4. **思考档位自动应用**
+   - 选中默认对话模型 / 聊天页切换模型时自动触发思考档位探测，成功后自动应用最低可用档位（排除 off）以降低 token 消耗
+   - 探测完成有 Toast 提示（设置页与聊天页）；同一模型会话期内不重复探测，仅探测失败（报错）时重探
+
+5. **修复**
+   - 助手过程区 / 任务清单展开折叠按钮改用 lucide 图标（原 ▸/▾ 字符渲染为一点）
+   - 工具调用条流式宽度对齐（`width: fit-content` → `100%` + 与 tool-call-list 一致的上限）
+
+6. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.65` 触发 APK workflow
+
 ## mobile.64 变更摘要
 
 1. **助手输入条贴底（flex 列布局）**
