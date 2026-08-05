@@ -34,7 +34,7 @@
 | **代码结构** | `mobile` 壳 + **同一套** React UI + DrawDream Agent |
 | **入口端口** | **7620**（`/*` UI · `/api/*` REST · `/ws` Wire） |
 | **LLM** | 云端 API（壳内不内嵌模型权重） |
-| **当前发布版本** | `v2.0.0-alpha.1-mobile.63` |
+| **当前发布版本** | `v2.0.0-alpha.1-mobile.64` |
 
 > 仓库**只维护移动端主线**。`drawdream/src`（UI）与 `drawdream/agent`（运行时）是 APK 的必要组成部分，属于本地 Node 运行时之上的 Web UI 层，**请勿当作「可删的网页产品」拆除**。桌面 `npm run dev` 仅用于开发构建与联调。
 
@@ -98,12 +98,12 @@ flowchart LR
 3. 启动后先使用旧 runtime 进入界面，再后台准备新 runtime 并完成健康检查
 4. **设置 → API** 配置云端 Key 与模型后即可开聊
 
-当前仓库以 `v2.0.0-alpha.1-mobile.63` 作为移动端发布版本，采用清理后的单一主线。
+当前仓库以 `v2.0.0-alpha.1-mobile.64` 作为移动端发布版本，采用清理后的单一主线。
 
-mobile.63 APK：
+mobile.64 APK：
 
 ```bash
-https://github.com/RochelimitDawn/DrawDreamMAX/releases/tag/v2.0.0-alpha.1-mobile.63
+https://github.com/RochelimitDawn/DrawDreamMAX/releases/tag/v2.0.0-alpha.1-mobile.64
 ```
 
 远程仓库策略：默认分支仅 **`main`**；发布版本使用 `v2.0.0-alpha.1-mobile.N` 标签，GitHub Release 保留当前交付版本。
@@ -241,8 +241,15 @@ DrawDreamMAX/
 | --- | --- |
 | 产品 | **Alpha 2.0** |
 | 包 | `2.0.0-alpha.1` |
-| 当前 Release | **`v2.0.0-alpha.1-mobile.63`** |
+| 当前 Release | **`v2.0.0-alpha.1-mobile.64`** |
 | Agent | DrawDream Agent（手机内嵌 Node） |
+
+### mobile.64 要点
+
+- 助手输入条贴底：面板改为 flex 列布局，消息流独占剩余空间并内部滚动，输入条在横屏/竖屏下始终贴底，不再遮挡消息或被挤出屏幕
+- 空对话稳定贴底：空状态自适应面板高度，输入条不再悬浮于屏幕中部
+- 头像暖金配色：消息/历史/顶部助手头像渐变统一为暖金（accent-gold → brand → brand-deep），生成中的 3D spinner 同步改暖金
+- 继承 mobile.63：思考强度自动探测、交错时间线、任务清单、向量记忆召回、环境页概览条、联网搜索模式由用户决定
 
 ### mobile.63 要点
 

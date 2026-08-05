@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.63`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.64`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.63` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.64` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.63
+└── package.json         # 2.0.0-alpha.1-mobile.64
 ```
 
 ```text
@@ -115,7 +115,12 @@ drawdream/
 
 ---
 
-## 本版要点（mobile.63）
+## 本版要点（mobile.64）
+
+- **助手输入条贴底**：助手面板改为 flex 列布局，消息流独占剩余空间并内部滚动，输入条在横屏/竖屏下始终贴底，不再遮挡消息或被挤出屏幕
+- **空对话稳定贴底**：空状态自适应面板高度，输入条不再悬浮于屏幕中部
+- **头像暖金配色**：消息/历史/顶部助手头像渐变统一为暖金（accent-gold → brand → brand-deep），生成中的 3D spinner 同步改暖金
+- 继承 mobile.63：思考强度自动探测、交错时间线、任务清单、向量记忆召回、环境页概览条、联网搜索模式由用户决定
 
 - **思考强度自动探测**：按渠道实际推理档位探测 off/low/medium/high，浮动面板快捷切换，历史消息按档位归档
 - **思考/工具交错时间线**：`thinking` 段与工具调用按到达顺序交错展示，相邻重复工具折叠，过程更贴近 Monkey Code 风格

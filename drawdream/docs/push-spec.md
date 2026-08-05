@@ -8,6 +8,20 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.64 变更摘要
+
+1. **助手输入条贴底（flex 列布局）**
+   - 助手面板由 CSS Grid 改为 flex 列：消息流 `flex: 1 1 0` 独占剩余空间并内部滚动，输入条/顶栏/任务清单 `flex-shrink: 0`
+   - 横屏/竖屏短视口下输入条不再被挤出屏幕，也不再遮挡消息内容
+   - 空对话时输入条始终贴底，不再悬浮于面板中部
+
+2. **头像暖金配色**
+   - 消息/历史/顶部助手头像渐变统一为暖金（accent-gold → brand → brand-deep），替换原近黑棕/深灰蓝
+   - 助手生成中的 3D spinner SVG 填充改为暖金 `#d4a017`
+
+3. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.64` 触发 APK workflow
+
 ## mobile.63 变更摘要
 
 1. **思考强度自动探测**
