@@ -6,14 +6,17 @@
   gap: 6px;
   min-width: 0;
   margin: 6px 0 2px;
+  /* 与 .tool-call-list 保持一致的宽度上限，避免流式时逐条变长 */
+  max-width: min(100%, 520px);
 }
 
 .dd-timeline > .dd-think {
   width: 100%;
 }
 
+/* 工具 chip 撑满整行：流式逐条出现时宽度与完成态一致，不再一长一短 */
 .dd-timeline > .tool-call-chip-wrap,
 .dd-timeline > .tool-call-chip {
-  width: fit-content;
+  width: 100%;
   max-width: 100%;
 }

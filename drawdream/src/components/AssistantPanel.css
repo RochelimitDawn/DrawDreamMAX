@@ -373,9 +373,11 @@
 }
 
 .asst-process-chevron {
-  font-size: 11px;
-  opacity: 0.45;
+  display: inline-flex;
+  align-items: center;
   flex-shrink: 0;
+  color: var(--text-secondary);
+  opacity: 0.75;
 }
 
 .asst-process-body {
