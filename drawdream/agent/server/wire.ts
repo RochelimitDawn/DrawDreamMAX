@@ -202,6 +202,18 @@ export interface AssistantTodoItem {
 	status: "pending" | "in_progress" | "done" | "cancelled";
 }
 
+/** 子拓展（子 agent）实时状态项（subagent 工具派发；assistant_subagents 帧携带） */
+export interface AssistantSubagent {
+	id: string;
+	name: string;
+	task: string;
+	status: "starting" | "active" | "waiting" | "stalled" | "running" | "done" | "error";
+	startedAt: number;
+	updatedAt: number;
+	result?: string;
+	error?: string;
+}
+
 /** Server → Client 帧 */
 export type ServerFrame =
 	| {
@@ -265,6 +277,8 @@ export type ServerFrame =
 	| { type: "assistant_activity"; activity: WireActivity }
 	/** 子任务清单更新（todo_write 后广播，前端 ToDoList 刷新） */
 	| { type: "assistant_todo"; todos: AssistantTodoItem[] }
+	/** 子拓展状态更新（subagent 派发/进度/完成，前端子拓展面板刷新） */
+	| { type: "assistant_subagents"; subagents: AssistantSubagent[] }
 	/** Novel Forge 作业进度（按用户工作区广播） */
 	| {
 			type: "forge_progress";

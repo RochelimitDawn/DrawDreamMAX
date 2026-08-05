@@ -54,15 +54,10 @@
 }
 
 .asst-todos-chevron {
-  display: inline-block;
-  font-size: 10px;
-  opacity: 0.6;
-  transform: rotate(90deg);
-  transition: transform 0.18s ease;
-}
-
-.asst-todos-chevron.is-closed {
-  transform: rotate(0deg);
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-secondary);
+  opacity: 0.8;
 }
 
 .asst-todos-title {
@@ -335,5 +330,199 @@
   100% {
     opacity: 0;
     box-shadow: 0 -15px 0 0px var(--brand), 14px -8px 0 0px var(--brand), 14px 8px 0 0px var(--brand), 0 15px 0 0px var(--brand), -14px 8px 0 0px var(--brand), -14px -8px 0 0px var(--brand);
+  }
+}
+
+/* ── 子拓展（子 agent）实时状态面板：复用 .asst-todos 视觉 ── */
+
+.asst-todos.asst-subagents {
+  border-color: color-mix(in srgb, var(--brand) 26%, var(--border));
+  background: color-mix(in srgb, var(--bg-elevated) 82%, var(--brand) 5%);
+}
+
+.asst-todos.asst-subagents .asst-todos-title::before {
+  background: linear-gradient(145deg, var(--brand), var(--accent-gold));
+}
+
+.asst-subagent-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  border-radius: 10px;
+}
+
+.asst-subagent-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+  transition: background-color 0.15s ease;
+}
+
+.asst-subagent-row:not(:disabled) {
+  cursor: pointer;
+}
+
+.asst-subagent-row:not(:disabled):hover {
+  background: color-mix(in srgb, var(--bg-muted) 45%, transparent);
+}
+
+.asst-subagent-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--text-tertiary, var(--text-secondary));
+}
+
+.asst-subagent-dot.is-starting {
+  background: var(--accent-gold);
+  animation: asst-orb-breath 1.6s ease-in-out infinite;
+}
+
+.asst-subagent-dot.is-active,
+.asst-subagent-dot.is-running {
+  background: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+  animation: asst-orb-breath 1.6s ease-in-out infinite;
+}
+
+.asst-subagent-dot.is-waiting {
+  background: var(--accent-gold);
+  opacity: 0.65;
+}
+
+.asst-subagent-dot.is-stalled {
+  background: var(--warning, #c9891a);
+  animation: asst-orb-breath 2.4s ease-in-out infinite;
+}
+
+.asst-subagent-dot.is-done {
+  background: #16a34a;
+}
+
+.asst-subagent-dot.is-error {
+  background: #e11d48;
+}
+
+.asst-subagent-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.asst-subagent-name {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asst-subagent-task {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asst-subagent-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.asst-subagent-state {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+}
+
+.asst-subagent-state.is-starting,
+.asst-subagent-state.is-active,
+.asst-subagent-state.is-running {
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 14%, var(--bg-muted));
+}
+
+.asst-subagent-state.is-stalled {
+  color: var(--warning, #b45309);
+  background: color-mix(in srgb, var(--warning, #c9891a) 14%, var(--bg-muted));
+}
+
+.asst-subagent-state.is-done {
+  color: #15803d;
+  background: color-mix(in srgb, #16a34a 12%, var(--bg-muted));
+}
+
+.asst-subagent-state.is-error {
+  color: #e11d48;
+  background: color-mix(in srgb, #e11d48 12%, var(--bg-muted));
+}
+
+.asst-subagent-time {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary, var(--text-secondary));
+  min-width: 3.2em;
+  text-align: right;
+}
+
+.asst-subagent-chev {
+  color: var(--text-tertiary, var(--text-secondary));
+  transition: transform 0.18s ease;
+}
+
+.asst-subagent-chev.is-open {
+  transform: rotate(90deg);
+}
+
+.asst-subagent-detail {
+  margin: 2px 4px 4px 20px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--bg-muted, var(--border)) 28%, var(--bg-elevated, var(--bg)));
+  max-height: min(36vh, 240px);
+  overflow: auto;
+}
+
+.asst-subagent-detail pre {
+  margin: 0;
+  padding: 8px 10px;
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asst-subagent-dot.is-starting,
+  .asst-subagent-dot.is-active,
+  .asst-subagent-dot.is-running,
+  .asst-subagent-dot.is-stalled {
+    animation: none;
   }
 }

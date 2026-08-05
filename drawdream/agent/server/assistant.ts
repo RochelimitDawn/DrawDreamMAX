@@ -66,6 +66,8 @@ import {
 	writeJsonWithBackup,
 } from "./rest.ts";
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { SubagentHost, type SubagentInfo } from "./subagent-host.ts";
+import { createSubagentTools } from "./subagent-tools.ts";
 
 /** 剧情会话桥：main.ts 提供，助手工具经此只读剧情面 / 提交白名单写操作 */
 export interface StoryBridge {
@@ -123,6 +125,8 @@ export interface AssistantHost {
 	messages(): unknown[];
 	/** 当前子任务清单（Plan 模式） */
 	todos(): AssistantTodoItem[];
+	/** 当前子拓展（子 agent）快照 */
+	subagents(): SubagentInfo[];
 	isStreaming(): boolean;
 	dispose(): Promise<void>;
 }
@@ -843,8 +847,73 @@ export async function createAssistantHost(opts: CreateAssistantHostOptions): Pro
 	let assistantToolNames: string[] | null = null;
 	/** 子任务清单（Plan 模式；todo_write 回调更新，assistant_hello 携带） */
 	let assistantTodos: AssistantTodoItem[] = [];
+	/** 子拓展宿主（跨主会话对话复用；懒创建） */
+	let subagentHost: SubagentHost | null = null;
 
 	const selfInfo = () => ({ model: modelInfo(), follow: follows() });
+
+	/**
+	 * 子 agent 完成/失败 → 结果以 followUp 注入主助手会话，由主 agent 整合进最终回复。
+	 * 主会话流式中自动排队；失败仅状态回传（不打扰用户）。
+	 */
+	const deliverSubagentResult = async (sub: SubagentInfo): Promise<void> => {
+		if (!session) return;
+		if (sub.status !== "done" && sub.status !== "error") return;
+		const body = (sub.result || sub.error || "").trim();
+		if (!body) return;
+		const title = sub.status === "done" ? "已完成" : "失败";
+		const note = `【子拓展「${sub.name}」${title}】\n${body}`;
+		try {
+			await session.prompt(note, session.isStreaming ? { streamingBehavior: "followUp" } : undefined);
+		} catch {
+			// 主会话忙碌/模型缺失时丢弃；状态已在子拓展面板可见
+		}
+	};
+
+	/**
+	 * 懒创建 SubagentHost 并返回子 agent 工具定义（enabled=false 时返回空）。
+	 * 子 agent 工具集与主助手一致（createStagehandTools 独立实例），
+	 * 但 todo 回调丢弃，避免子 agent 的 todo 污染主助手任务清单。
+	 */
+	const ensureSubagentHost = (
+		config: RpConfig,
+		authStorage: AuthStorage,
+		modelRegistry: ModelRegistry,
+		settingsManager: SettingsManager,
+	): ToolDefinition[] => {
+		if (config.subagents?.enabled === false) return [];
+		if (!subagentHost) {
+			const agentDir = getAgentDir();
+			subagentHost = new SubagentHost({
+				cwd,
+				agentDir,
+				authStorage,
+				modelRegistry,
+				settingsManager,
+				createResourceLoader: () =>
+					new DefaultResourceLoader({
+						cwd,
+						agentDir,
+						settingsManager,
+						noExtensions: true,
+						noSkills: true,
+						noPromptTemplates: true,
+						noThemes: true,
+						noContextFiles: true,
+					}),
+				tools: () => createStagehandTools(cwd, bridge, () => {}),
+				noTools: config.backendControl === false ? "builtin" : undefined,
+				getModel: () => {
+					const m = session?.model;
+					return m ? { provider: m.provider, id: m.id } : null;
+				},
+				maxConcurrent: config.subagents?.maxConcurrent ?? 2,
+				onUpdate: (subagents) => onEvent({ type: "subagent_update", subagents }),
+				onResult: (sub) => void deliverSubagentResult(sub),
+			});
+		}
+		return createSubagentTools(subagentHost);
+	};
 
 	const build = async (fresh: boolean): Promise<AgentSession> => {
 		const agentDir = getAgentDir();
@@ -896,11 +965,14 @@ export async function createAssistantHost(opts: CreateAssistantHostOptions): Pro
 			agentDir,
 			authStorage,
 			modelRegistry,
-			customTools: createStagehandTools(cwd, bridge, (todos) => {
-				assistantTodos = todos;
-				// todo 清单变更 → 透传给 wire 层广播 assistant_todo 帧（前端 ToDoList UI 刷新）
-				onEvent({ type: "todo_update", todos });
-			}),
+			customTools: [
+				...createStagehandTools(cwd, bridge, (todos) => {
+					assistantTodos = todos;
+					// todo 清单变更 → 透传给 wire 层广播 assistant_todo 帧（前端 ToDoList UI 刷新）
+					onEvent({ type: "todo_update", todos });
+				}),
+				...(ensureSubagentHost(config, authStorage, modelRegistry, settingsManager) ?? []),
+			],
 			// backendControl 关 = 分发模式：助手也不给本机工具（read/bash/edit/write），只留领域工具
 			...(config.backendControl === false ? { noTools: "builtin" as const } : {}),
 			resourceLoader: loader,
@@ -1067,6 +1139,7 @@ export async function createAssistantHost(opts: CreateAssistantHostOptions): Pro
 		follows,
 		messages: () => session.messages as unknown[],
 		todos: () => assistantTodos,
+		subagents: () => subagentHost?.snapshot() ?? [],
 		isStreaming: () => session.isStreaming,
 		async dispose() {
 			unsubscribe?.();
@@ -1076,6 +1149,8 @@ export async function createAssistantHost(opts: CreateAssistantHostOptions): Pro
 				// ignore
 			}
 			session.dispose();
+			await subagentHost?.dispose();
+			subagentHost = null;
 		},
 	};
 }

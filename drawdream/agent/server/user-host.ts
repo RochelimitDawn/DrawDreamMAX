@@ -831,6 +831,7 @@ const assistantHelloFrame = (): ServerFrame => ({
 	model: assistantHost?.modelInfo() ?? null,
 	follow: assistantHost?.follows() ?? true,
 	todos: assistantHost?.todos() ?? [],
+	subagents: assistantHost?.subagents() ?? [],
 });
 
 const onAssistantEvent = createAssistantEventHandler(broadcast);

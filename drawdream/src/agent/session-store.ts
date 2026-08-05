@@ -1,6 +1,7 @@
 import type {
   AssistantModelInfo,
   AssistantMsg,
+  AssistantSubagent,
   AssistantTodoItem,
   ClientFrame,
   ProcessStep,
@@ -50,6 +51,8 @@ export type AssistantSnapshot = {
   streamTimeline: ProcessStep[]
   liveActs: WireActivity[]
   todos: AssistantTodoItem[]
+  /** 子拓展（子 agent）实时状态 */
+  subagents: AssistantSubagent[]
 }
 
 function normalizeChoiceOptions(options: string[]): string[] {
@@ -138,6 +141,7 @@ function emptyAssistant(): AssistantSnapshot {
     streamTimeline: [],
     liveActs: [],
     todos: [],
+    subagents: [],
   }
 }
 
@@ -675,6 +679,7 @@ class SessionStore {
           streamTimeline: [],
           liveActs: [],
           todos: frame.todos ?? [],
+          subagents: frame.subagents ?? [],
         })
         break
       }
@@ -760,6 +765,10 @@ class SessionStore {
       }
       case 'assistant_todo': {
         this.patchAssistant({ todos: frame.todos ?? [] })
+        break
+      }
+      case 'assistant_subagents': {
+        this.patchAssistant({ subagents: frame.subagents ?? [] })
         break
       }
       default:

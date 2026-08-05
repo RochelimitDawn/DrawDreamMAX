@@ -207,12 +207,27 @@ export interface RpConfig {
 	};
 	/** 按角色卡 Runtime Manifest fingerprint 隔离的外部模块授权。 */
 	tavernModuleGrants?: Record<string, string[]>;
+	/**
+	 * 子拓展（子 agent）并行编排。
+	 * - enabled=false 时助手不注册 subagent 工具（默认 true）
+	 * - maxConcurrent 为并发上限（默认 2）
+	 */
+	subagents?: {
+		enabled?: boolean;
+		maxConcurrent?: number;
+	};
 }
 
 /** 叙事流水线默认：merged */
 export const DEFAULT_PIPELINE = {
 	mode: "merged" as const,
 	maxSummaries: 40,
+};
+
+/** 子拓展默认：开启，并发上限 2 */
+export const DEFAULT_SUBAGENTS = {
+	enabled: true,
+	maxConcurrent: 2,
 };
 
 export const DEFAULT_CONFIG: RpConfig = {
@@ -233,6 +248,8 @@ export const DEFAULT_CONFIG: RpConfig = {
 	// 默认叙事字数 400–900
 	narrativeLength: { min: 400, max: 900, hardCap: true },
 	pipeline: { ...DEFAULT_PIPELINE },
+	// 默认开启子拓展，并发上限 2
+	subagents: { ...DEFAULT_SUBAGENTS },
 };
 
 /** 宏替换上下文 */

@@ -56,6 +56,15 @@ export function loadConfig(cwd: string): RpConfig {
 	const p = configPath(cwd);
 	if (!existsSync(p)) return { ...DEFAULT_CONFIG };
 	const raw = { ...DEFAULT_CONFIG, ...(JSON.parse(readFileSync(p, "utf8")) as Partial<RpConfig>) };
+	// 子拓展：读时合并默认值（避免只配 enabled 时丢 maxConcurrent）
+	if (raw.subagents === undefined) {
+		raw.subagents = { ...DEFAULT_CONFIG.subagents };
+	} else if (raw.subagents && typeof raw.subagents === "object") {
+		raw.subagents = {
+			enabled: raw.subagents.enabled !== false,
+			maxConcurrent: clampInt(raw.subagents.maxConcurrent, 1, 8, 2),
+		};
+	}
 	// 规范化：旧 lorebook 单本 → lorebooks 数组
 	return setMountedLorebooks(raw, mountedLorebookPaths(raw));
 }
@@ -81,6 +90,7 @@ const CONFIG_EDITABLE = new Set([
 	"assistantModel",
 	"pipeline",
 	"smartSearch",
+	"subagents",
 ]);
 
 export function applyConfigPatch(config: RpConfig, patch: Record<string, unknown>): RpConfig {
@@ -193,6 +203,17 @@ export function applyConfigPatch(config: RpConfig, patch: Record<string, unknown
 			if (apiKey) out.apiKey = apiKey;
 			if (baseUrl) out.baseUrl = baseUrl;
 			next.smartSearch = out;
+		}
+	}
+	// 子拓展：{ enabled?, maxConcurrent? }；非法值回落默认
+	if (next.subagents !== undefined) {
+		const s = next.subagents as { enabled?: unknown; maxConcurrent?: unknown } | null;
+		if (!s || typeof s !== "object") {
+			delete next.subagents;
+		} else {
+			const enabled = s.enabled !== false;
+			const maxConcurrent = clampInt(s.maxConcurrent, 1, 8, 2);
+			next.subagents = { enabled, maxConcurrent };
 		}
 	}
 	// 挂载书：lorebooks 数组优先；兼容旧单本 lorebook

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bot, Check, Copy, Sparkles } from 'lucide-react'
+import { Bot, Check, ChevronDown, ChevronRight, Copy, Sparkles } from 'lucide-react'
 import type { AssistantSnapshot } from '../agent/session-store'
 import type { AssistantMsg, ProcessStep } from '../agent/wire.types'
 import { RichMessage } from './RichMessage'
@@ -8,7 +8,7 @@ import { ThinkingBlock } from './ThinkingBlock'
 import { ToolCallList, coalesceActivities } from './ToolCallChip'
 import { ProcessTimeline } from './ProcessTimeline'
 import { ChatComposer } from './ChatComposer'
-import { ToDoList } from './ToDoList'
+import { ToDoList, SubagentList } from './ToDoList'
 import { copyText } from '../utils/clipboard'
 import { toast } from '../utils/toast'
 import './AssistantPanel.css'
@@ -72,7 +72,7 @@ function ProcessMeta({
       )}
       <span className={`asst-process-label${busy ? ' is-shiny' : ''}`}>{main}</span>
       <span className="asst-process-chevron" aria-hidden>
-        {expanded ? '▾' : '▸'}
+        {expanded ? <ChevronDown size={14} strokeWidth={2} /> : <ChevronRight size={14} strokeWidth={2} />}
       </span>
     </button>
   )
@@ -350,6 +350,8 @@ export function AssistantPanel({
       </div>
 
       <ToDoList todos={asst.todos} />
+
+      <SubagentList subagents={asst.subagents} />
 
       <div className="asst-stream" ref={streamRef}>
         {empty ? (

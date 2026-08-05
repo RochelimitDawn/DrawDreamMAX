@@ -149,6 +149,18 @@ export interface AssistantTodoItem {
   status: 'pending' | 'in_progress' | 'done' | 'cancelled'
 }
 
+/** 子拓展（子 agent）实时状态项 */
+export interface AssistantSubagent {
+  id: string
+  name: string
+  task: string
+  status: 'starting' | 'active' | 'waiting' | 'stalled' | 'running' | 'done' | 'error'
+  startedAt: number
+  updatedAt: number
+  result?: string
+  error?: string
+}
+
 export type ServerFrame =
   | {
       type: 'hello'
@@ -194,12 +206,14 @@ export type ServerFrame =
       model: AssistantModelInfo | null
       follow: boolean
       todos?: AssistantTodoItem[]
+      subagents?: AssistantSubagent[]
     }
   | { type: 'assistant_message'; message: AssistantMsg }
   | { type: 'assistant_delta'; kind: 'text' | 'thinking'; delta: string }
   | { type: 'assistant_state'; state: 'start' | 'end' }
   | { type: 'assistant_activity'; activity: WireActivity }
   | { type: 'assistant_todo'; todos: AssistantTodoItem[] }
+  | { type: 'assistant_subagents'; subagents: AssistantSubagent[] }
   | {
       type: 'forge_progress'
       jobId: string
