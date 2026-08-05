@@ -251,6 +251,8 @@ export function SettingsPage() {
   /** 独立向量模型区块：渠道 + 该渠道向量模型 */
   const [vectorChannel, setVectorChannel] = useState('')
   const [vectorModelId, setVectorModelId] = useState('')
+  // 自动更新：检查中状态（由全局 UpdateChecker 同步）；对话框/Toast 由全局处理
+  const [updateChecking, setUpdateChecking] = useState(false)
   const autoPullRef = useRef<string>('')
 
   const [wiDepth, setWiDepth] = useState('4')
@@ -359,6 +361,15 @@ export function SettingsPage() {
     void loadAgentApi()
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once
   }, [])
+
+  const checkUpdate = () => {
+    const g = (window as unknown as { __ddCheckUpdate?: (l?: (c: boolean) => void) => void }).__ddCheckUpdate
+    if (!g) {
+      toast(t('settings.updateUnsupported'), 'info')
+      return
+    }
+    g((checking) => setUpdateChecking(checking))
+  }
 
   useEffect(() => {
     applyDensity(density)
@@ -2050,6 +2061,17 @@ export function SettingsPage() {
               <p>{t('settings.aboutText')}</p>
               <div className="chip">
                 {t('settings.version')} 2.0.0-alpha.1 · mobile.65 · DrawDream Agent
+              </div>
+              <div className="form-actions" style={{ marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  disabled={updateChecking}
+                  onClick={checkUpdate}
+                >
+                  <RefreshCw size={14} className={updateChecking ? 'is-spin' : ''} />
+                  {updateChecking ? t('settings.updating') : t('settings.checkUpdate')}
+                </button>
               </div>
               <div className="settings-list" style={{ marginTop: 16 }}>
                 <a

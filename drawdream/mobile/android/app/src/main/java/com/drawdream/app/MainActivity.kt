@@ -121,6 +121,56 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        @JavascriptInterface
+        fun checkUpdate() {
+            AppUpdater.checkLatest(this@MainActivity) { info ->
+                handler.post { deliverUpdateResult(info) }
+            }
+        }
+
+        @JavascriptInterface
+        fun downloadUpdate(tagName: String?, downloadUrl: String?, sumsUrl: String?) {
+            if (tagName.isNullOrBlank() || downloadUrl.isNullOrBlank()) {
+                toast("更新信息不完整")
+                return
+            }
+            AppUpdater.downloadAndInstall(this@MainActivity, tagName, downloadUrl, sumsUrl) { ok, err ->
+                handler.post {
+                    if (ok) toast("更新已下载，请在系统安装界面完成安装")
+                    else toast("更新失败：${err ?: "未知错误"}")
+                }
+            }
+        }
+    }
+
+    /** 把更新检查结果回传给 JS（window.__ddUpdateResult） */
+    private fun deliverUpdateResult(info: AppUpdater.UpdateInfo) {
+        val obj = org.json.JSONObject().apply {
+            put("hasUpdate", info.hasUpdate)
+            put("tagName", info.tagName)
+            put("notes", info.notes ?: "")
+            put("downloadUrl", info.downloadUrl ?: "")
+            put("sumsUrl", info.sumsUrl ?: "")
+            put("currentVersion", info.currentVersion)
+        }
+        webView.evaluateJavascript(
+            "window.__ddUpdateResult && window.__ddUpdateResult(${obj.toString()});",
+            null,
+        )
+    }
+
+    /** 启动后延迟自动检查更新（页面加载后触发；失败静默） */
+    private fun scheduleAutoUpdateCheck() {
+        handler.postDelayed({
+            if (this::webView.isInitialized) {
+                AppUpdater.checkLatest(this@MainActivity) { info ->
+                    handler.post {
+                        if (info.hasUpdate) deliverUpdateResult(info)
+                    }
+                }
+            }
+        }, 6000)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -239,6 +289,7 @@ class MainActivity : AppCompatActivity() {
         registerReceivers()
         AgentRuntimeService.start(this)
         handler.post(poll)
+        scheduleAutoUpdateCheck()
 
         if (AgentRuntimeService.lastStatus == "ready") {
             openUi()

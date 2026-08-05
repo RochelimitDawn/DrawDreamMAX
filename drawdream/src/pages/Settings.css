@@ -1252,3 +1252,15 @@
 .settings-item .dd-slider {
   max-width: 200px;
 }
+
+/* 自动更新：设置页「检查更新」按钮旋转 */
+@keyframes dd-update-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.form-actions .is-spin,
+.settings-form .is-spin {
+  animation: dd-update-spin 1s linear infinite;
+}

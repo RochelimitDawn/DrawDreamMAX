@@ -13,6 +13,7 @@ import { NovelForgePage } from './pages/NovelForge'
 import { LibraryPage } from './pages/Library'
 import { AuthProvider } from './auth/AuthContext'
 import { AuthGate } from './auth/AuthGate'
+import { UpdateChecker } from './components/UpdateChecker'
 import { MotionRoot } from './motion'
 import { clearToasts } from './utils/toast'
 import { installParentTavernShim } from './tavern/tavern-shim'
@@ -36,6 +37,7 @@ function AppShell() {
       <Sidebar />
       <main className="app-main">
         <RouteToastGuard />
+        <UpdateChecker />
         <MotionRoot>
           <Routes>
             <Route path="/" element={<CardsPage />} />

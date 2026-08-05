@@ -885,6 +885,14 @@ export default {
       'DrawDream 是本地优先的 AI 角色扮演客户端（移动端主线）。内嵌 Agent 工作流，替代传统提示词拼接。',
     releases: '发行版 / APK',
     releasesDesc: '在 GitHub Releases 下载最新安卓安装包',
+    checkUpdate: '检查更新',
+    updating: '检查中…',
+    updateLatest: '已是最新版本',
+    updateUnsupported: '当前环境不支持自动更新（仅安卓版可用）',
+    updateAvailable: '发现新版本 {{version}}',
+    updateNoNotes: '本次更新暂无说明',
+    updateHint: '将下载新版安装包并校验完整性，然后拉起系统安装界面。',
+    updateDownload: '下载并安装',
   },
   secondary: {
     worldInfo: {

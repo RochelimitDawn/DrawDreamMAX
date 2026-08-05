@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 更新 APK 落盘在 cacheDir/updates，安装时经 FileProvider 暴露 content:// URI -->
+<paths>
+    <cache-path name="updates" path="updates/" />
+</paths>

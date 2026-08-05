@@ -887,6 +887,14 @@ export default {
       'DrawDream is a local-first AI roleplay client (mobile-first). An embedded agent workflow replaces classic prompt stitching.',
     releases: 'Releases / APK',
     releasesDesc: 'Download the latest Android APK from GitHub Releases',
+    checkUpdate: 'Check for updates',
+    updating: 'Checking…',
+    updateLatest: 'You are up to date',
+    updateUnsupported: 'Auto update is not available in this environment (Android only)',
+    updateAvailable: 'New version available {{version}}',
+    updateNoNotes: 'No release notes for this update',
+    updateHint: 'The new APK will be downloaded, integrity-checked, then the system installer opens.',
+    updateDownload: 'Download & install',
   },
   secondary: {
     worldInfo: {
