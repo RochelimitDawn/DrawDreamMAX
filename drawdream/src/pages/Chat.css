@@ -405,7 +405,12 @@ body:has(.chat-page),
 
 .history-avatar.is-mono,
 .peer-avatar.is-mono {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--brand) 72%, #1e293b), #1e293b 72%);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent-gold) 70%, #fff) 0%,
+    var(--brand) 55%,
+    var(--brand-deep, var(--brand-hover, var(--brand))) 100%
+  );
 }
 
 .history-meta {
@@ -1212,7 +1217,12 @@ body:has(.chat-page),
 }
 
 .msg-avatar-assistant {
-  background: linear-gradient(145deg, #3d2b18 0%, #8b5124 55%, #c47a3a 100%);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent-gold) 72%, #fff) 0%,
+    var(--brand) 55%,
+    var(--brand-deep, var(--brand-hover, var(--brand))) 100%
+  );
   color: #fffdf9;
 }
 
@@ -2278,7 +2288,6 @@ body:has(.chat-page),
 .chat-right .asst-panel {
   flex: 1 1 0%;
   min-height: 0;
-  max-height: 100%;
   overflow: hidden;
   overscroll-behavior: contain;
   width: 100%;
@@ -2578,20 +2587,18 @@ body:has(.chat-page),
   .chat-right .asst-panel {
     flex: 1 1 0% !important;
     min-height: 0 !important;
-    max-height: 100% !important;
     overflow: hidden !important;
-    display: grid !important;
-    grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+    display: flex !important;
+    flex-direction: column !important;
     position: relative !important;
     z-index: 70 !important;
-    height: 100% !important;
     width: 100% !important;
     min-width: 0 !important;
   }
 
   .chat-right .asst-stream {
+    flex: 1 1 0 !important;
     min-height: 0 !important;
-    height: auto !important;
     overflow-y: scroll !important;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;

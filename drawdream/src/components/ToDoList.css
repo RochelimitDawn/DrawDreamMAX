@@ -5,6 +5,7 @@
 
 .asst-todos {
   display: grid;
+  flex-shrink: 0;
   gap: 8px;
   width: 100%;
   padding: 10px 12px;
