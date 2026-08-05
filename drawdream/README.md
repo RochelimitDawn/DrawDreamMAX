@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.65`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.66`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.65` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.66` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.65
+└── package.json         # 2.0.0-alpha.1-mobile.66
 ```
 
 ```text
@@ -115,7 +115,10 @@ drawdream/
 
 ---
 
-## 本版要点（mobile.65）
+## 本版要点（mobile.66）
+
+- **自动更新**：通过 GitHub Releases API 检查新版本，启动后静默检查（有新版本才提示），设置页「关于」提供手动「检查更新」；下载 APK 并对照 SHA256SUMS.txt 校验后拉起系统安装器，确认对话框展示 Release notes
+- 继承 mobile.65：子拓展并行编排、对话框玻璃态、向量模型独立配置、思考档位自动应用
 
 - **子拓展（Subagent）并行编排**：助手可派发多个后台子 agent 并行执行独立子任务，复用任务清单面板实时展示状态（启动/执行/停滞/完成），结果自动回传主会话整合
 - **对话框玻璃态升级**：主对话与助手对话框采用 LiveAgent 风格毛玻璃质感（半透明 + 背景模糊 + 顶部高光），圆角收窄为方框微圆角，扩大可读空间，保留原有胶囊展开动效

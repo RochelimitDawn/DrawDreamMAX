@@ -8,6 +8,18 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.66 变更摘要
+
+1. **自动更新（GitHub Releases API）**
+   - 原生 Kotlin `AppUpdater`：请求 `releases/latest` 解析 tag（`v2.0.0-alpha.1-mobile.N`）与 `app-release.apk` / `SHA256SUMS.txt` 资产，与当前 `versionName` 对比
+   - 启动后延迟静默检查（仅新版本存在时提示）；设置页「关于」提供手动「检查更新」
+   - 下载 APK 到应用缓存，对照 `SHA256SUMS.txt` 校验 SHA-256，通过后经 FileProvider 拉起系统安装器
+   - 权限：`REQUEST_INSTALL_PACKAGES`；JS 桥 `checkUpdate` / `downloadUpdate`
+   - 前端全局 `UpdateChecker`：检测到新版本弹确认对话框（版本号 + Release notes + 下载并安装），已最新/不支持环境 Toast
+
+2. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.66` 触发 APK workflow
+
 ## mobile.65 变更摘要
 
 1. **子拓展（Subagent）并行编排**
