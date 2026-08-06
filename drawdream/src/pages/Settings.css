@@ -1129,7 +1129,32 @@
   .settings-panel .settings-list {
     display: grid;
     gap: 14px;
-    align-items: start;
+  }
+
+  .settings-panel .settings-item {
+    position: relative;
+    min-height: 92px;
+    padding: 13px 14px;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--bg-elevated) 88%, var(--bg-muted));
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 4%, transparent);
+  }
+
+  /* 便当盒异形卡片：其余圆角，左下角「切掉一个角」（露出面板背景的切口） */
+  .settings-panel .settings-item::after,
+  .vector-card::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+    background: var(--bg-elevated);
+    clip-path: polygon(0 0, 0 100%, 100% 100%);
   }
 
   .settings-panel .settings-item {
