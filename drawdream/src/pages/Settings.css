@@ -27,6 +27,20 @@
   box-shadow:var(--shadow-sm);
 }
 
+/* 便当盒左上角小图标 */
+.settings-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 10%, var(--bg-muted, var(--border)));
+  border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 5%, transparent);
+}
+
 .settings-item-main {
   min-width: 0;
   flex: 1 1 180px;
@@ -493,6 +507,88 @@
   gap:12px;
   padding:14px;
   display:flex;
+}
+
+/* 独立向量模型：可折叠卡片（默认折叠，点头部展开/收起） */
+.vector-card {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.vector-card:hover {
+  border-color: var(--border-strong);
+}
+
+.vector-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--transition);
+}
+
+.vector-card-head:hover {
+  background: color-mix(in srgb, var(--bg-muted) 45%, transparent);
+}
+
+.vector-card-head:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
+  outline-offset: -2px;
+  border-radius: 14px;
+}
+
+.vector-card-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 10%, var(--bg-muted, var(--border)));
+  border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 5%, transparent);
+}
+
+.vector-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.vector-card-summary {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 42%;
+}
+
+.vector-card-chev {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.vector-card-chev.is-open {
+  transform: rotate(180deg);
+}
+
+.vector-card-body {
+  margin: 0 10px 10px;
 }
 
 .preset-row {
@@ -990,14 +1086,48 @@
   }
 
   .settings-panel .settings-item {
-    min-height: 112px;
-    padding: 16px;
+    position: relative;
+    min-height: 84px;
+    padding: 13px 14px;
     align-items: flex-start;
     flex-direction: column;
     justify-content: space-between;
-    border-radius: 18px;
+    border-radius: 16px;
     background: color-mix(in srgb, var(--bg-elevated) 88%, var(--bg-muted));
     box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 4%, transparent);
+  }
+
+  .settings-panel .settings-item-main {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .settings-panel .settings-item .dd-slider {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 220px;
+  }
+
+  /* 便当盒异形卡片：左下角向内折角，其余圆角 */
+  .settings-panel .settings-item::after,
+  .vector-card::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+    background:
+      linear-gradient(to top left, transparent 47%, color-mix(in srgb, var(--text) 22%, transparent) 50%, transparent 53%),
+      linear-gradient(to top right, color-mix(in srgb, var(--text) 12%, var(--bg-elevated)) 50%, transparent 50%);
+  }
+
+  .settings-panel .settings-item .settings-item-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
   }
 
   .settings-panel .settings-item:hover {
@@ -1263,4 +1393,151 @@
 .form-actions .is-spin,
 .settings-form .is-spin {
   animation: dd-update-spin 1s linear infinite;
+}
+
+/* ── 检查更新按钮：手机端 Uiverse「learn-more」圆钮展开风格 ── */
+
+.learn-more.update-learn {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  outline: none;
+  border: 0;
+  vertical-align: middle;
+  text-decoration: none;
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  width: 12rem;
+  height: auto;
+}
+
+.learn-more.update-learn:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.learn-more.update-learn .circle {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  position: relative;
+  display: block;
+  margin: 0;
+  width: 3rem;
+  height: 3rem;
+  background: #282936;
+  border-radius: 1.625rem;
+}
+
+.learn-more.update-learn .circle .icon.arrow {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  left: 0.625rem;
+  width: 1.125rem;
+  height: 0.125rem;
+  background: none;
+}
+
+.learn-more.update-learn .circle .icon.arrow::before {
+  position: absolute;
+  content: '';
+  top: -0.29rem;
+  right: 0.0625rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-top: 0.125rem solid #fff;
+  border-right: 0.125rem solid #fff;
+  transform: rotate(45deg);
+}
+
+.learn-more.update-learn .button-text {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.75rem 0;
+  margin: 0 0 0 1.85rem;
+  color: #282936;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.learn-more.update-learn .update-learn-icon {
+  display: none;
+}
+
+.learn-more.update-learn:not(:disabled):hover .circle {
+  width: 100%;
+}
+
+.learn-more.update-learn:not(:disabled):hover .circle .icon.arrow {
+  background: #fff;
+  transform: translate(1rem, 0);
+}
+
+.learn-more.update-learn:not(:disabled):hover .button-text {
+  color: #fff;
+}
+
+/* 触屏（≤899px）无 hover：常驻展开态，保证完整可读 */
+@media (max-width: 899px) {
+  .learn-more.update-learn .circle {
+    width: 100%;
+  }
+
+  .learn-more.update-learn .circle .icon.arrow {
+    background: #fff;
+    transform: translate(1rem, 0);
+  }
+
+  .learn-more.update-learn .button-text {
+    color: #fff;
+  }
+}
+
+/* 平板/桌面（>899px）：保持便当盒 btn-primary 外观 */
+@media (min-width: 900px) {
+  .learn-more.update-learn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: auto;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .learn-more.update-learn:disabled {
+    opacity: 0.6;
+  }
+
+  .learn-more.update-learn .circle {
+    display: none;
+  }
+
+  .learn-more.update-learn .button-text {
+    position: static;
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    text-transform: none;
+    line-height: 1;
+  }
+
+  .learn-more.update-learn .update-learn-icon {
+    display: inline-flex;
+  }
 }

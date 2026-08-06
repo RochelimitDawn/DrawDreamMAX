@@ -1,16 +1,55 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Activity, Plus, RefreshCw, Trash2, Wifi } from 'lucide-react'
 import {
-  SlidersHorizontal,
-  Server,
-  Palette,
-  MessageCircle,
+  Activity,
+  AlignJustify,
+  ArrowUpRight,
+  Bold,
   BookOpen,
-  Settings2,
+  Brain,
+  BrainCog,
+  ChevronDown,
+  ChevronsDown,
+  Clock,
   Cpu,
+  DatabaseBackup,
+  EyeOff,
+  FileText,
+  GitBranch,
+  GripHorizontal,
+  Highlighter,
+  IndentIncrease,
   Info,
+  Languages,
+  Layers,
+  Lock,
+  MessageCircle,
+  MessageSquare,
+  Minus,
+  Package,
+  Palette,
+  PenLine,
+  Pin,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  Rows3,
+  Search,
+  Send,
+  Server,
+  ServerCog,
+  Settings2,
+  SlidersHorizontal,
+  Sparkles,
+  StretchHorizontal,
+  Tag,
+  TextCursorInput,
+  Trash2,
+  Type,
+  Waves,
+  Wifi,
+  Zap,
   type LucideIcon,
 } from 'lucide-react'
 import i18n from '../i18n'
@@ -118,6 +157,22 @@ const RULE_LABEL_KEY: Record<ColorRuleId, string> = {
   emphasis: 'settings.readRuleEmphasis',
   narration: 'settings.readRuleNarration',
 }
+
+const RULE_ICONS: Record<ColorRuleId, LucideIcon> = {
+  dialogue: MessageSquare,
+  name: Tag,
+  thought: Brain,
+  action: Zap,
+  emphasis: Bold,
+  narration: BookOpen,
+}
+
+/** 设置项便当盒左上角小图标 */
+const SIcon = ({ icon: Icon, size = 16 }: { icon: LucideIcon; size?: number }) => (
+  <span className="settings-item-icon" aria-hidden>
+    <Icon size={size} strokeWidth={2} />
+  </span>
+)
 
 const API_TYPES = [
   { value: 'openai-completions', label: 'OpenAI 兼容' },
@@ -251,6 +306,8 @@ export function SettingsPage() {
   /** 独立向量模型区块：渠道 + 该渠道向量模型 */
   const [vectorChannel, setVectorChannel] = useState('')
   const [vectorModelId, setVectorModelId] = useState('')
+  /** 独立向量模型卡片：默认折叠，点头部展开/收起 */
+  const [vectorOpen, setVectorOpen] = useState(false)
   // 自动更新：检查中状态（由全局 UpdateChecker 同步）；对话框/Toast 由全局处理
   const [updateChecking, setUpdateChecking] = useState(false)
   const autoPullRef = useRef<string>('')
@@ -1106,6 +1163,7 @@ export function SettingsPage() {
           {tab === 'general' && (
             <div className="settings-list">
               <div className="settings-item">
+                <SIcon icon={Languages} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('common.language')}</div>
                   <div className="settings-item-desc">{t('settings.langDesc')}</div>
@@ -1124,6 +1182,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={Palette} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.theme')}</div>
                 </div>
@@ -1142,6 +1201,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item settings-item-stack">
+                <SIcon icon={DatabaseBackup} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.backupTitle')}</div>
                   <div className="settings-item-desc">{t('settings.backupDesc')}</div>
@@ -1204,51 +1264,76 @@ export function SettingsPage() {
 
               {channelCards}
 
-              {/* 独立向量模型区块：与对话模型分开配置 */}
+              {/* 独立向量模型区块：与对话模型分开配置，可折叠卡片（默认折叠） */}
               <div className="provider-section-head" style={{ marginTop: 20 }}>
                 <h3 className="settings-subhead">{t('settings.vectorSectionTitle')}</h3>
               </div>
-              <div className="surface-inset">
-                <div>
-                  <label className="field-label">{t('settings.vectorChannel')}</label>
-                  <Select
-                    fullWidth
-                    value={vectorChannel}
-                    onChange={(v) => {
-                      setVectorChannel(v)
-                      setVectorModelId('')
-                    }}
-                    options={[
-                      { value: '', label: t('settings.vectorChannelNone'), meta: '' },
-                      ...channels.map((c) => ({ value: c.name, label: c.name, meta: c.name })),
-                    ]}
-                  />
-                </div>
-                <div>
-                  <label className="field-label">{t('settings.vectorModel')}</label>
-                  <Select
-                    fullWidth
-                    value={vectorModelId}
-                    onChange={(v) => setVectorModelId(v)}
-                    disabled={!vectorChannel}
-                    options={[
-                      { value: '', label: t('settings.embeddingNone'), meta: '' },
-                      ...(channels.find((c) => c.name === vectorChannel)?.models.map((m) => ({
-                        value: m.id,
-                        label: m.name || m.id,
-                        meta: vectorChannel,
-                      })) ?? []),
-                    ]}
-                  />
-                  <p className="settings-item-desc" style={{ marginTop: 6 }}>
-                    {t('settings.embeddingModelHint')}
-                  </p>
-                </div>
-                <div className="form-actions">
-                  <button type="button" className="btn btn-primary" onClick={() => void saveVectorModel()}>
-                    {t('settings.vectorSave')}
-                  </button>
-                </div>
+              <div className="vector-card">
+                <button
+                  type="button"
+                  className="vector-card-head"
+                  aria-expanded={vectorOpen}
+                  onClick={() => setVectorOpen((v) => !v)}
+                >
+                  <span className="vector-card-icon" aria-hidden>
+                    <BrainCog size={16} strokeWidth={2} />
+                  </span>
+                  <span className="vector-card-title">{t('settings.vectorSectionTitle')}</span>
+                  <span className="vector-card-summary">
+                    {vectorChannel
+                      ? vectorModelId
+                        ? `${vectorChannel} · ${vectorModelId}`
+                        : vectorChannel
+                      : t('settings.vectorChannelNone')}
+                  </span>
+                  <span className={`vector-card-chev${vectorOpen ? ' is-open' : ''}`} aria-hidden>
+                    <ChevronDown size={16} strokeWidth={2} />
+                  </span>
+                </button>
+                {vectorOpen ? (
+                  <div className="vector-card-body surface-inset">
+                    <div>
+                      <label className="field-label">{t('settings.vectorChannel')}</label>
+                      <Select
+                        fullWidth
+                        value={vectorChannel}
+                        onChange={(v) => {
+                          setVectorChannel(v)
+                          setVectorModelId('')
+                        }}
+                        options={[
+                          { value: '', label: t('settings.vectorChannelNone'), meta: '' },
+                          ...channels.map((c) => ({ value: c.name, label: c.name, meta: c.name })),
+                        ]}
+                      />
+                    </div>
+                    <div>
+                      <label className="field-label">{t('settings.vectorModel')}</label>
+                      <Select
+                        fullWidth
+                        value={vectorModelId}
+                        onChange={(v) => setVectorModelId(v)}
+                        disabled={!vectorChannel}
+                        options={[
+                          { value: '', label: t('settings.embeddingNone'), meta: '' },
+                          ...(channels.find((c) => c.name === vectorChannel)?.models.map((m) => ({
+                            value: m.id,
+                            label: m.name || m.id,
+                            meta: vectorChannel,
+                          })) ?? []),
+                        ]}
+                      />
+                      <p className="settings-item-desc" style={{ marginTop: 6 }}>
+                        {t('settings.embeddingModelHint')}
+                      </p>
+                    </div>
+                    <div className="form-actions">
+                      <button type="button" className="btn btn-primary" onClick={() => void saveVectorModel()}>
+                        {t('settings.vectorSave')}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               {showAdd ? (
@@ -1447,6 +1532,7 @@ export function SettingsPage() {
           {tab === 'ui' && (
             <div className="settings-list">
               <div className="settings-item">
+                <SIcon icon={Rows3} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.density')}</div>
                 </div>
@@ -1465,6 +1551,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={EyeOff} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.blurNSFW')}</div>
                 </div>
@@ -1475,6 +1562,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={Clock} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.showTimestamps')}</div>
                 </div>
@@ -1490,6 +1578,7 @@ export function SettingsPage() {
           {tab === 'reading' && (
             <div className="settings-list">
               <div className="settings-item">
+                <SIcon icon={Highlighter} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readColorize')}</div>
                   <div className="settings-item-desc">{t('settings.readColorizeDesc')}</div>
@@ -1505,6 +1594,7 @@ export function SettingsPage() {
                   key={id}
                   className={`settings-item${reading.colorizeEnabled ? '' : ' is-dimmed'}`}
                 >
+                  <SIcon icon={RULE_ICONS[id]} />
                   <div className="settings-item-main">
                     <div className="settings-item-title">{t(RULE_LABEL_KEY[id])}</div>
                   </div>
@@ -1532,6 +1622,7 @@ export function SettingsPage() {
               ))}
 
               <div className="settings-item">
+                <SIcon icon={Type} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readFontFamily')}</div>
                 </div>
@@ -1551,6 +1642,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={TextCursorInput} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readFontSize')}</div>
                 </div>
@@ -1565,6 +1657,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={AlignJustify} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readLineHeight')}</div>
                 </div>
@@ -1579,6 +1672,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={StretchHorizontal} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readWidth')}</div>
                 </div>
@@ -1602,6 +1696,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={Minus} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readCompressBlank')}</div>
                   <div className="settings-item-desc">{t('settings.readCompressBlankDesc')}</div>
@@ -1613,6 +1708,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={GripHorizontal} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readParagraphGap')}</div>
                 </div>
@@ -1632,6 +1728,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={IndentIncrease} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readFirstIndent')}</div>
                 </div>
@@ -1643,6 +1740,7 @@ export function SettingsPage() {
               </div>
 
               <div className="settings-item">
+                <SIcon icon={RotateCcw} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readColors')}</div>
                 </div>
@@ -1659,6 +1757,7 @@ export function SettingsPage() {
                 </button>
               </div>
               <div className="settings-item">
+                <SIcon icon={FileText} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readColorBody')}</div>
                 </div>
@@ -1671,6 +1770,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={Layers} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readColorSurface')}</div>
                 </div>
@@ -1683,6 +1783,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={Pin} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.readStickyChapter')}</div>
                   <div className="settings-item-desc">{t('settings.readStickyChapterDesc')}</div>
@@ -1729,6 +1830,7 @@ export function SettingsPage() {
                 </div>
               ) : null}
               <div className="settings-item">
+                <SIcon icon={ChevronsDown} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.autoScroll')}</div>
                 </div>
@@ -1739,6 +1841,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={Waves} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.streamReply')}</div>
                   <div className="settings-item-desc">{t('settings.streamReplyDesc')}</div>
@@ -1750,6 +1853,7 @@ export function SettingsPage() {
                 />
               </div>
               <div className="settings-item">
+                <SIcon icon={Send} />
                 <div className="settings-item-main">
                   <div className="settings-item-title">{t('settings.enterSend')}</div>
                   <div className="settings-item-desc">{t('settings.enterSendDesc')}</div>
@@ -1789,6 +1893,7 @@ export function SettingsPage() {
               <h3 className="settings-subhead">{t('settings.agentBehavior')}</h3>
               <div className="settings-list" style={{ marginTop: 8 }}>
                 <div className="settings-item">
+                  <SIcon icon={Sparkles} />
                   <div className="settings-item-main">
                     <div className="settings-item-title">{t('settings.creationMode')}</div>
                     <div className="settings-item-desc">{t('settings.creationModeDesc')}</div>
@@ -1804,6 +1909,7 @@ export function SettingsPage() {
                   />
                 </div>
                 <div className="settings-item">
+                  <SIcon icon={PenLine} />
                   <div className="settings-item-main">
                     <div className="settings-item-title">{t('settings.narrativeLength')}</div>
                     <div className="settings-item-desc">{t('settings.narrativeLengthDesc')}</div>
@@ -1851,6 +1957,7 @@ export function SettingsPage() {
                   </div>
                 ) : null}
                 <div className="settings-item">
+                  <SIcon icon={Lock} />
                   <div className="settings-item-main">
                     <div className="settings-item-title">{t('settings.narrativeLengthHardCap')}</div>
                     <div className="settings-item-desc">{t('settings.narrativeLengthHardCapDesc')}</div>
@@ -1862,6 +1969,7 @@ export function SettingsPage() {
                   />
                 </div>
                 <div className="settings-item">
+                  <SIcon icon={ServerCog} />
                   <div className="settings-item-main">
                     <div className="settings-item-title">{t('settings.backendControl')}</div>
                     <div className="settings-item-desc">{t('settings.backendControlDesc')}</div>
@@ -1873,6 +1981,7 @@ export function SettingsPage() {
                   />
                 </div>
                 <div className="settings-item">
+                  <SIcon icon={MessageCircle} />
                   <div className="settings-item-main">
                     <div className="settings-item-title">{t('settings.greeting')}</div>
                     <div className="settings-item-desc">{t('settings.greetingDesc')}</div>
@@ -1916,6 +2025,7 @@ export function SettingsPage() {
               <h3 className="settings-subhead">{t('settings.smartSearch')}</h3>
               <div className="settings-list" style={{ marginTop: 8 }}>
                 <div className="settings-item">
+                  <SIcon icon={Search} />
                   <div className="settings-item-main">
                     <div className="settings-item-title">{t('settings.smartSearchEnabled')}</div>
                     <div className="settings-item-desc">{t('settings.smartSearchEnabledDesc')}</div>
@@ -2060,17 +2170,20 @@ export function SettingsPage() {
               </div>
               <p>{t('settings.aboutText')}</p>
               <div className="chip">
-                {t('settings.version')} 2.0.0-alpha.1 · mobile.66 · DrawDream Agent
+                {t('settings.version')} 2.0.0-alpha.1 · mobile.67 · DrawDream Agent
               </div>
               <div className="form-actions" style={{ marginTop: 12 }}>
                 <button
                   type="button"
-                  className="btn btn-primary btn-sm"
+                  className="learn-more update-learn"
                   disabled={updateChecking}
                   onClick={checkUpdate}
                 >
-                  <RefreshCw size={14} className={updateChecking ? 'is-spin' : ''} />
-                  {updateChecking ? t('settings.updating') : t('settings.checkUpdate')}
+                  <span className="circle" aria-hidden />
+                  <span className="button-text">
+                    <RefreshCw size={14} className={`update-learn-icon${updateChecking ? ' is-spin' : ''}`} />
+                    {updateChecking ? t('settings.updating') : t('settings.checkUpdate')}
+                  </span>
                 </button>
               </div>
               <div className="settings-list" style={{ marginTop: 16 }}>
@@ -2081,10 +2194,14 @@ export function SettingsPage() {
                   rel="noreferrer"
                   style={{ textDecoration: 'none', color: 'inherit' }}
                 >
+                  <SIcon icon={GitBranch} />
                   <div className="settings-item-main">
                     <div className="settings-item-title">GitHub</div>
                     <div className="settings-item-desc">github.com/RochelimitDawn/DrawDreamMAX</div>
                   </div>
+                  <span className="settings-link-go" aria-hidden>
+                    <ArrowUpRight size={16} />
+                  </span>
                 </a>
                 <a
                   className="settings-item"
@@ -2093,10 +2210,14 @@ export function SettingsPage() {
                   rel="noreferrer"
                   style={{ textDecoration: 'none', color: 'inherit' }}
                 >
+                  <SIcon icon={Package} />
                   <div className="settings-item-main">
                     <div className="settings-item-title">{t('settings.releases')}</div>
                     <div className="settings-item-desc">{t('settings.releasesDesc')}</div>
                   </div>
+                  <span className="settings-link-go" aria-hidden>
+                    <ArrowUpRight size={16} />
+                  </span>
                 </a>
               </div>
             </div>

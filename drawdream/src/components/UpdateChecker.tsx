@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Download } from 'lucide-react'
 import { ConfirmDialog } from './ConfirmDialog'
 import { toast } from '../utils/toast'
 import './UpdateChecker.css'
@@ -81,9 +82,17 @@ export function UpdateChecker() {
   return (
     <ConfirmDialog
       open={Boolean(info)}
-      title={t('settings.updateAvailable', { version: info?.tagName || '' })}
+      panelClassName="update-dialog"
+      title={t('settings.updateAvailable')}
       description={
         <div className="update-dialog-body">
+          <div className="update-dialog-version">
+            <span className="update-dialog-version-badge" aria-hidden>
+              <Download size={16} strokeWidth={2} />
+            </span>
+            <span className="update-dialog-version-tag">{info?.tagName}</span>
+            <span className="update-dialog-version-label">{t('settings.updateNewRelease')}</span>
+          </div>
           <div className="update-dialog-notes">
             {info?.notes ? (
               <span className="update-notes-pre">{info.notes}</span>

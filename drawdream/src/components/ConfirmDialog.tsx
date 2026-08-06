@@ -11,6 +11,7 @@ export type ConfirmDialogProps = {
   cancelLabel?: string
   danger?: boolean
   busy?: boolean
+  panelClassName?: string
   onConfirm: () => void
   onCancel: () => void
 }
@@ -23,6 +24,7 @@ export function ConfirmDialog({
   cancelLabel = '取消',
   danger = false,
   busy = false,
+  panelClassName,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -61,7 +63,7 @@ export function ConfirmDialog({
       <button type="button" className="dd-confirm-mask" aria-label={cancelLabel} onClick={() => !busy && onCancel()} />
       <div
         ref={panelRef}
-        className={`dd-confirm-panel ${danger ? 'is-danger' : ''}`}
+        className={`dd-confirm-panel ${danger ? 'is-danger' : ''}${panelClassName ? ` ${panelClassName}` : ''}`}
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
