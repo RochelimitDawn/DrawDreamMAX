@@ -12,6 +12,12 @@ export type ConfirmDialogProps = {
   danger?: boolean
   busy?: boolean
   panelClassName?: string
+  /** 点击遮罩是否关闭（默认 true） */
+  closeOnMask?: boolean
+  /** Escape 是否关闭（默认 true） */
+  closeOnEscape?: boolean
+  /** 是否隐藏左下角取消按钮（默认 false，仅保留右上角关闭） */
+  hideCancel?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
@@ -25,6 +31,9 @@ export function ConfirmDialog({
   danger = false,
   busy = false,
   panelClassName,
+  closeOnMask = true,
+  closeOnEscape = true,
+  hideCancel = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -40,13 +49,13 @@ export function ConfirmDialog({
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !busy) onCancel()
+      if (e.key === 'Escape' && !busy && closeOnEscape) onCancel()
     }
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
     }
-  }, [open, busy, onCancel])
+  }, [open, busy, closeOnEscape, onCancel])
 
   useEffect(() => {
     if (open) return
@@ -60,7 +69,12 @@ export function ConfirmDialog({
   // 挂到 body，避免被侧栏/主栏 stacking context 裁切，遮罩统一盖住整页
   return createPortal(
     <div className="dd-confirm-root" role="presentation">
-      <button type="button" className="dd-confirm-mask" aria-label={cancelLabel} onClick={() => !busy && onCancel()} />
+      <button
+        type="button"
+        className="dd-confirm-mask"
+        aria-label={cancelLabel}
+        onClick={() => !busy && closeOnMask && onCancel()}
+      />
       <div
         ref={panelRef}
         className={`dd-confirm-panel ${danger ? 'is-danger' : ''}${panelClassName ? ` ${panelClassName}` : ''}`}
@@ -82,9 +96,11 @@ export function ConfirmDialog({
           </div>
         ) : null}
         <div className="dd-confirm-actions">
-          <button type="button" className="btn btn-ghost" disabled={busy} onClick={onCancel}>
-            {cancelLabel}
-          </button>
+          {!hideCancel ? (
+            <button type="button" className="btn btn-ghost" disabled={busy} onClick={onCancel}>
+              {cancelLabel}
+            </button>
+          ) : null}
           <button
             type="button"
             className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`}

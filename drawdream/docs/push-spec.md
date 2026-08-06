@@ -8,6 +8,15 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.72 变更摘要
+
+1. **更新弹窗锁定关闭**
+   - `ConfirmDialog` 新增 `closeOnMask` / `closeOnEscape` / `hideCancel` 可选 props（默认行为不变，不影响其他调用点）
+   - `UpdateChecker` 更新弹窗启用锁定：只能通过右上角关闭按钮关闭，点击遮罩、Escape、取消按钮均不关闭，避免等待更新结果时误触关闭
+
+2. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.72` 触发 APK workflow
+
 ## mobile.71 变更摘要
 
 1. **思考探测适配真实端点**

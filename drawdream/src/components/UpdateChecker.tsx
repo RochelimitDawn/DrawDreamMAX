@@ -102,6 +102,9 @@ export function UpdateChecker() {
       open={Boolean(info)}
       busy={downloading}
       panelClassName="update-dialog"
+      closeOnMask={false}
+      closeOnEscape={false}
+      hideCancel
       title={downloading ? t('settings.updateDownloadingTitle') : t('settings.updateAvailable')}
       description={
         <div className="update-dialog-body">
