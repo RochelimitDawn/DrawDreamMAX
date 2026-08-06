@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.66`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.67`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.66` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.67` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.66
+└── package.json         # 2.0.0-alpha.1-mobile.67
 ```
 
 ```text
@@ -115,7 +115,16 @@ drawdream/
 
 ---
 
-## 本版要点（mobile.66）
+## 本版要点（mobile.67）
+
+- **子 agent 结果聚合**：主助手不再逐条接收子 agent 完成消息（避免产生多段对话），改为全部子 agent 终态后一次性汇总注入，由主助手整合进最终回复
+- **检查更新按钮响应式**：手机端（≤899px）采用 Uiverse「learn-more」圆钮展开风格；平板/桌面（≥900px）保持便当盒按钮外观
+- **升级对话框品牌化**：暖金描边 + 顶部光晕，下载徽章 + 版本号 chip + Release notes 卡片化
+- **设置页便当盒升级**：所有便当盒卡片左上角新增主题小图标；卡片尺寸收紧；左下角改为向内折角异形卡片（其余圆角）
+- **向量模型折叠卡片**：向量模型配置改为可折叠卡片，默认折叠，点击头部展开/收起
+- 移除任务清单 / 子拓展折叠按钮右侧脉冲点
+- 子拓展结果改为 Markdown 渲染、终态时长固定不再增长
+- 继承 mobile.66：自动更新、对话框玻璃态、子拓展并行编排、向量模型独立配置、思考档位自动应用
 
 - **自动更新**：通过 GitHub Releases API 检查新版本，启动后静默检查（有新版本才提示），设置页「关于」提供手动「检查更新」；下载 APK 并对照 SHA256SUMS.txt 校验后拉起系统安装器，确认对话框展示 Release notes
 - 继承 mobile.65：子拓展并行编排、对话框玻璃态、向量模型独立配置、思考档位自动应用

@@ -8,6 +8,29 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.67 变更摘要
+
+1. **子 agent 结果聚合**
+   - 主助手不再逐条接收子 agent 完成/失败消息（消除多段对话）：`server/assistant.ts` 改为聚合缓冲，全部子 agent 终态后一次性汇总注入主助手会话，由主助手整合进最终回复
+   - 流式中自动排队（followUp），flush 期间新完成的结果继续补一次汇总
+
+2. **设置页便当盒升级**
+   - 所有便当盒卡片左上角新增主题小图标（`settings-item-icon`），链接卡（GitHub/Releases）追加跳转标记
+   - 卡片尺寸收紧（min-height 112→84，main flex-basis 修复为 auto，Slider 卡不再被拉伸为 140px 方形）
+   - 左下角改为向内折角异形卡片（`::after` 渐变折角 + 折痕斜线），其余角保持圆角
+   - 向量模型配置改为可折叠卡片（`vector-card`，默认折叠，点击头部展开/收起，显示当前配置摘要）
+
+3. **检查更新按钮 / 升级对话框**
+   - 手机端（≤899px）检查更新按钮改 Uiverse「learn-more」圆钮展开风格，触屏常驻展开态；平板/桌面（≥900px）保持便当盒按钮外观
+   - 升级确认对话框品牌化：暖金描边 + 顶部光晕，下载徽章 + 版本号 chip + Release notes 卡片化（`ConfirmDialog` 新增 `panelClassName`）
+
+4. **交互细节**
+   - 移除任务清单 / 子拓展折叠按钮右侧脉冲点
+   - 子拓展结果改为 Markdown 渲染（RichMessage mdOnly）、终态时长固定
+
+5. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.67` 触发 APK workflow
+
 ## mobile.66 变更摘要
 
 1. **自动更新（GitHub Releases API）**
