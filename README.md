@@ -293,7 +293,7 @@ DrawDreamMAX/
 
 ## Stars 与增长
 
-> Star History 依赖 **公开仓库** 与 `api.star-history.com`。私有或 API 不可用时图可能空白，可打开 [Star History 页面](https://star-history.com/#RochelimitDawn/DrawDreamMAX&Date)。
+> 可打开 [Star History 页面](https://star-history.com/#RochelimitDawn/DrawDreamMAX&Date)。
 
 <div align="center">
 
