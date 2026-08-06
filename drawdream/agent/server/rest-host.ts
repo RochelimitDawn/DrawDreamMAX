@@ -312,10 +312,11 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 			const m = session.modelRegistry.find(provider, id);
 			if (!m) throw new Error(`模型不存在：${provider}/${id}`);
 			await session.setModel(m);
-			// 主动探测该模型真实支持的思考档位（缓存 + 防并发重入）
+			// 主动探测该模型真实支持的思考档位（缓存 + 防并发重入）。
+			// 不依赖 reasoning 标志：未标记的模型也尝试探测，由真实端点决定（命中缓存/无 Key 时零成本）。
 			const cacheKey = probeCacheKey(provider, id);
 			const cached = thinkingProbeCache.get(cacheKey);
-			if (m.reasoning && !cached && !probingSet.has(cacheKey)) {
+			if (!cached && !probingSet.has(cacheKey)) {
 				probingSet.add(cacheKey);
 				void (async () => {
 					try {
@@ -345,9 +346,8 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 				| { reasoning?: boolean; thinkingLevelMap?: unknown }
 				| null;
 			if (!m) throw new Error(`模型不存在：${prov}/${mid}`);
-			if (!m.reasoning) {
-				return { current: currentModelInfo()!, levels: [], reason: "no-reasoning" };
-			}
+			// 显式探测：不设 reasoning 前置门槛，对任何模型真实发起探测，
+			// 由端点响应的档位接受情况决定是否支持思考。
 			const r = await runThinkingProbe(prov, mid);
 			if (r.levels.length) {
 				applyLowestThinkingLevel(prov, mid, r.levels);

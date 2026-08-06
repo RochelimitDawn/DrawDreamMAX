@@ -118,20 +118,20 @@ test("probeThinking：无默认模型时抛出「尚未选择默认模型」", a
 	}
 });
 
-test("probeThinking：模型不支持思考 → no-reasoning，且不修改档位", async () => {
+test("probeThinking：模型未标记 reasoning 且无 Key → no-config（不再被 reasoning 门控拦截）", async () => {
 	const cwd = makeCwd();
 	try {
 		writeFileSync(
 			join(cwd, AGENT_CONFIG_FILE),
 			JSON.stringify({
 				version: 1,
-				providers: { deepseek: { baseUrl: "https://api.deepseek.com", apiKey: "sk-test", models: [{ id: "deepseek-chat", reasoning: false }] } },
+				providers: { deepseek: { baseUrl: "https://api.deepseek.com", models: [{ id: "deepseek-chat", name: "Chat" }] } },
 			}),
 		);
-		const session = makeSession({ provider: "deepseek", id: "deepseek-chat", name: "Chat", reasoning: false });
+		const session = makeSession({ provider: "deepseek", id: "deepseek-chat", name: "Chat" });
 		const host = createRestHost(makeDeps(cwd, session));
 		const r = await host.probeThinking();
-		assert.equal(r.reason, "no-reasoning");
+		assert.equal(r.reason, "no-config");
 		assert.equal(r.levels.length, 0);
 		assert.equal(session.thinkingLevel, "low");
 	} finally {
