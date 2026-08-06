@@ -84,6 +84,12 @@ export async function handleAgentRoutes(ctx: RouteCtx): Promise<boolean> {
 				sendJson(res, 200, { current: host.setThinkingLevel(body.level) });
 				return true;
 			}
+			case "POST /api/models/probe-thinking": {
+				if (refuseWhileStreaming()) return true;
+				const body = JSON.parse(await readBody(req)) as { provider?: string; id?: string };
+				sendJson(res, 200, await host.probeThinking(body.provider, body.id));
+				return true;
+			}
 
 			// ---- API 连接 ----
 			case "GET /api/auth": {

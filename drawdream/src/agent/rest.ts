@@ -825,6 +825,22 @@ export async function setThinkingLevel(level: string): Promise<CurrentModelInfo>
   return r as CurrentModelInfo
 }
 
+export interface ProbeThinkingResult {
+  current: CurrentModelInfo
+  levels: string[]
+  reason: string
+}
+
+/** 显式探测默认模型（或指定模型）的真实思考档位，成功即应用最低档 */
+export async function probeThinking(
+  provider?: string,
+  id?: string,
+): Promise<ProbeThinkingResult> {
+  return apiPost<ProbeThinkingResult>('/api/models/probe-thinking', {
+    ...(provider && id ? { provider, id } : {}),
+  })
+}
+
 export interface CommandMeta {
   name: string
   usage: string

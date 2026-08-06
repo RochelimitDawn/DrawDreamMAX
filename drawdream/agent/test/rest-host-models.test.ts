@@ -9,7 +9,8 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { collectEmbeddingModelKeys } from "../server/rest-host.ts";
+import { collectEmbeddingModelKeys, createRestHost } from "../server/rest-host.ts";
+import type { RestHostDeps, RestHostSession } from "../server/rest-host.ts";
 import { AGENT_CONFIG_FILE } from "../src/agent-config.ts";
 
 function makeCwd(): string {
@@ -62,4 +63,98 @@ test("collectEmbeddingModelKeys：无 embedding 标记返回空集合；配置�
 	}
 	// 无配置文件
 	assert.equal(collectEmbeddingModelKeys(makeCwd()).size, 0);
+});
+
+function makeSession(model: RestHostSession["model"]): RestHostSession {
+	const session = {
+		model,
+		thinkingLevel: "low",
+		getAvailableThinkingLevels: () => [],
+		modelRegistry: {
+			getAvailable: () => [],
+			getAll: () => [],
+			getProviderDisplayName: () => "DeepSeek",
+			getProviderAuthStatus: () => ({ configured: false }),
+			authStorage: { hasAuth: () => false, set: () => {}, remove: () => {} },
+			find: () => model,
+			refresh: () => {},
+		},
+		setModel: async () => {},
+		setThinkingLevel: (lvl: never) => {
+			session.thinkingLevel = lvl as string;
+		},
+	} as RestHostSession;
+	return session;
+}
+
+function makeDeps(cwd: string, session: RestHostSession): RestHostDeps {
+	return {
+		getCwd: () => cwd,
+		getSession: () => session,
+		switchSession: async () => null,
+		newSession: async () => null,
+		broadcast: () => {},
+		resyncAll: () => {},
+		refreshNamesFromConfig: () => {},
+		handlePrompt: async () => {},
+		listSessionsFrame: async () => ({}) as never,
+		sessionInfos: async () => [],
+		assertListedSession: async () => null,
+		cardCache: {} as never,
+		previewCache: {} as never,
+		sessionCard: () => null,
+		stateDir: "",
+		artifactsDir: "",
+	};
+}
+
+test("probeThinking：无默认模型时抛出「尚未选择默认模型」", async () => {
+	const cwd = makeCwd();
+	try {
+		const host = createRestHost(makeDeps(cwd, makeSession(null)));
+		await assert.rejects(() => host.probeThinking(), /尚未选择默认模型/);
+	} finally {
+		rmSync(cwd, { recursive: true, force: true });
+	}
+});
+
+test("probeThinking：模型不支持思考 → no-reasoning，且不修改档位", async () => {
+	const cwd = makeCwd();
+	try {
+		writeFileSync(
+			join(cwd, AGENT_CONFIG_FILE),
+			JSON.stringify({
+				version: 1,
+				providers: { deepseek: { baseUrl: "https://api.deepseek.com", apiKey: "sk-test", models: [{ id: "deepseek-chat", reasoning: false }] } },
+			}),
+		);
+		const session = makeSession({ provider: "deepseek", id: "deepseek-chat", name: "Chat", reasoning: false });
+		const host = createRestHost(makeDeps(cwd, session));
+		const r = await host.probeThinking();
+		assert.equal(r.reason, "no-reasoning");
+		assert.equal(r.levels.length, 0);
+		assert.equal(session.thinkingLevel, "low");
+	} finally {
+		rmSync(cwd, { recursive: true, force: true });
+	}
+});
+
+test("probeThinking：渠道无实值 API Key → no-config", async () => {
+	const cwd = makeCwd();
+	try {
+		writeFileSync(
+			join(cwd, AGENT_CONFIG_FILE),
+			JSON.stringify({
+				version: 1,
+				providers: { deepseek: { baseUrl: "https://api.deepseek.com", models: [{ id: "deepseek-chat", reasoning: true }] } },
+			}),
+		);
+		const session = makeSession({ provider: "deepseek", id: "deepseek-chat", name: "Chat", reasoning: true });
+		const host = createRestHost(makeDeps(cwd, session));
+		const r = await host.probeThinking();
+		assert.equal(r.reason, "no-config");
+		assert.equal(r.levels.length, 0);
+	} finally {
+		rmSync(cwd, { recursive: true, force: true });
+	}
 });

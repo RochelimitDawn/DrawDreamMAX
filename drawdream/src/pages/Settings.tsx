@@ -61,6 +61,7 @@ import {
   fetchConfig,
   fetchModels,
   putConfig,
+  probeThinking,
   selectModel,
   setThinkingLevel,
   testChannel,
@@ -308,6 +309,9 @@ export function SettingsPage() {
   const [vectorModelId, setVectorModelId] = useState('')
   /** 独立向量模型卡片：默认折叠，点头部展开/收起 */
   const [vectorOpen, setVectorOpen] = useState(false)
+  /** 思考强度显式探测：目标 = 默认模型（current） */
+  const [probingThinking, setProbingThinking] = useState(false)
+  const [thinkingProbeMsg, setThinkingProbeMsg] = useState<{ ok: boolean; text: string } | null>(null)
   // 自动更新：检查中状态（由全局 UpdateChecker 同步）；对话框/Toast 由全局处理
   const [updateChecking, setUpdateChecking] = useState(false)
   const autoPullRef = useRef<string>('')
@@ -598,6 +602,37 @@ export function SettingsPage() {
       }
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'error')
+    }
+  }
+
+  /** 显式探测默认模型的真实思考档位：成功应用最低档并同步思考控件 */
+  const runThinkingProbe = async () => {
+    setProbingThinking(true)
+    setThinkingProbeMsg(null)
+    try {
+      const r = await probeThinking()
+      setCurrent(r.current)
+      setAvailableLevels(r.current.availableLevels ?? [])
+      setThinking(mapThinkingFromAgent(r.current.thinkingLevel))
+      if (r.reason === 'probe' || r.reason === 'cache') {
+        setThinkingProbeMsg({
+          ok: true,
+          text: t('settings.thinkingProbeOk', {
+            levels: r.levels.length ? r.levels.join(' / ') : '—',
+            level: r.current.thinkingLevel,
+          }),
+        })
+      } else if (r.reason === 'no-config') {
+        setThinkingProbeMsg({ ok: false, text: t('settings.thinkingProbeNoConfig') })
+      } else if (r.reason === 'no-reasoning') {
+        setThinkingProbeMsg({ ok: false, text: t('settings.thinkingProbeNoReasoning') })
+      } else {
+        setThinkingProbeMsg({ ok: false, text: t('settings.thinkingProbeFail') })
+      }
+    } catch (e) {
+      setThinkingProbeMsg({ ok: false, text: e instanceof Error ? e.message : String(e) })
+    } finally {
+      setProbingThinking(false)
     }
   }
 
@@ -1263,6 +1298,42 @@ export function SettingsPage() {
               </div>
 
               {channelCards}
+
+              {/* 思考强度显式探测：默认探测默认模型 */}
+              <div className="provider-section-head" style={{ marginTop: 20 }}>
+                <h3 className="settings-subhead">{t('settings.thinkingProbeTitle')}</h3>
+              </div>
+              <div className="thinking-probe-panel">
+                <div className="thinking-probe-main">
+                  <div className="thinking-probe-target">
+                    <span className="thinking-probe-label">{t('settings.thinkingProbeTarget')}</span>
+                    <span className="thinking-probe-value">
+                      {current ? `${current.provider}/${current.id}` : t('settings.noModelSelected')}
+                    </span>
+                  </div>
+                  <p className="settings-item-desc">{t('settings.thinkingProbeDesc')}</p>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={probingThinking || !current}
+                  onClick={() => void runThinkingProbe()}
+                >
+                  <RefreshCw size={14} className={probingThinking ? 'is-spin' : ''} />
+                  {probingThinking ? t('settings.thinkingProbing') : t('settings.thinkingProbe')}
+                </button>
+                {thinkingProbeMsg ? (
+                  <div className={`probe-result ${thinkingProbeMsg.ok ? 'is-ok' : 'is-fail'}`}>
+                    <Activity size={16} />
+                    <div>
+                      <strong>
+                        {thinkingProbeMsg.ok ? t('settings.testOk') : t('settings.testFail')}
+                      </strong>
+                      <p>{thinkingProbeMsg.text}</p>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
 
               {/* 独立向量模型区块：与对话模型分开配置，可折叠卡片（默认折叠） */}
               <div className="provider-section-head" style={{ marginTop: 20 }}>
@@ -2170,7 +2241,7 @@ export function SettingsPage() {
               </div>
               <p>{t('settings.aboutText')}</p>
               <div className="chip">
-                {t('settings.version')} 2.0.0-alpha.1 · mobile.67 · DrawDream Agent
+                {t('settings.version')} 2.0.0-alpha.1 · mobile.68 · DrawDream Agent
               </div>
               <div className="form-actions" style={{ marginTop: 12 }}>
                 <button

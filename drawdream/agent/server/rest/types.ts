@@ -72,6 +72,15 @@ export interface RestHost {
 	listModels(): { current: CurrentModelInfo | null; models: ModelInfo[] };
 	selectModel(provider: string, id: string): Promise<CurrentModelInfo>;
 	setThinkingLevel(level: string): CurrentModelInfo;
+	/**
+	 * 显式探测指定模型（缺省当前默认模型）的真实思考档位，成功即缓存并应用最低档。
+	 * 返回 reason：probe=探测成功 / cache=命中缓存 / no-config=渠道无 Key / no-reasoning=模型不支持 / probe-fail=探测失败。
+	 */
+	probeThinking(provider?: string, id?: string): Promise<{
+		current: CurrentModelInfo;
+		levels: string[];
+		reason: string;
+	}>;
 	authProviders(): AuthProviderInfo[];
 	setAuthKey(provider: string, key: string): void;
 	removeAuth(provider: string): void;

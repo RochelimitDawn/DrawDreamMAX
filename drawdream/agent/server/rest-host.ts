@@ -238,6 +238,49 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 		};
 	};
 
+	/**
+	 * 对指定模型执行思考档位探测（同步等待真实探测完成）：
+	 * - 命中缓存直接返回（成功缓存会话期内持久）
+	 * - 渠道无实值 Key → reason "no-config"
+	 * - 探测失败 → reason "probe-fail"
+	 * 成功后写入缓存并返回可用档位；调用方决定是否应用最低档。
+	 */
+	const runThinkingProbe = async (provider: string, id: string): Promise<{ levels: string[]; reason: string }> => {
+		const session = deps.getSession();
+		const m = session.modelRegistry.find(provider, id) as
+			| { reasoning?: boolean; thinkingLevelMap?: unknown }
+			| null;
+		if (!m) return { levels: [], reason: "no-model" };
+		const cacheKey = probeCacheKey(provider, id);
+		const cached = thinkingProbeCache.get(cacheKey);
+		if (cached && cached.length) return { levels: cached, reason: "cache" };
+		const target = probeTargetFromConfig(deps.getCwd(), provider, id);
+		if (!target) return { levels: [], reason: "no-config" };
+		const map = builtinThinkingMap(m);
+		const levels = map ? Object.keys(map) : (["off", "low", "medium", "high"] as const);
+		const r = await probeThinkingLevels({ ...target, modelId: id }, levels);
+		if (r.reason === "probe" && r.accepted.length) {
+			thinkingProbeCache.set(cacheKey, r.accepted);
+			return { levels: r.accepted, reason: "probe" };
+		}
+		return { levels: [], reason: "probe-fail" };
+	};
+
+	/** 应用最低可用档位（排除 off；无则第一档），仅当目标仍是当前模型时生效 */
+	const applyLowestThinkingLevel = (provider: string, id: string, levels: string[]): void => {
+		const best = levels.find((l) => l !== "off") ?? levels[0];
+		if (!best) return;
+		try {
+			const s = deps.getSession();
+			const cur = s.model;
+			if (cur && cur.provider === provider && cur.id === id) {
+				s.setThinkingLevel(best as never);
+			}
+		} catch {
+			/* 档位不适配时保持当前 */
+		}
+	};
+
 	return {
 		get cwd() {
 			return deps.getCwd();
@@ -274,30 +317,12 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 			const cached = thinkingProbeCache.get(cacheKey);
 			if (m.reasoning && !cached && !probingSet.has(cacheKey)) {
 				probingSet.add(cacheKey);
-				const target = probeTargetFromConfig(deps.getCwd(), provider, id);
 				void (async () => {
 					try {
-						if (target) {
-							const map = builtinThinkingMap(m);
-							const levels = map ? Object.keys(map) : (["off", "low", "medium", "high"] as const);
-							const r = await probeThinkingLevels({ ...target, modelId: id }, levels);
-							if (r.reason === "probe" && r.accepted.length) {
-								thinkingProbeCache.set(cacheKey, r.accepted);
-								// 探测成功即自动应用「最低可用档位」（排除 off；无则取第一档），
-								// 减少 token 消耗，用户仍可手动调高。
-								const best = r.accepted.find((l) => l !== "off") ?? r.accepted[0];
-								if (best) {
-									try {
-										const s = deps.getSession();
-										const cur = s.model;
-										if (cur && cur.provider === provider && cur.id === id) {
-											s.setThinkingLevel(best as never);
-										}
-									} catch {
-										/* 档位不适配时保持当前 */
-									}
-								}
-							}
+						const r = await runThinkingProbe(provider, id);
+						if (r.reason === "probe" && r.levels.length) {
+							// 探测成功即自动应用「最低可用档位」（排除 off），减少 token 消耗，用户仍可手动调高。
+							applyLowestThinkingLevel(provider, id, r.levels);
 						}
 					} finally {
 						probingSet.delete(cacheKey);
@@ -307,6 +332,29 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 			const current = currentModelInfo();
 			if (!current) throw new Error("模型切换后状态异常");
 			return current;
+		},
+		async probeThinking(provider, id) {
+			const session = deps.getSession();
+			const cur = session.model;
+			const prov = provider ?? cur?.provider;
+			const mid = id ?? cur?.id;
+			if (!prov || !mid || prov === "unknown" || mid === "unknown") {
+				throw new Error("尚未选择默认模型");
+			}
+			const m = session.modelRegistry.find(prov, mid) as
+				| { reasoning?: boolean; thinkingLevelMap?: unknown }
+				| null;
+			if (!m) throw new Error(`模型不存在：${prov}/${mid}`);
+			if (!m.reasoning) {
+				return { current: currentModelInfo()!, levels: [], reason: "no-reasoning" };
+			}
+			const r = await runThinkingProbe(prov, mid);
+			if (r.levels.length) {
+				applyLowestThinkingLevel(prov, mid, r.levels);
+			}
+			const current = currentModelInfo();
+			if (!current) throw new Error("模型状态异常");
+			return { current, levels: r.levels, reason: r.reason };
 		},
 		setThinkingLevel(level) {
 			const session = deps.getSession();
