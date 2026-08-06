@@ -82,19 +82,20 @@ object AppUpdater {
         }
     }
 
-    /** 下载 APK → 校验 SHA256 → 拉起系统安装器；回调 (成功, 错误信息) */
+    /** 下载 APK → 校验 SHA256 → 拉起系统安装器；onProgress 报告 0..1，回调 (成功, 错误信息) */
     fun downloadAndInstall(
         context: Context,
         tagName: String,
         downloadUrl: String,
         sumsUrl: String?,
+        onProgress: (Float) -> Unit,
         onDone: (Boolean, String?) -> Unit,
     ) {
         exec.execute {
             try {
                 val dir = File(context.cacheDir, UPDATE_DIR).apply { mkdirs() }
                 val apk = File(dir, "app-$tagName.apk")
-                httpDownload(downloadUrl, apk)
+                httpDownload(downloadUrl, apk, onProgress)
 
                 // 校验：有 SHA256SUMS.txt 时对照，不匹配则拒绝安装
                 if (!sumsUrl.isNullOrBlank()) {
@@ -162,8 +163,8 @@ object AppUpdater {
         }
     }
 
-    /** 流式下载到文件 */
-    private fun httpDownload(url: String, dest: File) {
+    /** 流式下载到文件，逐块报告进度（0..1；未知大小时不报进度） */
+    private fun httpDownload(url: String, dest: File, onProgress: (Float) -> Unit) {
         val conn = URL(url).openConnection() as HttpURLConnection
         try {
             conn.connectTimeout = 15000
@@ -173,8 +174,26 @@ object AppUpdater {
             if (conn.responseCode !in 200..299) {
                 throw IllegalStateException("HTTP ${conn.responseCode}")
             }
+            val total = conn.contentLengthLong
             conn.inputStream.use { input ->
-                FileOutputStream(dest).use { out -> input.copyTo(out) }
+                FileOutputStream(dest).use { out ->
+                    val buf = ByteArray(64 * 1024)
+                    var done = 0L
+                    var lastPct = -1
+                    while (true) {
+                        val n = input.read(buf)
+                        if (n < 0) break
+                        out.write(buf, 0, n)
+                        done += n
+                        if (total > 0) {
+                            val pct = (done * 100 / total).toInt()
+                            if (pct != lastPct) {
+                                lastPct = pct
+                                onProgress(done.toFloat() / total.toFloat())
+                            }
+                        }
+                    }
+                }
             }
         } finally {
             conn.disconnect()

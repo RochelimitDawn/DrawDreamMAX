@@ -135,13 +135,37 @@ class MainActivity : AppCompatActivity() {
                 toast("更新信息不完整")
                 return
             }
-            AppUpdater.downloadAndInstall(this@MainActivity, tagName, downloadUrl, sumsUrl) { ok, err ->
-                handler.post {
-                    if (ok) toast("更新已下载，请在系统安装界面完成安装")
-                    else toast("更新失败：${err ?: "未知错误"}")
-                }
-            }
+            AppUpdater.downloadAndInstall(
+                this@MainActivity,
+                tagName,
+                downloadUrl,
+                sumsUrl,
+                onProgress = { p ->
+                    handler.post { deliverUpdateProgress(p) }
+                },
+                onDone = { ok, err ->
+                    handler.post { deliverUpdateDone(ok, err) }
+                },
+            )
         }
+    }
+
+    /** 下载进度回传 JS（window.__ddUpdateProgress，百分比 0-100） */
+    private fun deliverUpdateProgress(p: Float) {
+        val pct = (p * 100).toInt().coerceIn(0, 100)
+        webView.evaluateJavascript(
+            "window.__ddUpdateProgress && window.__ddUpdateProgress($pct);",
+            null,
+        )
+    }
+
+    /** 下载完成回传 JS（window.__ddUpdateDownloadDone） */
+    private fun deliverUpdateDone(ok: Boolean, err: String?) {
+        val msgJson = org.json.JSONObject.quote(err ?: "")
+        webView.evaluateJavascript(
+            "window.__ddUpdateDownloadDone && window.__ddUpdateDownloadDone($ok, $msgJson);",
+            null,
+        )
     }
 
     /** 把更新检查结果回传给 JS（window.__ddUpdateResult） */
