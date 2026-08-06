@@ -9,7 +9,7 @@
 | 业务代码 | `drawdream/src`（UI）+ `drawdream/agent`（运行时） |
 | 壳与打包 | `drawdream/mobile` |
 | 端口 | **7620**（`/*` · `/api/*` · `/ws`） |
-| 当前规范 Release | **`v2.0.0-alpha.1-mobile.67`** |
+| 当前规范 Release | **`v2.0.0-alpha.1-mobile.68`** |
 
 UI 与 Agent **不是「可删除的网页版副本」**：它们是 APK 内本地 Node 拉起的前端与后端。桌面 `npm run dev` 仅用于构建与联调。
 
@@ -55,7 +55,7 @@ DrawDreamMAX/
 - **业务与协议只维护一份**（UI + agent）。
 - **平台差异集中在 `drawdream/mobile/`**。
 - 大体积产物（`runtime.zip`、`jniLibs/`、Node 二进制）不入库。
-- 远程默认分支仅为 **`main`**；当前发布版本为 `mobile.67`，旧版本历史已清理。
+- 远程默认分支仅为 **`main`**；当前发布版本为 `mobile.68`，旧版本历史已清理。
 
 ---
 
@@ -128,6 +128,7 @@ cd mobile/android
 - 检查更新按钮在 `≥900px` 使用便当盒按钮外观，`≤899px` 使用「learn-more」圆钮展开风格；升级确认对话框使用暖金品牌化面板（描边 + 顶部光晕 + 版本徽章 + Release notes 卡片）。
 - 任务清单 / 子拓展折叠区头部不显示脉冲点；子拓展结果以 Markdown 渲染，终态时长固定。
 - 主助手对子 agent 结果采用**聚合回传**：全部子 agent 终态后一次性注入，避免逐条完成产生多段对话。
+- 设置页「API」提供显式**「探测思考强度」**按钮：默认探测默认模型的真实思考档位，成功后自动应用最低档并启用思考强度控件；渠道无 Key / 模型不支持 / 探测失败均有明确提示。
 
 ---
 
@@ -180,7 +181,7 @@ git push origin v2.0.0-alpha.1-mobile.N
 | 类型 | 约定 |
 | --- | --- |
 | 产品版本 | `drawdream/package.json` → `2.0.0-alpha.1` |
-| 发布线 | 当前 `v2.0.0-alpha.1-mobile.67` Release |
+| 发布线 | 当前 `v2.0.0-alpha.1-mobile.68` Release |
 | 默认分支 | **`main` only** |
 | 历史 | 以当前发布 tag 和 mobile.30 稳定基线作为维护依据 |
 | 主维护面 | **移动端 APK** |
@@ -191,7 +192,7 @@ git push origin v2.0.0-alpha.1-mobile.N
 git checkout main
 git pull
 git describe --tags --exact-match
-# v2.0.0-alpha.1-mobile.67
+# v2.0.0-alpha.1-mobile.68
 ```
 
 ---

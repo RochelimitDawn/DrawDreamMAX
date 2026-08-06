@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.67`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.68`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.67` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.68` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.67
+└── package.json         # 2.0.0-alpha.1-mobile.68
 ```
 
 ```text
@@ -115,7 +115,10 @@ drawdream/
 
 ---
 
-## 本版要点（mobile.67）
+## 本版要点（mobile.68）
+
+- **思考强度显式探测**：模型设置页新增「探测思考强度」按钮，默认探测默认模型的真实思考档位，成功即缓存并自动应用最低档，思考强度控件立即可用；不再依赖后台静默探测，渠道无 Key / 模型不支持思考 / 探测失败均有明确提示
+- 继承 mobile.67：子 agent 结果聚合、设置页便当盒图标 + 左下角折角、向量模型折叠卡片、检查更新按钮响应式、升级对话框品牌化
 
 - **子 agent 结果聚合**：主助手不再逐条接收子 agent 完成消息（避免产生多段对话），改为全部子 agent 终态后一次性汇总注入，由主助手整合进最终回复
 - **检查更新按钮响应式**：手机端（≤899px）采用 Uiverse「learn-more」圆钮展开风格；平板/桌面（≥900px）保持便当盒按钮外观

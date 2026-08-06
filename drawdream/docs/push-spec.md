@@ -8,6 +8,18 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.68 变更摘要
+
+1. **思考强度显式探测（模型设置页）**
+   - 新增 `POST /api/models/probe-thinking`（`RestHost.probeThinking`）：显式探测默认模型（缺省）或指定模型的真实思考档位，同步等待探测完成
+   - 成功即写入会话期缓存并自动应用最低可用档位（排除 off），返回 `reason` 供前端提示：`probe`/`cache`/`no-config`/`no-reasoning`/`probe-fail`
+   - `selectModel` 静默探测重构复用 `runThinkingProbe` + `applyLowestThinkingLevel`
+   - 设置页 API tab 新增「探测思考强度」面板：显示当前默认模型，按钮触发探测，成功/失败结果内联展示并同步思考控件与可用档位
+   - `agent/test/rest-host-models.test.ts` 新增 3 用例（无默认模型抛错 / no-reasoning / no-config），5/5 通过
+
+2. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.68` 触发 APK workflow
+
 ## mobile.67 变更摘要
 
 1. **子 agent 结果聚合**
