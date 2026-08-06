@@ -8,6 +8,16 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.70 变更摘要
+
+1. **思考探测门控修复**
+   - `RestHost.probeThinking` 移除 `m.reasoning` 前置判断：未标记 reasoning 的模型也会对真实端点发起探测，由端点档位接受情况决定是否支持思考，不再瞬间误报「不支持」
+   - `selectModel` 静默探测同步放宽（去掉 reasoning 前置条件），选中模型即探测；命中缓存/无 Key 时保持零成本
+   - 测试更新：未标记模型无 Key → `no-config`（原 `no-reasoning`）
+
+2. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.70` 触发 APK workflow
+
 ## mobile.69 变更摘要
 
 1. **更新日志 Markdown 渲染**
