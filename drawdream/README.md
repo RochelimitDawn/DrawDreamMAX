@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.72`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.73`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.72` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.73` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.72
+└── package.json         # 2.0.0-alpha.1-mobile.73
 ```
 
 ```text
@@ -114,6 +114,14 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.73）
+
+- **思考档位切换生效修复**：探测成功后把真实可用档位写回模型能力（`reasoning` + `thinkingLevelMap`），内核档位切换不再被模型条目的静态 `reasoning` 标志 clamp 回 off——自定义渠道（如 tokenrhythm 的 `deepseek-v4-flash-0731`）现在可以正常切换思考档位
+- **更新弹窗下载中可取消**：更新下载进行中点击右上角关闭按钮即中止下载（JS 桥 `cancelUpdate` → Kotlin 中断下载线程并清理残留 APK），弹窗仍只允许右上角关闭
+- **环境页卡片布局**：环境页下方 4 张卡片改为桌面两行各两个（窄屏回退单列）
+- **思考档位图标**：对话区思考按钮图标由 Brain 更换为 Gauge（仪表盘）
+- 继承 mobile.72：更新弹窗仅右上角关闭、思考探测适配真实端点
 
 ## 本版要点（mobile.72）
 

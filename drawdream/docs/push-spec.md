@@ -8,6 +8,24 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.73 变更摘要
+
+1. **思考档位切换生效修复**
+   - 根因：探测成功只写内存缓存，内核 `session.setThinkingLevel` 的档位 clamp 依据模型条目静态 `reasoning` 标志；未标记 reasoning 的自定义渠道（如 tokenrhythm）会把档位 clamp 回 off
+   - 修复：`runThinkingProbe` 探测成功后把 `reasoning=true` 与 `thinkingLevelMap` 写回模型对象，clamp 依据真实端点结果
+   - 新增测试 `rest-host-clamp.test.ts`：本地探测端点 → 探测成功 → 档位写回 → 切换档位保留
+
+2. **更新弹窗下载中可取消**
+   - `ConfirmDialog` 新增 `closeWhileBusy`（busy 时右上角关闭仍可点）
+   - `UpdateChecker` 关闭时调用 JS 桥 `cancelUpdate()`；`AppUpdater.cancelUpdate()` 置位，下载循环检查后中止并清理残留 APK；`MainActivity` 暴露桥
+
+3. **环境页卡片布局**：`env-grid` 固定 2 列（桌面两行各两个），≤560px 单列
+
+4. **思考档位图标**：对话区思考按钮 Brain → Gauge
+
+5. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.73` 触发 APK workflow
+
 ## mobile.72 变更摘要
 
 1. **更新弹窗锁定关闭**

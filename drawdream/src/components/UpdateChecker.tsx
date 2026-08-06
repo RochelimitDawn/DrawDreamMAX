@@ -97,6 +97,18 @@ export function UpdateChecker() {
     setProgress(0)
   }
 
+  /** 取消下载并关闭弹窗：通知 Kotlin 中止，避免后台继续拉取 */
+  const cancelUpdate = () => {
+    if (downloading) {
+      ;(window as unknown as {
+        DrawDreamAndroid?: { cancelUpdate?: () => void }
+      }).DrawDreamAndroid?.cancelUpdate?.()
+    }
+    setDownloading(false)
+    setInfo(null)
+    setProgress(0)
+  }
+
   return (
     <ConfirmDialog
       open={Boolean(info)}
@@ -105,6 +117,7 @@ export function UpdateChecker() {
       closeOnMask={false}
       closeOnEscape={false}
       hideCancel
+      closeWhileBusy
       title={downloading ? t('settings.updateDownloadingTitle') : t('settings.updateAvailable')}
       description={
         <div className="update-dialog-body">
@@ -140,7 +153,7 @@ export function UpdateChecker() {
       }
       confirmLabel={t('settings.updateDownload')}
       cancelLabel={t('common.cancel')}
-      onCancel={() => setInfo(null)}
+      onCancel={cancelUpdate}
       onConfirm={confirmUpdate}
     />
   )

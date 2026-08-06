@@ -261,6 +261,23 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 		const r = await probeThinkingLevels({ ...target, modelId: id }, levels);
 		if (r.reason === "probe" && r.accepted.length) {
 			thinkingProbeCache.set(cacheKey, r.accepted);
+			// 把探测结果写回模型对象能力：内核 session.setThinkingLevel 的档位 clamp
+			// 依据 getSupportedThinkingLevels(model)（model.reasoning + thinkingLevelMap），
+			// 不写回的话未标记 reasoning 的自定义渠道（如 tokenrhythm）会把档位 clamp 回 off。
+			const modelEntry = session.modelRegistry.find(provider, id) as
+				| { reasoning?: boolean; thinkingLevelMap?: Record<string, string | null> }
+				| null;
+			if (modelEntry) {
+				modelEntry.reasoning = true;
+				// getSupportedThinkingLevels 过滤规则：
+				// - 非 xhigh 档位 mapped === null 才排除（因此不支持的档位必须显式设 null）
+				// - xhigh 档位 mapped !== undefined 才保留（因此不支持时不要设置该键）
+				const map: Record<string, string | null> = {};
+				for (const lvl of ["off", "minimal", "low", "medium", "high"]) {
+					map[lvl] = r.accepted.includes(lvl) ? (lvl === "off" ? "none" : lvl) : null;
+				}
+				modelEntry.thinkingLevelMap = map;
+			}
 			return { levels: r.accepted, reason: "probe" };
 		}
 		return { levels: [], reason: "probe-fail" };

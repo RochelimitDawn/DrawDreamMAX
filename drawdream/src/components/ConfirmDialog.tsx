@@ -18,6 +18,8 @@ export type ConfirmDialogProps = {
   closeOnEscape?: boolean
   /** 是否隐藏左下角取消按钮（默认 false，仅保留右上角关闭） */
   hideCancel?: boolean
+  /** busy 时右上角关闭按钮是否仍可点击（默认 false，用于下载中允许取消） */
+  closeWhileBusy?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
@@ -34,6 +36,7 @@ export function ConfirmDialog({
   closeOnMask = true,
   closeOnEscape = true,
   hideCancel = false,
+  closeWhileBusy = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -86,7 +89,12 @@ export function ConfirmDialog({
       >
         <div className="dd-confirm-head">
           <h3 id={titleId}>{title}</h3>
-          <button type="button" className="dd-confirm-close" onClick={() => !busy && onCancel()} aria-label={cancelLabel}>
+          <button
+            type="button"
+            className="dd-confirm-close"
+            onClick={() => (!busy || closeWhileBusy) && onCancel()}
+            aria-label={cancelLabel}
+          >
             <X size={16} />
           </button>
         </div>

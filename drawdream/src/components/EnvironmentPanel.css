@@ -114,8 +114,15 @@
 
 .env-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  /* 桌面端两行各两个；窄屏回退单列 */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+@media (max-width: 560px) {
+  .env-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .env-card {

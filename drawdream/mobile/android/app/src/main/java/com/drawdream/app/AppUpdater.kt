@@ -12,6 +12,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * 通过 GitHub Releases API 自动更新 APK：
@@ -27,6 +28,15 @@ object AppUpdater {
 
     private val exec = Executors.newSingleThreadExecutor { r ->
         Thread(r, "drawdream-updater").apply { isDaemon = true }
+    }
+
+    /** 下载中的取消请求（由 JS 侧调用 cancelUpdate() 置位） */
+    @Volatile
+    private var cancelRequested = false
+
+    /** 请求中止当前下载；幂等，可被下一次 downloadAndInstall 重置 */
+    fun cancelUpdate() {
+        cancelRequested = true
     }
 
     /** 更新检查结果 */
@@ -92,10 +102,17 @@ object AppUpdater {
         onDone: (Boolean, String?) -> Unit,
     ) {
         exec.execute {
+            cancelRequested = false
             try {
                 val dir = File(context.cacheDir, UPDATE_DIR).apply { mkdirs() }
                 val apk = File(dir, "app-$tagName.apk")
                 httpDownload(downloadUrl, apk, onProgress)
+
+                if (cancelRequested) {
+                    apk.delete()
+                    onDone(false, "下载已取消")
+                    return@execute
+                }
 
                 // 校验：有 SHA256SUMS.txt 时对照，不匹配则拒绝安装
                 if (!sumsUrl.isNullOrBlank()) {
@@ -119,7 +136,12 @@ object AppUpdater {
                 context.startActivity(intent)
                 onDone(true, null)
             } catch (e: Exception) {
-                onDone(false, e.message ?: e.javaClass.simpleName)
+                if (cancelRequested) {
+                    File(context.cacheDir, UPDATE_DIR).listFiles()?.filter { it.name.startsWith("app-") }?.forEach { it.delete() }
+                    onDone(false, "下载已取消")
+                } else {
+                    onDone(false, e.message ?: e.javaClass.simpleName)
+                }
             }
         }
     }
@@ -181,6 +203,7 @@ object AppUpdater {
                     var done = 0L
                     var lastPct = -1
                     while (true) {
+                        if (cancelRequested) throw java.io.IOException("下载已取消")
                         val n = input.read(buf)
                         if (n < 0) break
                         out.write(buf, 0, n)

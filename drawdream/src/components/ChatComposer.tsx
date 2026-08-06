@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Brain, FileUp, Globe, ImagePlus, Paperclip, Send, Square } from 'lucide-react'
+import { FileUp, Gauge, Globe, ImagePlus, Paperclip, Send, Square } from 'lucide-react'
 import './ChatComposer.css'
 
 export type ChatComposerProps = {
@@ -225,7 +225,7 @@ export function ChatComposer({
               }
             }}
           >
-            <Brain size={compact ? 15 : 16} strokeWidth={1.85} />
+            <Gauge size={compact ? 15 : 16} strokeWidth={1.85} />
             {!compact && canThink && thinkingLevel ? (
               <span className="dd-composer-think-lv">{thinkingLevel}</span>
             ) : null}

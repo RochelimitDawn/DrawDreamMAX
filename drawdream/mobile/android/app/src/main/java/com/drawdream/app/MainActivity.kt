@@ -148,6 +148,11 @@ class MainActivity : AppCompatActivity() {
                 },
             )
         }
+
+        @JavascriptInterface
+        fun cancelUpdate() {
+            AppUpdater.cancelUpdate()
+        }
     }
 
     /** 下载进度回传 JS（window.__ddUpdateProgress，百分比 0-100） */

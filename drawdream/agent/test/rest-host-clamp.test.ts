@@ -1,0 +1,133 @@
+/**
+ * 思考档位切换修复验证：
+ * 探测成功后 runThinkingProbe 会把 accepted 档位写回模型对象能力
+ * （reasoning=true + thinkingLevelMap），使内核 session.setThinkingLevel
+ * 的 clamp 依据真实端点结果，而非模型条目静态 reasoning 标志。
+ * 通过本地 HTTP 探测端点 + createRestHost 走真实探测链路。
+ */
+
+import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { test } from "node:test";
+import { createRestHost } from "../server/rest-host.ts";
+import type { RestHostDeps, RestHostSession } from "../server/rest-host.ts";
+import { AGENT_CONFIG_FILE } from "../src/agent-config.ts";
+
+function startProbeServer(): Promise<{ url: string; close: () => void }> {
+	const srv = createServer((req, res) => {
+		let body = "";
+		req.on("data", (c) => (body += c));
+		req.on("end", () => {
+			let level = "none";
+			try {
+				const j = JSON.parse(body);
+				level = String(j?.reasoning_effort ?? "none");
+			} catch {
+				/* ignore */
+			}
+			const ok = level === "none" || ["low", "medium", "high"].includes(level);
+			res.writeHead(ok ? 200 : 400, { "Content-Type": "application/json" });
+			res.end(ok ? JSON.stringify({ choices: [{ message: { content: "OK" } }] }) : JSON.stringify({ error: "unsupported" }));
+		});
+	});
+	return new Promise((resolve) => {
+		srv.listen(0, "127.0.0.1", () => {
+			const addr = srv.address();
+			const port = typeof addr === "object" && addr ? addr.port : 0;
+			resolve({ url: `http://127.0.0.1:${port}`, close: () => srv.close() });
+		});
+	});
+}
+
+function makeCwd(): string {
+	const dir = join(tmpdir(), `dd-resthost-clamp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+	mkdirSync(dir, { recursive: true });
+	return dir;
+}
+
+test("探测成功后模型对象档位能力写回，切换档位不再 clamp 回 off", async () => {
+	const srv = await startProbeServer();
+	const cwd = makeCwd();
+	try {
+		writeFileSync(
+			join(cwd, AGENT_CONFIG_FILE),
+			JSON.stringify({
+				version: 1,
+				providers: {
+					tr: { baseUrl: srv.url, apiKey: "sk-test", models: [{ id: "deepseek-v4-flash-0731", name: "Flash" }] },
+				},
+			}),
+		);
+		const modelObj = {
+			provider: "tr",
+			id: "deepseek-v4-flash-0731",
+			name: "Flash",
+			reasoning: false,
+			thinkingLevelMap: undefined,
+		} as unknown as RestHostSession["model"];
+		const session = {
+			model: modelObj,
+			thinkingLevel: "off",
+			getAvailableThinkingLevels: () => ["off"],
+			modelRegistry: {
+				getAvailable: () => [modelObj],
+				getAll: () => [modelObj],
+				getProviderDisplayName: () => "TR",
+				getProviderAuthStatus: () => ({ configured: false }),
+				authStorage: { hasAuth: () => false, set: () => {}, remove: () => {} },
+				find: () => modelObj,
+				refresh: () => {},
+			},
+			setModel: async () => {},
+			setThinkingLevel: (lvl: never) => {
+				session.thinkingLevel = lvl as string;
+			},
+		} as unknown as RestHostSession;
+		const deps = {
+			getCwd: () => cwd,
+			getSession: () => session,
+			switchSession: async () => null,
+			newSession: async () => null,
+			broadcast: () => {},
+			resyncAll: () => {},
+			refreshNamesFromConfig: () => {},
+			handlePrompt: async () => {},
+			listSessionsFrame: async () => ({}) as never,
+			sessionInfos: async () => [],
+			assertListedSession: async () => null,
+			cardCache: {} as never,
+			previewCache: {} as never,
+			sessionCard: () => null,
+			stateDir: "",
+			artifactsDir: "",
+		} as RestHostDeps;
+		const host = createRestHost(deps);
+
+		// 探测前：模型未标记 reasoning，可用档位仅 off
+		assert.equal(modelObj.reasoning, false);
+
+		const r = await host.probeThinking();
+		assert.equal(r.reason, "probe");
+		assert.deepEqual([...r.levels].sort(), ["high", "low", "medium", "off"].sort());
+
+		// 探测后：模型能力写回 reasoning=true 且档位 map 含 accepted
+		assert.equal(modelObj.reasoning, true);
+		const map = (modelObj as unknown as { thinkingLevelMap?: Record<string, string | null> }).thinkingLevelMap;
+		assert.ok(map, "thinkingLevelMap 应被写回");
+		assert.equal(map?.off, "none");
+		assert.equal(map?.low, "low");
+		assert.equal(map?.medium, "medium");
+		assert.equal(map?.high, "high");
+		assert.equal(map?.minimal, null);
+
+		// 设置档位 low：内核 clamp 依据写回后的能力，应保留 low（而非回退 off）
+		host.setThinkingLevel("low");
+		assert.equal(session.thinkingLevel, "low");
+	} finally {
+		rmSync(cwd, { recursive: true, force: true });
+		srv.close();
+	}
+});
