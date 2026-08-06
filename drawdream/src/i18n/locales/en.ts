@@ -906,6 +906,10 @@ export default {
     updateNoNotes: 'No release notes for this update',
     updateHint: 'The new APK will be downloaded, integrity-checked, then the system installer opens.',
     updateDownload: 'Download & install',
+    updateDownloadingTitle: 'Downloading update',
+    updateDownloading: 'Downloaded {{pct}}%',
+    updateReady: 'Update downloaded; finish installation in the system installer',
+    updateFail: 'Update download failed, please retry',
   },
   secondary: {
     worldInfo: {

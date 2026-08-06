@@ -65,7 +65,7 @@
   color: var(--text-secondary);
 }
 
-/* Release notes 卡片：内嵌底色 + 圆角 + 受限滚动 */
+/* Release notes 卡片：内嵌底色 + 圆角 + 受限滚动（Markdown 渲染） */
 .update-dialog-notes {
   margin: 0;
   max-height: 220px;
@@ -76,13 +76,90 @@
   background: color-mix(in srgb, var(--bg-muted) 40%, var(--bg-elevated));
 }
 
-.update-notes-pre {
-  display: block;
-  white-space: pre-wrap;
-  word-break: break-word;
+.update-notes-md {
   font-size: 13px;
   line-height: 1.7;
   color: var(--text-secondary);
+}
+
+.update-notes-md .md-body {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.update-notes-md .md-body h1,
+.update-notes-md .md-body h2,
+.update-notes-md .md-body h3 {
+  margin: 10px 0 6px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.update-notes-md .md-body h1:first-child,
+.update-notes-md .md-body h2:first-child,
+.update-notes-md .md-body h3:first-child {
+  margin-top: 0;
+}
+
+.update-notes-md .md-body p {
+  margin: 4px 0;
+}
+
+.update-notes-md .md-body ul,
+.update-notes-md .md-body ol {
+  margin: 4px 0;
+  padding-left: 20px;
+}
+
+.update-notes-md .md-body code {
+  font-size: 12px;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  border: 1px solid var(--border);
+}
+
+.update-notes-md .md-body pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+
+/* 下载进度条 */
+.update-dialog-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.update-dialog-progress-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.update-dialog-progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand), var(--accent-gold));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--brand) 45%, transparent);
+  transition: width 0.2s ease;
+}
+
+.update-dialog-progress-text {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  text-align: right;
 }
 
 .update-dialog-hint {

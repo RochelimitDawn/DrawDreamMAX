@@ -904,6 +904,10 @@ export default {
     updateNoNotes: '本次更新暂无说明',
     updateHint: '将下载新版安装包并校验完整性，然后拉起系统安装界面。',
     updateDownload: '下载并安装',
+    updateDownloadingTitle: '正在下载更新',
+    updateDownloading: '已下载 {{pct}}%',
+    updateReady: '更新已下载，请在系统安装界面完成安装',
+    updateFail: '更新下载失败，请重试',
   },
   secondary: {
     worldInfo: {
