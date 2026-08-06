@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { AssistantSubagent, AssistantTodoItem } from '../agent/wire.types'
+import { RichMessage } from './RichMessage'
 import './ToDoList.css'
 
 /** 子任务清单（Plan 模式）：由模型 todo_write 维护，前端只读展示。
@@ -119,6 +120,10 @@ export function SubagentList({ subagents }: { subagents: AssistantSubagent[] }) 
             const expandable = s.status === 'done' || s.status === 'error'
             const open = !!expanded[s.id]
             const body = s.status === 'error' ? s.error : s.result
+            // 已完成/失败：时长固定为结束时刻，不再随实时时钟增长
+            const elapsed = SUBAGENT_TERMINAL.has(s.status)
+              ? (s.updatedAt ?? s.startedAt) - s.startedAt
+              : now - s.startedAt
             return (
               <div key={s.id} className={`asst-subagent-item status-${s.status}`}>
                 <button
@@ -136,7 +141,7 @@ export function SubagentList({ subagents }: { subagents: AssistantSubagent[] }) 
                   </span>
                   <span className="asst-subagent-meta">
                     <span className={`asst-subagent-state ${meta.cls}`}>{meta.label}</span>
-                    <span className="asst-subagent-time">{formatElapsed(now - s.startedAt)}</span>
+                    <span className="asst-subagent-time">{formatElapsed(elapsed)}</span>
                     {expandable ? (
                       <ChevronRight size={12} strokeWidth={2} className={`asst-subagent-chev${open ? ' is-open' : ''}`} />
                     ) : null}
@@ -144,7 +149,7 @@ export function SubagentList({ subagents }: { subagents: AssistantSubagent[] }) 
                 </button>
                 {open && body ? (
                   <div className="asst-subagent-detail">
-                    <pre>{body}</pre>
+                    <RichMessage text={body} mdOnly className="asst-subagent-md" />
                   </div>
                 ) : null}
               </div>

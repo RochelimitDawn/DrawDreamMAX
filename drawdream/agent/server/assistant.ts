@@ -852,21 +852,49 @@ export async function createAssistantHost(opts: CreateAssistantHostOptions): Pro
 
 	const selfInfo = () => ({ model: modelInfo(), follow: follows() });
 
+	/** 待一次性汇总注入的子 agent 结果（避免逐个完成各产生一段对话） */
+	let bufferedSubagentResults: SubagentInfo[] = [];
+	let flushingSubagentBatch = false;
+
 	/**
-	 * 子 agent 完成/失败 → 结果以 followUp 注入主助手会话，由主 agent 整合进最终回复。
+	 * 子 agent 完成/失败 → 结果入缓冲；当所有子 agent 均已终态时，
+	 * 一次性把全部结果作为一条汇总注入主助手会话，由主 agent 整合进最终回复。
 	 * 主会话流式中自动排队；失败仅状态回传（不打扰用户）。
 	 */
-	const deliverSubagentResult = async (sub: SubagentInfo): Promise<void> => {
-		if (!session) return;
+	const deliverSubagentResult = (sub: SubagentInfo): void => {
 		if (sub.status !== "done" && sub.status !== "error") return;
-		const body = (sub.result || sub.error || "").trim();
-		if (!body) return;
-		const title = sub.status === "done" ? "已完成" : "失败";
-		const note = `【子拓展「${sub.name}」${title}】\n${body}`;
+		if (!(sub.result || sub.error || "").trim()) return;
+		bufferedSubagentResults.push(sub);
+		if (subagentHost && subagentHost.runningCount === 0) {
+			void flushSubagentBatch();
+		}
+	};
+
+	const flushSubagentBatch = async (): Promise<void> => {
+		if (flushingSubagentBatch) return;
+		const batch = bufferedSubagentResults;
+		bufferedSubagentResults = [];
+		if (!batch.length) return;
+		flushingSubagentBatch = true;
 		try {
-			await session.prompt(note, session.isStreaming ? { streamingBehavior: "followUp" } : undefined);
+			if (!session) return;
+			const lines = batch.map((sub) => {
+				const title = sub.status === "done" ? "已完成" : "失败";
+				const content = sub.result || sub.error || "";
+				return `【子拓展「${sub.name}」${title}】\n${content}`;
+			});
+			await session.prompt(
+				lines.join("\n\n"),
+				session.isStreaming ? { streamingBehavior: "followUp" } : undefined,
+			);
 		} catch {
 			// 主会话忙碌/模型缺失时丢弃；状态已在子拓展面板可见
+		} finally {
+			flushingSubagentBatch = false;
+			// flush 期间若有新的子 agent 也完成，继续补一次汇总
+			if (bufferedSubagentResults.length && subagentHost?.runningCount === 0) {
+				void flushSubagentBatch();
+			}
 		}
 	};
 

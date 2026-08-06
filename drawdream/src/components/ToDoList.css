@@ -71,15 +71,6 @@
   letter-spacing: 0.01em;
 }
 
-.asst-todos-title::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 3px;
-  background: linear-gradient(145deg, var(--accent-gold), var(--brand));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-gold) 40%, transparent);
-}
-
 .asst-todos-count {
   display: inline-flex;
   align-items: center;
@@ -340,10 +331,6 @@
   background: color-mix(in srgb, var(--bg-elevated) 82%, var(--brand) 5%);
 }
 
-.asst-todos.asst-subagents .asst-todos-title::before {
-  background: linear-gradient(145deg, var(--brand), var(--accent-gold));
-}
-
 .asst-subagent-item {
   display: flex;
   flex-direction: column;
@@ -500,6 +487,7 @@
 
 .asst-subagent-detail {
   margin: 2px 4px 4px 20px;
+  padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
   background: color-mix(in srgb, var(--bg-muted, var(--border)) 28%, var(--bg-elevated, var(--bg)));
@@ -507,15 +495,22 @@
   overflow: auto;
 }
 
-.asst-subagent-detail pre {
-  margin: 0;
-  padding: 8px 10px;
-  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  font-size: 11px;
-  line-height: 1.45;
+/* 子拓展结果：Markdown 渲染（RichMessage mdOnly） */
+.asst-subagent-md {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.asst-subagent-md .md-body {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.asst-subagent-md pre {
   white-space: pre-wrap;
   word-break: break-word;
-  color: var(--text-secondary);
 }
 
 @media (prefers-reduced-motion: reduce) {
