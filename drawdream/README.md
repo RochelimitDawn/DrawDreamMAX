@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.70`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.71`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.70` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.71` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.70
+└── package.json         # 2.0.0-alpha.1-mobile.71
 ```
 
 ```text
@@ -114,6 +114,13 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.71）
+
+- **思考探测适配真实端点**：探测单请求超时 8s → 30s、总预算 12s → 90s，适配响应较慢的推理端点（如 tokenrhythm 单请求 7-15s），不再把 slow 档位误判为不支持
+- **模型列表全适配**：探测按所选模型 id 原样请求，自定义渠道通过「拉取模型」获取端点真实 id 列表（任意模型均可探测）；已验证多家供应商（deepseek/glm/kimi/minimax/qwen）对 `reasoning_effort` 的接受
+- **临时繁忙自动重试**：探测遇到 429/5xx（如 SERVICE_BUSY）自动重试一次，避免瞬时限流把可用档位误判为不支持
+- 继承 mobile.70：思考探测门控修复、更新日志 Markdown 渲染、更新下载进度条、公开仓库更新源
 
 ## 本版要点（mobile.70）
 

@@ -1,6 +1,6 @@
 # SillyTavern 兼容规范
 
-版本：`2.0.0-alpha.1-mobile.70`
+版本：`2.0.0-alpha.1-mobile.71`
 
 ## 目标
 

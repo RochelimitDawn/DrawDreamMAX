@@ -8,6 +8,16 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.71 变更摘要
+
+1. **思考探测适配真实端点**
+   - `probeThinkingLevels` 单请求超时 8s → 30s、总预算 12s → 90s：适配响应较慢的推理端点（tokenrhythm 等单请求 7-15s），避免 slow 档位被误判为不支持
+   - 探测按所选模型 id 原样请求，自定义渠道通过「拉取模型」取端点真实 id 列表，任意模型均可探测（已实测 deepseek/glm/kimi/minimax/qwen 对 `reasoning_effort` 的接受）
+   - 429/5xx 视为临时繁忙，自动重试一次后再分类，避免瞬时限流（SERVICE_BUSY）误判
+
+2. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.71` 触发 APK workflow
+
 ## mobile.70 变更摘要
 
 1. **思考探测门控修复**

@@ -21,9 +21,10 @@ export type ThinkingProbeResult = {
 
 const clean = (v: unknown): string => String(v ?? "").trim();
 
-function classifyStatus(res: Response): "accepted" | "unsupported" | "auth_failed" | "unknown" {
+function classifyStatus(res: Response): "accepted" | "unsupported" | "auth_failed" | "busy" | "unknown" {
   if (res.ok) return "accepted";
   if (res.status === 401 || res.status === 403) return "auth_failed";
+  if (res.status === 429 || res.status >= 500) return "busy";
   if (res.status === 400 || res.status === 422 || res.status === 404) return "unsupported";
   return "unknown";
 }
@@ -79,7 +80,7 @@ export interface ProbeTarget {
 export async function probeThinkingLevels(
   target: ProbeTarget,
   levels: readonly string[] = PROBE_LEVELS,
-  timeoutMs = 12_000,
+  timeoutMs = 90_000,
 ): Promise<ThinkingProbeResult> {
   const startedAt = Date.now();
   const map: Record<string, string | null> = {};
@@ -96,16 +97,25 @@ export async function probeThinkingLevels(
       };
       let url = endpointFor(target.baseUrl, target.api);
       if (url.includes("{model}")) url = url.replace("{model}", encodeURIComponent(target.modelId));
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${target.apiKey}`,
-        },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(8_000),
-      });
-      const status = classifyStatus(res);
+
+      const attempt = async (): Promise<"accepted" | "unsupported" | "auth_failed" | "busy" | "unknown"> => {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${target.apiKey}`,
+          },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(30_000),
+        });
+        return classifyStatus(res);
+      };
+
+      // 429/5xx 属临时繁忙，重试一次避免把可用档位误判为不支持
+      let status = await attempt();
+      if (status === "busy") {
+        status = await attempt();
+      }
       if (status === "accepted") {
         map[level] = level === "off" ? "none" : level;
         accepted.push(level);
@@ -114,7 +124,7 @@ export async function probeThinkingLevels(
           accepted: [],
           map: {},
           reason: "fallback",
-          error: `鉴权失败（${res.status}）`,
+          error: `鉴权失败（401/403）`,
           latencyMs: Date.now() - startedAt,
         };
       } else {
