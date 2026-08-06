@@ -8,6 +8,21 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.69 变更摘要
+
+1. **更新日志 Markdown 渲染**
+   - 升级确认对话框的 Release notes 由纯文本改为 Markdown 渲染（`RichMessage mdOnly`），支持标题/列表/加粗/代码块/引用等
+   - `UpdateChecker.css` 新增 `.update-notes-md` 容器样式（标题层级、代码块、引用）
+
+2. **更新下载进度条**
+   - `AppUpdater.downloadAndInstall` 增加 `onProgress: (Float) -> Unit`（0..1）；`httpDownload` 按块读取并每变化 1% 报告一次
+   - `MainActivity` JS 桥新增 `window.__ddUpdateProgress(pct)` 与 `window.__ddUpdateDownloadDone(ok, msg)` 回调，下载完成由前端统一 toast（移除 Kotlin 侧 toast 避免重复）
+   - 前端 `UpdateChecker`：下载中弹框切换为暖金进度条 + 百分比 + 「正在下载更新」标题，确认/取消按钮锁定；完成自动关闭并提示，失败显示错误
+   - i18n 新增 `updateDownloadingTitle`/`updateDownloading`/`updateReady`/`updateFail`（zh/en）
+
+3. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.69` 触发 APK workflow
+
 ## mobile.68 变更摘要
 
 1. **思考强度显式探测（模型设置页）**
