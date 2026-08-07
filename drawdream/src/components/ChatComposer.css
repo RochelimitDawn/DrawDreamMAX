@@ -151,6 +151,69 @@
   margin-left: calc(var(--ddc-tool) + 12px);
 }
 
+.dd-composer-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 10px 0;
+}
+
+.dd-attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 180px;
+  padding: 3px 6px 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--brand) 8%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-elevated, var(--input-bg)) 88%, var(--brand) 6%);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.dd-attachment-chip.is-image {
+  border-color: color-mix(in srgb, var(--border) 82%, var(--brand) 22%);
+  color: color-mix(in srgb, var(--text) 88%, var(--brand) 18%);
+}
+
+.dd-attachment-chip.is-image svg {
+  color: var(--brand);
+}
+
+.dd-attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dd-attachment-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-tertiary, var(--text-secondary));
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dd-attachment-remove:hover {
+  background: color-mix(in srgb, var(--danger, #dc2626) 16%, transparent);
+  color: var(--danger, #dc2626);
+}
+
+.dd-composer.is-compact .dd-attachment-chip {
+  max-width: 140px;
+  font-size: 11px;
+}
+
 .dd-composer-input {
   display: block;
   width: 100%;

@@ -8,7 +8,7 @@
 
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -16,11 +16,13 @@ import { createRestHost } from "../server/rest-host.ts";
 import type { RestHostDeps, RestHostSession } from "../server/rest-host.ts";
 import { AGENT_CONFIG_FILE } from "../src/agent-config.ts";
 
-function startProbeServer(): Promise<{ url: string; close: () => void }> {
+function startProbeServer(): Promise<{ url: string; probeCount: () => number; close: () => void }> {
+	let count = 0;
 	const srv = createServer((req, res) => {
 		let body = "";
 		req.on("data", (c) => (body += c));
 		req.on("end", () => {
+			count += 1;
 			let level = "none";
 			try {
 				const j = JSON.parse(body);
@@ -37,7 +39,7 @@ function startProbeServer(): Promise<{ url: string; close: () => void }> {
 		srv.listen(0, "127.0.0.1", () => {
 			const addr = srv.address();
 			const port = typeof addr === "object" && addr ? addr.port : 0;
-			resolve({ url: `http://127.0.0.1:${port}`, close: () => srv.close() });
+			resolve({ url: `http://127.0.0.1:${port}`, probeCount: () => count, close: () => srv.close() });
 		});
 	});
 }
@@ -126,6 +128,20 @@ test("探测成功后模型对象档位能力写回，切换档位不再 clamp �
 		// 设置档位 low：内核 clamp 依据写回后的能力，应保留 low（而非回退 off）
 		host.setThinkingLevel("low");
 		assert.equal(session.thinkingLevel, "low");
+
+		// —— 磁盘缓存持久化：探测成功后缓存文件落盘 ——
+		const cacheFile = join(cwd, ".drawdream", "thinking-probe-cache.json");
+		assert.ok(existsSync(cacheFile), "探测成功后应生成磁盘缓存文件");
+		const persisted = JSON.parse(readFileSync(cacheFile, "utf8")) as Record<string, unknown>;
+		assert.deepEqual([...(persisted["tr::deepseek-v4-flash-0731"] as string[])].sort(), ["high", "low", "medium", "off"]);
+
+		// —— 重启 App（新 host 实例）：命中磁盘缓存，不再发起探测 ——
+		const hitsBefore = srv.probeCount();
+		const host2 = createRestHost(deps);
+		const r2 = await host2.probeThinking();
+		assert.equal(r2.reason, "cache");
+		assert.deepEqual([...r2.levels].sort(), ["high", "low", "medium", "off"].sort());
+		assert.equal(srv.probeCount(), hitsBefore, "命中缓存后不应再向端点发起探测");
 	} finally {
 		rmSync(cwd, { recursive: true, force: true });
 		srv.close();

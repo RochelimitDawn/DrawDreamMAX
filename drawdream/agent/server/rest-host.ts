@@ -2,7 +2,7 @@
  * REST 宿主工厂：RestHost 实现（pi 类型止步于此文件的 deps 侧）。
  */
 
-import { appendFileSync, readFileSync, statSync, unlinkSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { getAgentDir, SessionManager } from "@drawdream/agent-runtime/web";
@@ -36,15 +36,47 @@ import type { CurrentModelInfo, RestHost, SessionInfoLite, SessionSearchHit } fr
 import { entryMsgText, isSameSessionPath, type CardCache, type PreviewCache } from "./session-files.ts";
 import type { ServerFrame } from "./wire.ts";
 import { loadConfig } from "./rest/config.ts";
-import { loadAgentConfig } from "../src/agent-config.ts";
+import { loadAgentConfig, projectConfigDir } from "../src/agent-config.ts";
 import { probeThinkingLevels, fallbackThinkingLevels } from "../src/thinking-probe.ts";
 
 /** 角色卡路径归一：反斜杠、前导 ./ */
 
 /** 思考档位主动探测缓存：key = `${provider}::${modelId}` → 探测成功的可用档位。
- * 成功缓存会话期内持久（同一模型不重复探测）；探测失败不写缓存 → 下次选中会重探。 */
+ * 成功缓存持久化到磁盘（.drawdream/thinking-probe-cache.json），同一模型重启 App 后
+ * 不再重复探测；探测失败不写缓存 → 下次选中会重探。 */
+const THINKING_PROBE_CACHE_FILE = "thinking-probe-cache.json";
+
 const thinkingProbeCache = new Map<string, string[]>();
 const probingSet = new Set<string>();
+
+function thinkingProbeCachePath(cwd: string): string {
+	return join(projectConfigDir(cwd), THINKING_PROBE_CACHE_FILE);
+}
+
+function loadThinkingProbeCache(cwd: string): void {
+	try {
+		const file = thinkingProbeCachePath(cwd);
+		if (!existsSync(file)) return;
+		const raw = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+		for (const [key, value] of Object.entries(raw)) {
+			if (Array.isArray(value) && value.length && value.every((v) => typeof v === "string")) {
+				thinkingProbeCache.set(key, value as string[]);
+			}
+		}
+	} catch {
+		/* 缓存损坏时忽略，走正常探测 */
+	}
+}
+
+function saveThinkingProbeCache(cwd: string): void {
+	try {
+		const file = thinkingProbeCachePath(cwd);
+		mkdirSync(projectConfigDir(cwd), { recursive: true });
+		writeFileSync(file, JSON.stringify(Object.fromEntries(thinkingProbeCache), null, 2), "utf8");
+	} catch {
+		/* 写盘失败不阻塞探测流程 */
+	}
+}
 
 function probeCacheKey(provider: string, id: string): string {
 	return `${provider}::${id}`;
@@ -214,6 +246,7 @@ export type RestHostDeps = {
 };
 
 export function createRestHost(deps: RestHostDeps): RestHost {
+	loadThinkingProbeCache(deps.getCwd());
 	const currentModelInfo = (): CurrentModelInfo | null => {
 		const session = deps.getSession();
 		const m = session.model;
@@ -261,6 +294,7 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 		const r = await probeThinkingLevels({ ...target, modelId: id }, levels);
 		if (r.reason === "probe" && r.accepted.length) {
 			thinkingProbeCache.set(cacheKey, r.accepted);
+			saveThinkingProbeCache(deps.getCwd());
 			// 把探测结果写回模型对象能力：内核 session.setThinkingLevel 的档位 clamp
 			// 依据 getSupportedThinkingLevels(model)（model.reasoning + thinkingLevelMap），
 			// 不写回的话未标记 reasoning 的自定义渠道（如 tokenrhythm）会把档位 clamp 回 off。

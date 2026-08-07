@@ -8,6 +8,39 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.74 变更摘要
+
+1. **全局品牌视觉换新（新 Logo）**
+   - 以新版暖金棕渐变圆章 Logo（去除原图右下角水印）替换原蓝白「幕布负空间星形人形」视觉
+   - 新增品牌资源：`public/brand/logo-icon-{32,64,180,192,512}.png`、`logo-icon.png/.webp`、`favicon-{32,64}.png` 全部替换为新 Logo；`favicon.svg`、`logo-mark.svg`、`logo-wordmark.svg` 改为引用新 Logo PNG
+   - Web 引用点全部更新：侧边栏 Logo（`Sidebar.tsx`）、设置页关于区（`Settings.tsx`）、自定义/中转渠道图标（`ProviderIcon.tsx`）、浏览器 favicon 与 iOS apple-touch-icon（`index.html`）
+   - Android 启动图标更新：`ic_launcher.xml`、`logo_mark_transparent.xml` 改为位图引用新 Logo（`logo_mark_launcher.png`/`logo_mark.png`），替换原矢量蓝白图标
+   - README 顶图引用新 wordmark
+
+2. **思考档位探测结果持久化缓存**
+   - 根因：探测缓存 `thinkingProbeCache` 是内存 Map，仅会话期有效，App 重启后同一模型需重复探测
+   - 修复：探测成功结果落盘 `.drawdream/thinking-probe-cache.json`，`createRestHost` 启动时预加载；命中磁盘缓存直接返回（reason `"cache"`），不再向端点重复探测；探测失败仍不缓存
+   - 新增断言：`rest-host-clamp.test.ts` 验证探测成功后缓存文件落盘、重启（新 host 实例）命中缓存且探测请求数不变
+
+3. **上传改为附件形式（待发送）**
+   - 原行为：上传图片/文件后立即拼读取提示词并直接发送
+   - 新行为：上传完成后挂到输入区作为附件 chip（可移除），用户可补文本后一起发送；有文本时文本在前、读取提示在后，无文本直接发送时用默认读取提示词（图片识图 / 文件解析）
+   - 主对话与助手侧栏（`AssistantPanel`）均生效；`ChatComposer` 新增 `attachments` / `onRemoveAttachment` props 与附件 chip UI
+
+4. **本机工具 / 角色扮演工具名统一四字**
+   - `tool-labels.ts` 中文标签全部改为四字标准名：读文件→读取文件、写文件→写入文件、改文件→修改文件、搜内容→搜索内容、找文件→查找文件、列目录→查看目录
+   - 角色扮演工具统一：读取世界书→读取世界、写入世界书→写入世界、浏览记忆厅→浏览记忆、创建/挂载/卸载/写入知识库→创建/挂载/卸载/写入知识、读配置→读取配置、写配置→写入配置、读预设→读取预设、查看任务清单→查看任务、配图→生成配图、音频→播放音频、视频→播放视频、配音→文字配音
+
+5. **自定义工具完善（MCP + JSON，参考 MonkeyCode）**
+   - 调研结论：MonkeyCode 自定义工具走标准 MCP 协议，工具用 JSON 定义 `{name, description, inputSchema}`，前端 `toolcalls/*.tsx` 渲染器为每个工具提供 `renderTitle`（工具名+参数）与 `renderDetail`（点击展开内容预览）
+   - DrawDream 已具备 MCP 基础设施（`agent/src/mcp.ts` + `/api/mcp/*` 路由 + JSON 配置文件 `.drawdream-mcp.json`）与 ToolCallChip 展开预览；本次补齐前端管理 UI：
+   - 新增 `McpPanel` 组件（挂到设置→环境页下方「自定义工具」区块）：MCP 服务列表（状态/启用开关/工具数）、按服务展开查看工具名与描述、添加/编辑/删除服务（stdio command / http+sse url）、一键 sync、会话启用开关
+   - 新增 rest 客户端：`fetchMcpServers` / `mcpSync` / `mcpSetEnabled` / `mcpAddServer` / `mcpUpdateServer` / `mcpDeleteServer`
+   - 工具条显示具体工具名（`mcp__{id}__{tool}` → `外设 · {tool}`），点击可展开内容预览
+
+6. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.74` 触发 APK workflow
+
 ## mobile.73 变更摘要
 
 1. **思考档位切换生效修复**

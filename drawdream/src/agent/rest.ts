@@ -110,6 +110,68 @@ export interface EnvironmentInfo {
 export function fetchEnvironment(): Promise<EnvironmentInfo> {
   return apiGet<EnvironmentInfo>('/api/environment', { bypassCache: true })
 }
+
+// ---- MCP 外设（设置 → 环境 → 工具，JSON 配置） ----
+
+export type McpTransport = 'stdio' | 'http' | 'sse'
+
+export interface McpServerItem {
+  id: string
+  name: string
+  enabled: boolean
+  defaultEnabled?: boolean
+  transport: McpTransport
+  status: 'connected' | 'connecting' | 'disconnected' | 'error'
+  tools: Array<{ name: string; qualifiedName: string; description?: string }>
+  summary?: string
+  source?: string
+  sources?: string[]
+  discovered?: boolean
+}
+
+export interface McpConfigEntry {
+  id: string
+  name: string
+  enabled: boolean
+  transport: McpTransport
+  command?: string
+  args?: string[]
+  env?: Record<string, string>
+  cwd?: string
+  url?: string
+  headers?: Record<string, string>
+}
+
+export interface McpListResponse {
+  servers: McpServerItem[]
+  sessionEnabled: string[]
+  config: McpConfigEntry[]
+  discovered: number
+}
+
+export function fetchMcpServers(): Promise<McpListResponse> {
+  return apiGet<McpListResponse>('/api/mcp', { bypassCache: true })
+}
+
+export function mcpSync(): Promise<{ ok: boolean; servers: McpServerItem[] }> {
+  return apiPost('/api/mcp/sync', {})
+}
+
+export function mcpSetEnabled(id: string, enabled: boolean, persistDefault?: boolean): Promise<{ ok: boolean }> {
+  return apiPost('/api/mcp/enable', { id, enabled, persistDefault })
+}
+
+export function mcpAddServer(body: Partial<McpConfigEntry>): Promise<{ ok: boolean; server: McpConfigEntry }> {
+  return apiPost('/api/mcp/servers', body)
+}
+
+export function mcpUpdateServer(body: Partial<McpConfigEntry>): Promise<{ ok: boolean; server: McpConfigEntry }> {
+  return apiPut('/api/mcp/servers', body)
+}
+
+export function mcpDeleteServer(id: string): Promise<{ ok: boolean }> {
+  return apiDelete(`/api/mcp/servers?id=${encodeURIComponent(id)}`)
+}
 export const apiDelete = <T,>(path: string) => api<T>(path, { method: 'DELETE' })
 
 export async function importSillyTavernChat(content: string, tag?: string): Promise<{ messages: number; warnings: string[] }> {

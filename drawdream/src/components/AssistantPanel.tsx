@@ -7,7 +7,7 @@ import { RichMessage } from './RichMessage'
 import { ThinkingBlock } from './ThinkingBlock'
 import { ToolCallList, coalesceActivities } from './ToolCallChip'
 import { ProcessTimeline } from './ProcessTimeline'
-import { ChatComposer } from './ChatComposer'
+import { ChatComposer, type ComposerAttachment } from './ChatComposer'
 import { ToDoList, SubagentList } from './ToDoList'
 import { copyText } from '../utils/clipboard'
 import { toast } from '../utils/toast'
@@ -33,6 +33,8 @@ export type AssistantPanelProps = {
   onPickImage?: (file: File) => void | Promise<void>
   onPickFile?: (file: File) => void | Promise<void>
   uploading?: boolean
+  attachments?: ComposerAttachment[]
+  onRemoveAttachment?: (id: string) => void
   enterSend?: boolean
 }
 
@@ -257,6 +259,8 @@ export function AssistantPanel({
   onPickImage,
   onPickFile,
   uploading = false,
+  attachments = [],
+  onRemoveAttachment,
   enterSend = true,
 }: AssistantPanelProps) {
   const { t } = useTranslation()
@@ -415,6 +419,8 @@ export function AssistantPanel({
           onPickImage={onPickImage}
           onPickFile={onPickFile}
           uploading={uploading}
+          attachments={attachments}
+          onRemoveAttachment={onRemoveAttachment}
         />
       </div>
     </div>

@@ -1,7 +1,15 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileUp, Gauge, Globe, ImagePlus, Paperclip, Send, Square } from 'lucide-react'
+import { FileUp, Gauge, Globe, ImagePlus, Paperclip, Send, Square, X } from 'lucide-react'
 import './ChatComposer.css'
+
+export type ComposerAttachment = {
+  id: string
+  name: string
+  kind: 'image' | 'file'
+  path: string
+  size: string
+}
 
 export type ChatComposerProps = {
   value: string
@@ -31,6 +39,9 @@ export type ChatComposerProps = {
   onPickImage?: (file: File) => void | Promise<void>
   onPickFile?: (file: File) => void | Promise<void>
   uploading?: boolean
+  /** 待发送附件（上传后挂到输入区，可移除） */
+  attachments?: ComposerAttachment[]
+  onRemoveAttachment?: (id: string) => void
 }
 
 export function ChatComposer({
@@ -54,6 +65,8 @@ export function ChatComposer({
   onPickImage,
   onPickFile,
   uploading = false,
+  attachments = [],
+  onRemoveAttachment,
 }: ChatComposerProps) {
   const { t } = useTranslation()
   const uid = useId()
@@ -64,8 +77,9 @@ export function ChatComposer({
   const [focused, setFocused] = useState(false)
   const [thinkOpen, setThinkOpen] = useState(false)
   const hasText = value.trim().length > 0
+  const hasAttachments = attachments.length > 0
   const canThink = (thinkingLevels?.length ?? 0) >= 2
-  const expanded = focused || hasText || busy
+  const expanded = focused || hasText || busy || hasAttachments
   const ph = placeholder || t('chat.composerPlaceholder')
 
   // 点击面板外部关闭
@@ -100,14 +114,14 @@ export function ChatComposer({
       if (enterSend) {
         e.preventDefault()
         if (e.repeat) return
-        if (!busy && !disabled && hasText) onSend()
+        if (!busy && !disabled && (hasText || hasAttachments)) onSend()
       }
       return
     }
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !enterSend) {
       e.preventDefault()
       if (e.repeat) return
-      if (!busy && !disabled && hasText) onSend()
+      if (!busy && !disabled && (hasText || hasAttachments)) onSend()
     }
   }
 
@@ -193,6 +207,29 @@ export function ChatComposer({
       </button>
 
       <div className="dd-composer-field">
+        {hasAttachments ? (
+          <div className="dd-composer-attachments">
+            {attachments.map((a) => (
+              <span key={a.id} className={`dd-attachment-chip is-${a.kind}`}>
+                {a.kind === 'image' ? (
+                  <ImagePlus size={13} strokeWidth={1.9} aria-hidden />
+                ) : (
+                  <FileUp size={13} strokeWidth={1.9} aria-hidden />
+                )}
+                <span className="dd-attachment-name">{a.name}</span>
+                <button
+                  type="button"
+                  className="dd-attachment-remove"
+                  title={t('common.remove') ?? '移除'}
+                  aria-label={`${t('common.remove') ?? '移除'} ${a.name}`}
+                  onClick={() => onRemoveAttachment?.(a.id)}
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : null}
         <textarea
           ref={taRef}
           className="dd-composer-input"
@@ -270,7 +307,7 @@ export function ChatComposer({
             type="button"
             className="dd-composer-send"
             title={t('chat.send')}
-            disabled={disabled || !hasText || uploading}
+            disabled={disabled || (!hasText && !hasAttachments) || uploading}
             onClick={() => onSend()}
           >
             <Send size={compact ? 14 : 15} strokeWidth={2} />

@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import { fetchEnvironment, type EnvironmentInfo } from '../agent/rest'
+import { McpPanel } from './McpPanel'
 import './EnvironmentPanel.css'
 
 function formatBytes(n: number): string {
@@ -244,6 +245,8 @@ export function EnvironmentPanel() {
           </div>
         </>
       ) : null}
+
+      <McpPanel />
     </div>
   )
 }

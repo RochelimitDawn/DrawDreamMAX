@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.73`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.74`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.73` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.74` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.73
+└── package.json         # 2.0.0-alpha.1-mobile.74
 ```
 
 ```text
@@ -114,6 +114,15 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.74）
+
+- **全局品牌视觉换新**：以新版暖金棕渐变圆章 Logo（已去除原图水印）替换原蓝白「幕布负空间星形人形」视觉；侧边栏、设置页关于区、自定义/中转渠道图标、浏览器 favicon、iOS apple-touch-icon、Android 启动图标全部换新
+- **思考档位探测持久化缓存**：探测结果落盘 `.drawdream/thinking-probe-cache.json`，App 重启后同一模型直接命中缓存，不再重复探测
+- **上传附件化**：上传图片/文件后先挂到输入区（可移除），补文本后一起发送；直接发送时用默认读取提示词（识图 / 解析）
+- **工具名统一四字**：本机工具（读取文件/写入文件/修改文件/搜索内容/查找文件/查看目录）与角色扮演工具统一为四字标准名
+- **自定义工具管理**：设置→环境新增「自定义工具」区块，MCP 服务（JSON 配置）可添加/编辑/删除/开关/查看工具列表，工具调用显示具体名称并可展开预览内容
+- 继承 mobile.73：思考档位切换生效、更新下载可取消、环境页卡片布局、思考档位图标
 
 ## 本版要点（mobile.73）
 

@@ -30,6 +30,15 @@ import { ChatComposer } from '../components/ChatComposer'
 const STICK_BOTTOM_PX = 96
 /** 显示「回到顶部」的滚动距离 */
 const SHOW_BACK_TOP_PX = 220
+
+/** 待发送附件：上传完成后先挂到输入区，用户可补文本后一起发送 */
+export type ChatAttachment = {
+  id: string
+  name: string
+  kind: 'image' | 'file'
+  path: string
+  size: string
+}
 import { Select } from '../components/Select'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useSession } from '../agent/useSession'
@@ -261,8 +270,12 @@ export function ChatPage() {
   /** 本轮联网策略：关闭时服务端从模型工具中移除 smart_search */
   const [sessionWebSearch, setSessionWebSearch] = useState(false)
   const [uploading, setUploading] = useState(false)
+  /** 待发送附件：上传后先进入输入区，用户可补文本一起发送；直接发送则用默认读取提示词 */
+  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([])
   const [asstWebSearch, setAsstWebSearch] = useState(false)
   const [asstUploading, setAsstUploading] = useState(false)
+  /** 助手侧栏待发送附件 */
+  const [asstAttachments, setAsstAttachments] = useState<ChatAttachment[]>([])
   const [runtimeManifest, setRuntimeManifest] = useState<TavernRuntimeManifest | null>(null)
 
   useEffect(() => {
@@ -585,7 +598,6 @@ export function ChatPage() {
   }
 
   const doSend = (text: string) => {
-    if (!text || session.busy) return
     if (session.conn !== 'open') {
       toast(t('chat.connClosed'), 'error')
       return
@@ -600,13 +612,27 @@ export function ChatPage() {
 
   const send = () => {
     const text = input.trim()
-    if (!text || session.busy) return
+    if (session.busy) return
+    const atts = pendingAttachments
+    if (!text && atts.length === 0) return
     // 以 / 开头视为系统斜杠指令：先确认再发（服务端不会广播用户气泡）
-    if (text.startsWith('/')) {
+    if (text.startsWith('/') && atts.length === 0) {
       setSlashPending(text)
       return
     }
-    doSend(text)
+    // 拼接附件读取提示：有用户文本时文本在前、提示在后；无文本直接用默认读取提示词
+    const hints = atts.map((a) =>
+      a.kind === 'image'
+        ? `请用 read 查看图片「${a.name}」（路径：${a.path}），识别画面内容后回复。`
+        : `请用 read 查看并解析文件「${a.name}」（路径：${a.path}），总结要点后回复。`,
+    )
+    const payload = text
+      ? hints.length
+        ? `${text}\n\n${hints.join('\n')}`
+        : text
+      : hints.join('\n')
+    setPendingAttachments([])
+    doSend(payload)
   }
 
   const confirmSlash = () => {
@@ -618,10 +644,30 @@ export function ChatPage() {
     toast(t('chat.slashSent', { cmd }), 'info')
   }
 
+  const removePendingAttachment = (id: string) => {
+    setPendingAttachments((prev) => prev.filter((a) => a.id !== id))
+  }
+
+  const removeAsstAttachment = (id: string) => {
+    setAsstAttachments((prev) => prev.filter((a) => a.id !== id))
+  }
+
   const sendAsst = () => {
     const text = asstInput.trim()
-    if (!text || session.assistant.busy) return
-    store.assistantPrompt(text, asstWebSearch)
+    const atts = asstAttachments
+    if ((!text && atts.length === 0) || session.assistant.busy) return
+    const hints = atts.map((a) =>
+      a.kind === 'image'
+        ? `请用 read 查看图片「${a.name}」（路径：${a.path}），识别画面内容后回复。`
+        : `请用 read 查看并解析文件「${a.name}」（路径：${a.path}），总结要点后回复。`,
+    )
+    const payload = text
+      ? hints.length
+        ? `${text}\n\n${hints.join('\n')}`
+        : text
+      : hints.join('\n')
+    setAsstAttachments([])
+    store.assistantPrompt(payload, asstWebSearch)
     setAsstInput('')
     const key = asstDraftKeyRef.current
     if (key) clearComposerDraft(key)
@@ -638,14 +684,12 @@ export function ChatPage() {
       const path = saved.file
       const name = file.name || path
       toast(t('chat.uploadOk', { name }), 'success')
-      const hint =
-        kind === 'image'
-          ? `请用 read 查看图片「${name}」（路径：${path}），识别画面内容后回复。`
-          : `请用 read 查看并解析文件「${name}」（路径：${path}），总结要点后回复。`
-      const extra = input.trim()
-      const text = extra ? `${extra}\n\n${hint}` : hint
-      setInput('')
-      doSend(text)
+      // 上传完成后挂到输入区作为待发送附件，用户可补文本一起发送；
+      // 直接点发送时再按附件类型拼默认读取提示词。
+      setPendingAttachments((prev) => [
+        ...prev,
+        { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name, kind, path, size: saved.size },
+      ])
     } catch (e) {
       toast(e instanceof Error ? e.message : t('chat.uploadFail'), 'error')
     } finally {
@@ -664,16 +708,10 @@ export function ChatPage() {
       const path = saved.file
       const name = file.name || path
       toast(t('chat.uploadOk', { name }), 'success')
-      const hint =
-        kind === 'image'
-          ? `请用 read 查看图片「${name}」（路径：${path}），识别画面内容后回复。`
-          : `请用 read 查看并解析文件「${name}」（路径：${path}），总结要点后回复。`
-      const extra = asstInput.trim()
-      const text = extra ? `${extra}\n\n${hint}` : hint
-      setAsstInput('')
-      store.assistantPrompt(text, asstWebSearch)
-      const key = asstDraftKeyRef.current
-      if (key) clearComposerDraft(key)
+      setAsstAttachments((prev) => [
+        ...prev,
+        { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name, kind, path, size: saved.size },
+      ])
     } catch (e) {
       toast(e instanceof Error ? e.message : t('chat.uploadFail'), 'error')
     } finally {
@@ -2015,6 +2053,8 @@ export function ChatPage() {
                   onPickImage={(f) => handleComposerUpload(f, 'image')}
                   onPickFile={(f) => handleComposerUpload(f, 'file')}
                   uploading={uploading}
+                  attachments={pendingAttachments}
+                  onRemoveAttachment={removePendingAttachment}
                   onKeyDownExtra={(e) => {
                     if (cmdMatches.length > 0) {
                       if (e.key === 'ArrowDown') {
@@ -2142,6 +2182,8 @@ export function ChatPage() {
                 onPickImage={(f) => handleAsstUpload(f, 'image')}
                 onPickFile={(f) => handleAsstUpload(f, 'file')}
                 uploading={asstUploading}
+                attachments={asstAttachments}
+                onRemoveAttachment={removeAsstAttachment}
                 enterSend={prefs.enterSend}
               />
             ) : null}
