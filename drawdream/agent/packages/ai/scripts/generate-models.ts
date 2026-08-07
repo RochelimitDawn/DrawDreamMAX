@@ -1293,6 +1293,14 @@ async function loadModelsDevData(): Promise<Model<any>[]> {
 				}
 
 				if (variant.provider === "opencode" && modelId === "grok-build-0.1") {
+					// OpenCode Zen serves grok-build-0.1 through the OpenAI-compatible
+					// /v1/chat/completions path, not the Responses API. models.dev
+					// occasionally reports npm=@ai-sdk/openai (Responses) for this
+					// model; pin it to openai-completions so the compat object stays
+					// on OpenAICompletionsCompat (supportsReasoningEffort etc.) and
+					// requests use the standard chat completions endpoint.
+					api = "openai-completions";
+					baseUrl = `${variant.basePath}/v1`;
 					compat = { ...(compat ?? {}), supportsReasoningEffort: false };
 				}
 
