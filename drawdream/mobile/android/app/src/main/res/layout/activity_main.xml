@@ -3,19 +3,20 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/splash_bg">
+    android:background="@drawable/splash_bg_light">
 
     <View
         android:id="@+id/gridOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="0.95"
-        android:background="@drawable/grid_overlay" />
+        android:background="@drawable/grid_overlay_light" />
 
     <View
+        android:id="@+id/gridFadeMask"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/grid_fade_mask" />
+        android:background="@drawable/grid_fade_mask_light" />
 
     <WebView
         android:id="@+id/webView"
@@ -53,22 +54,24 @@
                  android:src="@drawable/logo_mark_transparent" />
 
             <TextView
+                android:id="@+id/splashTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:fontFamily="@font/smiley_sans_oblique"
                 android:letterSpacing="0.04"
                 android:text="@string/app_name"
-                android:textColor="#0F172A"
+                android:textColor="#8B5124"
                 android:textSize="28sp" />
 
             <TextView
+                android:id="@+id/splashTagline"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:fontFamily="@font/smiley_sans_oblique"
                 android:text="@string/splash_tagline"
-                android:textColor="#64748B"
+                android:textColor="#8A7660"
                 android:textSize="13sp" />
 
             <ProgressBar
@@ -78,7 +81,7 @@
                 android:layout_height="28dp"
                 android:layout_marginTop="20dp"
                 android:indeterminate="true"
-                android:indeterminateTint="#64748B" />
+                android:indeterminateTint="#C47A3A" />
 
             <TextView
                 android:id="@+id/statusLabel"
@@ -88,7 +91,7 @@
                 android:fontFamily="@font/smiley_sans_oblique"
                 android:gravity="center"
                 android:text="@string/status_preparing"
-                android:textColor="#64748B"
+                android:textColor="#9A8874"
                 android:textSize="12sp" />
 
             <!-- Uiverse-style terminal console -->
@@ -182,11 +185,12 @@
                 android:layout_weight="1" />
 
             <TextView
+                android:id="@+id/splashFooter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/smiley_sans_oblique"
                 android:text="@string/splash_footer"
-                android:textColor="#94A3B8"
+                android:textColor="#B8A894"
                 android:textSize="11sp" />
         </LinearLayout>
     </ScrollView>

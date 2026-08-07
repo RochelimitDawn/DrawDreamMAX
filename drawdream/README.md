@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.74`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.75`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.74` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.75` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.74
+└── package.json         # 2.0.0-alpha.1-mobile.75
 ```
 
 ```text
@@ -114,6 +114,13 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.75）
+
+- **思考实时计时**：思考开始时在思考条旁展示已持续秒数（精确到 0.1s，如 `12.4s`），思考结束即停止；独立计时器组件不触发父组件重渲染，带弹入动画与呼吸点
+- **安卓入场动画主题化**：启动 splash 背景由固定灰蓝改为暖金色系并跟随设置里的浅色/深色主题（浅色暖羊皮纸底 + 暖棕网格，深色暖棕底 + 暖金网格）；保留十字网格设计
+- **过期运行时清理**：滚动更新不再累积历史运行时，`releases/` 只保留当前与上一版本（回退用），更早版本自动删除；每次启动与升级后均清理
+- 继承 mobile.74：新 Logo 视觉、思考缓存、上传附件化、工具名四字、自定义工具管理
 
 ## 本版要点（mobile.74）
 

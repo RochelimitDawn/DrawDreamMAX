@@ -32,6 +32,14 @@ export function applyTheme(mode: ThemeMode) {
   const meta = document.querySelector('meta[name="theme-color"]')
   if (meta) meta.setAttribute('content', resolved === 'dark' ? '#161210' : '#faf6f0')
   localStorage.setItem(STORAGE_KEY, mode)
+  // 通知安卓壳：入场动画（splash）背景/网格跟随主题
+  try {
+    ;(window as unknown as { DrawDreamAndroid?: { setTheme?: (mode: string) => void } }).DrawDreamAndroid?.setTheme?.(
+      mode,
+    )
+  } catch {
+    /* 非安卓壳环境忽略 */
+  }
   try {
     window.dispatchEvent(new CustomEvent('dd-theme-change', { detail: { mode, resolved } }))
   } catch {

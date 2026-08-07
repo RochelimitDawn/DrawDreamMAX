@@ -9,7 +9,9 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -30,6 +32,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -47,9 +50,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var splashLog: android.widget.LinearLayout
     private lateinit var logScroller: android.widget.ScrollView
     private lateinit var statusLabel: TextView
+    private lateinit var gridOverlay: View
+    private lateinit var gridFadeMask: View
+    private lateinit var splashTitle: TextView
+    private lateinit var splashTagline: TextView
+    private lateinit var splashFooter: TextView
+    private lateinit var splashProgress: ProgressBar
     private var loaded = false
     private val handler = Handler(Looper.getMainLooper())
     private var lastLogText = ""
+
+    /** 入场动画主题（浅/深），跟随设置里的主题设置 */
+    private val prefs: SharedPreferences by lazy {
+        getSharedPreferences("drawdream_theme", Context.MODE_PRIVATE)
+    }
 
     /** <input type="file"> 回调；未处理时 WebView 上导入按钮无任何反应 */
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
@@ -153,6 +167,38 @@ class MainActivity : AppCompatActivity() {
         fun cancelUpdate() {
             AppUpdater.cancelUpdate()
         }
+
+        @JavascriptInterface
+        fun setTheme(mode: String?) {
+            val t = mode?.trim()?.lowercase(Locale.ROOT)
+            val resolved = if (t == "dark" || t == "light") t else if (t == "system") {
+                when (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) {
+                    android.content.res.Configuration.UI_MODE_NIGHT_YES -> "dark"
+                    else -> "light"
+                }
+            } else "light"
+            prefs.edit().putString("theme", resolved).apply()
+            handler.post { applySplashTheme(resolved) }
+        }
+    }
+
+    /** 入场动画主题切换：暖金背景 + 网格 + 文字色跟随浅色/深色 */
+    private fun applySplashTheme(mode: String) {
+        val dark = mode == "dark"
+        val rootView = findViewById<android.widget.FrameLayout>(R.id.root)
+        rootView.setBackgroundResource(if (dark) R.drawable.splash_bg_dark else R.drawable.splash_bg_light)
+        if (this::gridOverlay.isInitialized) {
+            gridOverlay.setBackgroundResource(if (dark) R.drawable.grid_overlay_dark else R.drawable.grid_overlay_light)
+        }
+        if (this::gridFadeMask.isInitialized) {
+            gridFadeMask.setBackgroundResource(if (dark) R.drawable.grid_fade_mask_dark else R.drawable.grid_fade_mask_light)
+        }
+        splashTitle.setTextColor(Color.parseColor(if (dark) "#E0B06A" else "#8B5124"))
+        splashTagline.setTextColor(Color.parseColor(if (dark) "#B8A894" else "#8A7660"))
+        splashFooter.setTextColor(Color.parseColor(if (dark) "#8A7B68" else "#B8A894"))
+        splashProgress.indeterminateTintList = android.content.res.ColorStateList.valueOf(
+            Color.parseColor(if (dark) "#E0B06A" else "#C47A3A"),
+        )
     }
 
     /** 下载进度回传 JS（window.__ddUpdateProgress，百分比 0-100） */
@@ -211,6 +257,14 @@ class MainActivity : AppCompatActivity() {
         splashLog = findViewById(R.id.splashLog)
         logScroller = findViewById(R.id.logScroller)
         statusLabel = findViewById(R.id.statusLabel)
+        gridOverlay = findViewById(R.id.gridOverlay)
+        gridFadeMask = findViewById(R.id.gridFadeMask)
+        splashTitle = findViewById(R.id.splashTitle)
+        splashTagline = findViewById(R.id.splashTagline)
+        splashFooter = findViewById(R.id.splashFooter)
+        splashProgress = findViewById(R.id.splashProgress)
+
+        applySplashTheme(prefs.getString("theme", "light") ?: "light")
 
         if (Build.VERSION.SDK_INT >= 33) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)

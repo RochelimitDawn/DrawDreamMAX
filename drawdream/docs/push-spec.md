@@ -8,6 +8,29 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.75 变更摘要
+
+1. **思考实时计时**
+   - 思考开始时在思考条旁展示已持续秒数（精确到小数点后一位，如 `12.4s`），思考结束即停止
+   - 计时器为独立 `ThinkTimer` 子组件：直接写 DOM 文本（rAF 更新，不触发父组件重渲染），卸载即停止；弹入动画 + 呼吸点 + tabular-nums 等宽数字
+   - 主对话与侧栏助手思考块共用
+
+2. **安卓入场动画主题化（暖金 + 网格）**
+   - 入场 splash 背景由固定 slate 灰蓝改为暖金色系，跟随设置里的浅色/深色主题
+   - 浅色：暖羊皮纸底 `#FAF6F0` + 顶部暖金光晕，网格线暖棕 `#C47A3A`
+   - 深色：暖棕底 `#161210` + 顶部暖金微光，网格线暖金 `#E0B06A`
+   - 新增资源：`splash_bg_{light,dark}.xml`、`grid_overlay_{light,dark}.xml`、`grid_fade_mask_{light,dark}.xml`、`grid_tile_{light,dark}.png`
+   - `MainActivity` 新增 `setTheme` JS 桥：前端 `applyTheme` 通知壳保存主题（SharedPreferences），启动时读取并切换 splash 背景/网格/标题/进度条配色；`system` 模式跟随系统 `uiMode`
+   - 网格设计保留（斜纹十字网格），仅换暖金配色
+
+3. **清理过期历史运行时**
+   - 根因：`ensureReady` 每次升级把新 runtime 落盘 `runtime/releases/$version`，只记录 `activeVersion`/`previousVersion`，从不删除旧版本，历史运行时永久累积
+   - 修复：`RuntimeBootstrap.pruneOldReleases(ctx)` 列出 `releases/`，保留 active 与 previous 两个版本（回退用），删除更早版本；在新版本激活后与每次启动快路径命中时调用
+   - 兼容：`scheduleRuntimeUpdate` 失败回退依赖 previous 版本，prune 保留它，回退不受影响
+
+4. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.75` 触发 APK workflow
+
 ## mobile.74 变更摘要
 
 1. **全局品牌视觉换新（新 Logo）**

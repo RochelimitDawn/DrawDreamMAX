@@ -62,6 +62,31 @@ object RuntimeBootstrap {
         }
     }
 
+    /** 清理过期的历史 runtime：保留 active 与上一个版本（回退用），删除更早的。 */
+    fun pruneOldReleases(ctx: Context) {
+        try {
+            val base = runtimeBase(ctx)
+            val releases = File(base, "releases")
+            if (!releases.isDirectory) return
+            val active = activeVersion(ctx)
+            val previous = try {
+                val f = activeFile(ctx)
+                if (f.exists()) JSONObject(f.readText()).optString("previousVersion").ifBlank { null }
+                else null
+            } catch (_: Exception) {
+                null
+            }
+            val keep = setOfNotNull(active, previous)
+            releases.listFiles()?.forEach { dir ->
+                if (dir.isDirectory && dir.name !in keep) {
+                    dir.deleteRecursively()
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "prune old releases failed", e)
+        }
+    }
+
     fun embeddedVersion(ctx: Context): String? = try {
         val input = ctx.assets.open("runtime.zip")
         ZipInputStream(input).use { zip ->
@@ -184,6 +209,8 @@ object RuntimeBootstrap {
             val expectedRuntime = embeddedRuntimeKey(ctx)
             if (!forceExtract && isReady(ctx) && activeVersion(ctx) == expectedRuntime) {
                 onProgress(ctx.getString(R.string.status_runtime_ready))
+                // 每次启动顺带清理过期的历史 runtime（保留 active + previous）
+                pruneOldReleases(ctx)
                 return Result.success(root)
             }
             onProgress(ctx.getString(R.string.status_extracting))
@@ -247,6 +274,7 @@ object RuntimeBootstrap {
             val pointer = JSONObject().put("activeVersion", version)
             if (!previous.isNullOrBlank()) pointer.put("previousVersion", previous)
             activeFile(ctx).writeText(pointer.toString())
+            pruneOldReleases(ctx)
             onProgress("Runtime extracted")
             Result.success(release)
         } catch (e: Exception) {

@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Bot, ChevronDown, ChevronRight, Lightbulb } from 'lucide-react'
 import './ThinkingBlock.css'
 
@@ -15,8 +15,35 @@ export type ThinkingBlockProps = {
   className?: string
 }
 
+/** 思考实时计时：直接写 DOM 文本，不触发父组件重渲染 */
+function ThinkTimer() {
+  const ref = useRef<HTMLSpanElement>(null)
+  const startRef = useRef(performance.now())
+
+  useEffect(() => {
+    let raf = 0
+    const loop = () => {
+      const ms = performance.now() - startRef.current
+      const s = (ms / 1000).toFixed(1)
+      if (ref.current && ref.current.textContent !== `${s}s`) {
+        ref.current.textContent = `${s}s`
+        ref.current.setAttribute('aria-label', `${s}s`)
+      }
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  return (
+    <span className="dd-think-timer" ref={ref} aria-label="0.0s">
+      0.0s
+    </span>
+  )
+}
+
 /**
- * 可折叠思考块：流式时扫光标题 + 呼吸图标；结束后可自动收起。
+ * 可折叠思考块：流式时扫光标题 + 呼吸图标 + 实时计时；结束后可自动收起。
  * 主对话与侧栏助手共用。
  */
 export function ThinkingBlock({
@@ -25,7 +52,7 @@ export function ThinkingBlock({
   defaultOpen,
   autoCollapseOnEnd = true,
   labelIdle = '思考过程',
-  labelLive = '思考中…',
+  labelLive = '思考中',
   labelDone = '已思考',
   className = '',
 }: ThinkingBlockProps) {
@@ -62,6 +89,7 @@ export function ThinkingBlock({
           {streaming ? <Bot size={14} strokeWidth={1.85} /> : <Lightbulb size={14} strokeWidth={1.85} />}
         </span>
         <span className={`dd-think-title${streaming ? ' is-shiny' : ''}`}>{title}</span>
+        {streaming ? <ThinkTimer /> : null}
         <span className="dd-think-chevron" aria-hidden>
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </span>
