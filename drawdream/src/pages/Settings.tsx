@@ -331,6 +331,10 @@ export function SettingsPage() {
   const [smartSearchMaxQueries, setSmartSearchMaxQueries] = useState('3')
   const [smartSearchDepth, setSmartSearchDepth] = useState<'basic' | 'advanced' | 'fast' | 'ultra-fast'>('basic')
   const [smartSearchTopic, setSmartSearchTopic] = useState<'general' | 'news' | 'finance'>('general')
+  const [docParseEnabled, setDocParseEnabled] = useState(false)
+  const [docParseApiKey, setDocParseApiKey] = useState('')
+  const [docParseModelVersion, setDocParseModelVersion] = useState('vlm')
+  const [docParseMaxChars, setDocParseMaxChars] = useState('8000')
   const [thinking, setThinking] = useState<ThinkingIntensity>('medium')
   const [availableLevels, setAvailableLevels] = useState<string[]>([])
   const importFileRef = useRef<HTMLInputElement>(null)
@@ -408,6 +412,10 @@ export function SettingsPage() {
         const tp = cfg.config.smartSearch?.topic
         setSmartSearchTopic(tp === 'news' || tp === 'finance' ? tp : 'general')
       }
+      setDocParseEnabled(cfg.config.documentParse?.enabled === true)
+      setDocParseApiKey(cfg.config.documentParse?.apiKey ?? '')
+      setDocParseModelVersion(cfg.config.documentParse?.modelVersion?.trim() || 'vlm')
+      setDocParseMaxChars(String(cfg.config.documentParse?.maxChars ?? 8000))
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'error')
     } finally {
@@ -859,6 +867,12 @@ export function SettingsPage() {
           ...(smartSearchBaseUrl.trim() && smartSearchBaseUrl.trim() !== 'https://api.tavily.com'
             ? { baseUrl: smartSearchBaseUrl.trim() }
             : {}),
+        },
+        documentParse: {
+          enabled: docParseEnabled,
+          modelVersion: docParseModelVersion.trim() || 'vlm',
+          maxChars: Math.min(100000, Math.max(500, Number(docParseMaxChars) || 8000)),
+          ...(docParseApiKey.trim() ? { apiKey: docParseApiKey.trim() } : {}),
         },
       })
       toast(t('common.saved'), 'success')
@@ -2166,6 +2180,65 @@ export function SettingsPage() {
                 </>
               ) : null}
 
+              <h3 className="settings-subhead">{t('settings.documentParse')}</h3>
+              <div className="settings-list" style={{ marginTop: 8 }}>
+                <div className="settings-item">
+                  <SIcon icon={FileText} />
+                  <div className="settings-item-main">
+                    <div className="settings-item-title">{t('settings.documentParseEnabled')}</div>
+                    <div className="settings-item-desc">{t('settings.documentParseEnabledDesc')}</div>
+                  </div>
+                  <Toggle
+                    checked={docParseEnabled}
+                    onChange={setDocParseEnabled}
+                    ariaLabel={t('settings.documentParseEnabled')}
+                  />
+                </div>
+              </div>
+              <div className="grid-2" style={{ marginTop: 12 }}>
+                <div>
+                  <label className="field-label">{t('settings.documentParseApiKey')}</label>
+                  <input
+                    className="field-input"
+                    type="password"
+                    autoComplete="off"
+                    value={docParseApiKey}
+                    onChange={(e) => setDocParseApiKey(e.target.value)}
+                    placeholder={t('settings.documentParseApiKeyPlaceholder')}
+                    disabled={!docParseEnabled}
+                  />
+                </div>
+                <div>
+                  <label className="field-label">{t('settings.documentParseModelVersion')}</label>
+                  <Select
+                    fullWidth
+                    value={docParseModelVersion}
+                    onChange={(v) => setDocParseModelVersion(v)}
+                    disabled={!docParseEnabled}
+                    options={[
+                      { value: 'vlm', label: 'vlm（推荐）' },
+                      { value: 'pipeline', label: 'pipeline' },
+                      { value: 'MinerU-HTML', label: 'MinerU-HTML' },
+                    ]}
+                  />
+                </div>
+              </div>
+              <div className="grid-2" style={{ marginTop: 12 }}>
+                <div>
+                  <label className="field-label">{t('settings.documentParseMaxChars')}</label>
+                  <input
+                    className="field-input"
+                    type="number"
+                    min={500}
+                    max={100000}
+                    step={500}
+                    value={docParseMaxChars}
+                    onChange={(e) => setDocParseMaxChars(e.target.value)}
+                    disabled={!docParseEnabled}
+                  />
+                </div>
+              </div>
+
               <div className="form-actions">
                 <button type="button" className="btn btn-primary" onClick={() => void saveAdvanced()}>
                   {t('common.save')}
@@ -2209,7 +2282,7 @@ export function SettingsPage() {
               </div>
               <p>{t('settings.aboutText')}</p>
               <div className="chip">
-                {t('settings.version')} 2.0.0-alpha.1 · mobile.82 · DrawDream Agent
+                {t('settings.version')} 2.0.0-alpha.1 · mobile.83 · DrawDream Agent
               </div>
               <div className="form-actions" style={{ marginTop: 12 }}>
                 <button

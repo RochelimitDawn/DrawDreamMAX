@@ -82,6 +82,9 @@ function probeCacheKey(provider: string, id: string): string {
 	return `${provider}::${id}`;
 }
 
+/** 本机工具：backendControl 关闭时从 active 工具集剔除（read/bash/edit/write） */
+const BUILTIN_TOOL_NAMES = new Set(["read", "bash", "edit", "write"]);
+
 /** 收集所有渠道里标记为向量模型（kind=embedding/embed/embeddings）的 key 集合，用于从对话模型列表排除。 */
 export function collectEmbeddingModelKeys(cwd: string): Set<string> {
 	const keys = new Set<string>();
@@ -198,6 +201,9 @@ export type RestHostSession = {
 	};
 	setModel: (m: unknown) => Promise<void>;
 	setThinkingLevel: (level: never) => void;
+	getActiveToolNames: () => string[];
+	getAllTools: () => Array<{ name: string; description?: string; parameters?: unknown }>;
+	setActiveToolsByName: (names: string[]) => void;
 	reload: () => Promise<void>;
 	prompt: (text: string, opts?: { streamingBehavior?: string }) => Promise<unknown>;
 	sessionFile: string | undefined;
@@ -521,8 +527,32 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 			};
 		},
 		refreshModels: () => deps.getSession().modelRegistry.refresh(),
+		/**
+		 * 依据 backendControl 动态调整本机工具集：
+		 * - 关闭 → 从 active 工具集剔除 read/bash/edit/write（保留扩展/领域工具，如 roleplay）
+		 * - 开启 → 若本机工具不在 active 中则补回
+		 * 配置热更新（PUT /api/config）只走 session.reload，而 reload 用
+		 * getActiveToolNames() 保留现有工具，不会重建初始工具集——因此这里显式收敛。
+		 */
+		applyBackendToolPolicy() {
+			const session = deps.getSession();
+			try {
+				const active = session.getActiveToolNames();
+				const backendControl = loadConfig(deps.getCwd()).backendControl !== false;
+				if (backendControl) {
+					const missing = [...BUILTIN_TOOL_NAMES].filter((n) => !active.includes(n));
+					if (missing.length) session.setActiveToolsByName([...active, ...missing]);
+				} else {
+					const kept = active.filter((n) => !BUILTIN_TOOL_NAMES.has(n));
+					if (kept.length !== active.length) session.setActiveToolsByName(kept);
+				}
+			} catch {
+				/* 工具集调整失败不阻断配置保存 */
+			}
+		},
 		async reloadSession() {
 			await deps.getSession().reload();
+			this.applyBackendToolPolicy();
 			deps.refreshNamesFromConfig();
 			deps.resyncAll();
 		},
@@ -532,6 +562,7 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 			const session = deps.getSession();
 			const run = async () => {
 				await session.reload();
+				this.applyBackendToolPolicy();
 				deps.refreshNamesFromConfig();
 				if (typeof deps.ensureSessionCardAndGreeting === "function") {
 					await deps.ensureSessionCardAndGreeting();

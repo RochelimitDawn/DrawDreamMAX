@@ -29,6 +29,8 @@ import {
 } from "../../src/director.ts";
 import { getSearchTurnPolicy } from "../../src/search-turn-context.ts";
 import { formatSummariesForInject, loadSummaries } from "../../src/turn-summary.ts";
+import { listUploads, formatBytes } from "../../src/uploads.ts";
+import { parsedMarkdownFor, truncateForInjection, isParseableDocument } from "../../src/document-parse.ts";
 import { activateTavernWorldInfo } from "../../src/tavern-prompt.ts";
 import { loadBranchStateIndex, recordBranchState, restoreBranchState, saveBranchStateIndex } from "../../src/branch-state.ts";
 import {
@@ -426,6 +428,8 @@ export default function roleplayExtension(pi: ExtensionAPI) {
 			/* ignore preset */
 		}
 		const lengthFeedback = lengthFeedbackBySession.get(sid);
+		// 上传区速览 + 已解析文档的 Markdown 摘要（截图注入，避免撑爆上下文）
+		const uploadIndex = buildUploadIndex(cwd, config);
 		const inject = buildTurnInjection({
 			state,
 			activatedLore: activated,
@@ -441,6 +445,7 @@ export default function roleplayExtension(pi: ExtensionAPI) {
 			openingOptions: openingOptions.length >= 2 ? openingOptions : undefined,
 			presetPostHistoryBlocks,
 			lengthFeedback,
+			uploadIndex,
 		});
 		// 注入后清除，避免连续多轮误用旧反馈
 		if (lengthFeedback) lengthFeedbackBySession.delete(sid);
@@ -944,4 +949,47 @@ export default function roleplayExtension(pi: ExtensionAPI) {
 	// 避免未使用变量告警（调试可看 lastCard*）
 	void lastCardPath;
 	void lastCardName;
+}
+
+/**
+ * 上传区速览：列出文件并附带已解析文档的 Markdown 摘要。
+ * - 普通素材：仅一行文件名（如「地图.png(2MB)」）
+ * - 文档类且已解析（uploads/<名>.md 存在）：注入截断后的 Markdown 正文，
+ *   模型无需 read 即可理解内容；全文仍在 .drawdream-uploads/ 可按需 read。
+ * - 文档类但未解析（上传后解析中/失败/未开启）：提示"用 read 查看（二进制文档需先经文档解析）"
+ */
+function buildUploadIndex(cwd: string, config: { documentParse?: { enabled?: boolean; maxChars?: number } }): string | undefined {
+	const uploads = listUploads(cwd);
+	if (uploads.length === 0) return undefined;
+	const docParse = config.documentParse;
+	const parseEnabled = docParse?.enabled !== false && (docParse?.enabled ?? true);
+	const parts: string[] = [];
+	for (const u of uploads.slice(0, 6)) {
+		if (isParseableDocument(u.file)) {
+			const mdRel = parsedMarkdownFor(u.file);
+			if (mdRel) {
+				const abs = join(cwd, mdRel);
+				if (existsSync(abs)) {
+					try {
+						const md = readFileSync(abs, "utf8");
+						const preview = truncateForInjection(md, docParse?.maxChars);
+						parts.push(`《${u.name}》解析内容：\n${preview}`);
+						continue;
+					} catch {
+						/* 读解析文件失败走下行 */
+					}
+				}
+			}
+			parts.push(
+				`${u.name}(${formatBytes(u.bytes)})` +
+					(parseEnabled
+						? "——文档解析中/待解析，用 read 查看"
+						: "——二进制文档，read 无法直接读取，可在设置→高级→文档解析开启结构化解析"),
+			);
+			continue;
+		}
+		parts.push(`${u.name}(${formatBytes(u.bytes)})`);
+	}
+	const rest = uploads.length > 6 ? `（另有 ${uploads.length - 6} 个旧文件）` : "";
+	return parts.join("\n") + rest;
 }

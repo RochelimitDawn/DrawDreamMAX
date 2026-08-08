@@ -91,6 +91,7 @@ const CONFIG_EDITABLE = new Set([
 	"pipeline",
 	"smartSearch",
 	"subagents",
+	"documentParse",
 ]);
 
 export function applyConfigPatch(config: RpConfig, patch: Record<string, unknown>): RpConfig {
@@ -214,6 +215,41 @@ export function applyConfigPatch(config: RpConfig, patch: Record<string, unknown
 			const enabled = s.enabled !== false;
 			const maxConcurrent = clampInt(s.maxConcurrent, 1, 8, 2);
 			next.subagents = { enabled, maxConcurrent };
+		}
+	}
+	// 文档解析（MinerU）：{ enabled?, apiKey?, modelVersion?, maxChars? }
+	// 未传 apiKey 时保留磁盘已有密钥（避免仅改开关/上限时清掉）
+	if (next.documentParse !== undefined) {
+		const dp = next.documentParse as {
+			enabled?: unknown;
+			apiKey?: unknown;
+			modelVersion?: unknown;
+			maxChars?: unknown;
+		} | null;
+		const prev =
+			config.documentParse && typeof config.documentParse === "object"
+				? config.documentParse
+				: undefined;
+		if (!dp || typeof dp !== "object") {
+			delete next.documentParse;
+		} else {
+			const enabled = dp.enabled !== false;
+			const apiKeyFromPatch = typeof dp.apiKey === "string" ? dp.apiKey.trim() : "";
+			const apiKey = apiKeyFromPatch || (typeof prev?.apiKey === "string" ? prev.apiKey.trim() : "");
+			const modelVersion =
+				typeof dp.modelVersion === "string" && dp.modelVersion.trim()
+					? dp.modelVersion.trim()
+					: typeof prev?.modelVersion === "string" && prev.modelVersion.trim()
+						? prev.modelVersion.trim()
+						: "vlm";
+			const maxChars = clampInt(dp.maxChars ?? prev?.maxChars, 500, 100000, 8000);
+			const out: { enabled: boolean; apiKey?: string; modelVersion: string; maxChars: number } = {
+				enabled,
+				modelVersion,
+				maxChars,
+			};
+			if (apiKey) out.apiKey = apiKey;
+			next.documentParse = out;
 		}
 	}
 	// 挂载书：lorebooks 数组优先；兼容旧单本 lorebook

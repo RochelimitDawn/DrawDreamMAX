@@ -491,7 +491,19 @@ class SessionStore {
           this.lastStreamId = this.streamId
           messages = messages.map((m) => {
             if (m.id !== this.streamId) return m
-            if (kind === 'text') return { ...m, text: m.text + delta }
+            if (kind === 'text') {
+              // 正文首 token：思考段已结束，把 timeline 里 think 步骤标记为非流式，
+              // 前端计时器据此暂停（思考完成不再继续计时）。
+              const hadText = m.text.length > 0
+              const next = { ...m, text: m.text + delta }
+              if (!hadText && (m.thinking || (m.timeline ?? []).some((t) => t.kind === 'think'))) {
+                const tl = (m.timeline ?? []).map((t) =>
+                  t.kind === 'think' ? { ...t, streaming: false } : t,
+                )
+                next.timeline = tl
+              }
+              return next
+            }
             const thinking = (m.thinking ?? '') + delta
             const tl = [...(m.timeline ?? [])]
             const last = tl[tl.length - 1]

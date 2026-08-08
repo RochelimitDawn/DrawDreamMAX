@@ -8,6 +8,28 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.83 变更摘要
+
+1. **思考计时器暂停修复**
+   - 根因：`session-store.ts` 收到正文首 token 时只追加 `text`，时间线里 think 步骤保持 `streaming: true`，`ThinkingBlock` 的计时器持续走（思考已完成但计时未停）
+   - 修复：正文首 token（`hadText` 由空变非空）时，把 timeline 里 think 步骤标记 `streaming: false`；`ThinkingBlock` 计时器支持冻结显示——结束时保留并展示思考耗时，不再消失
+   - 断言：正文流式开始后 think 步骤非流式、计时器冻结
+
+2. **本机工具开关（backendControl）热更新即时生效**
+   - 根因：`noTools: "builtin"` 仅在创建 session 时生效；配置热更新（`PUT /api/config` → `session.reload`）用 `getActiveToolNames()` 保留旧工具集，不重建初始工具 → 关闭「本机工具（bash/文件）」后 AI 仍能调用 read/bash/edit/write
+   - 修复：rest-host 新增 `applyBackendToolPolicy()`——reload 后依据 `backendControl` 动态收敛本机工具集（关则剔除 read/bash/edit/write，开则补回）；`user-host` 的 `handlePrompt` 改为基于当前 active 工具过滤 smart_search（移除模块级 `storyToolNames` 缓存，避免 prompt 时误清空工具）
+   - 新增测试：`backend-tool-policy.test.ts` 覆盖关→剔、开→补全链路
+
+3. **文档解析（MinerU）**
+   - 设置 → 高级新增「文档解析」配置区：`enabled` / `apiKey`（精准解析 Token）/ `modelVersion` / `maxChars`
+   - 上传 PDF/Word/PPT/Excel 等文档时后台自动结构化解析为 Markdown：配置 Token 走精准 API（`/api/v4/file-urls/batch` → PUT → 轮询 → 下载 zip → 提取 full.md，node:zlib inflateRaw 免第三方依赖）；留空走免 Token 轻量 API（`/api/v1/agent/parse/file` → PUT → 轮询 → 下载 markdown_url）
+   - 注入：`roleplay.ts` 的 `buildUploadIndex` 在每轮末端注入上传区速览与已解析文档的 Markdown 摘要（截断到 maxChars），全文落 `.drawdream-uploads/<名>.md` 供 read 按需读取
+   - 配置 schema：`RpConfig.documentParse`（agent/src/types.ts + 前端 rest.ts）；`applyConfigPatch` 规范化（未传 apiKey 保留磁盘密钥）
+   - 新增测试：`document-parse.test.ts`（可解析判定 / zip deflate 与 STORE 提取 / 截断）；端到端实测 `PUT /api/config` 保存 documentParse 成功
+
+4. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.83` 触发 APK workflow
+
 ## mobile.82 变更摘要
 
 1. **思考档切换彻底修复（切换显示「已更新」但实际 Off）**

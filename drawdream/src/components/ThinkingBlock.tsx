@@ -15,16 +15,25 @@ export type ThinkingBlockProps = {
   className?: string
 }
 
-/** 思考实时计时：直接写 DOM 文本，不触发父组件重渲染 */
-function ThinkTimer() {
+/** 思考实时计时：直接写 DOM 文本，不触发父组件重渲染；结束后冻结显示耗时 */
+function ThinkTimer({ streaming }: { streaming: boolean }) {
   const ref = useRef<HTMLSpanElement>(null)
   const startRef = useRef(performance.now())
+  const lastRef = useRef('0.0s')
 
   useEffect(() => {
+    if (!streaming) {
+      if (ref.current && ref.current.textContent !== lastRef.current) {
+        ref.current.textContent = lastRef.current
+        ref.current.setAttribute('aria-label', lastRef.current)
+      }
+      return
+    }
     let raf = 0
     const loop = () => {
       const ms = performance.now() - startRef.current
       const s = (ms / 1000).toFixed(1)
+      lastRef.current = `${s}s`
       if (ref.current && ref.current.textContent !== `${s}s`) {
         ref.current.textContent = `${s}s`
         ref.current.setAttribute('aria-label', `${s}s`)
@@ -33,7 +42,7 @@ function ThinkTimer() {
     }
     raf = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(raf)
-  }, [])
+  }, [streaming])
 
   return (
     <span className="dd-think-timer" ref={ref} aria-label="0.0s">
@@ -89,7 +98,7 @@ export function ThinkingBlock({
           {streaming ? <Bot size={14} strokeWidth={1.85} /> : <Lightbulb size={14} strokeWidth={1.85} />}
         </span>
         <span className={`dd-think-title${streaming ? ' is-shiny' : ''}`}>{title}</span>
-        {streaming ? <ThinkTimer /> : null}
+        {body || streaming ? <ThinkTimer streaming={streaming} /> : null}
         <span className="dd-think-chevron" aria-hidden>
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </span>

@@ -776,6 +776,14 @@ export default {
     smartSearchTopicNews: '新闻',
     smartSearchTopicFinance: '财经',
 
+    documentParse: '文档解析（MinerU）',
+    documentParseEnabled: '启用文档解析',
+    documentParseEnabledDesc: '上传 PDF/Word/PPT/Excel 等文档时自动结构化解析为 Markdown 并注入对话，剧情 AI 可直接阅读内容。文档：mineru.net/apiManage/docs',
+    documentParseApiKey: 'MinerU API Token',
+    documentParseApiKeyPlaceholder: '留空用免 Token 的轻量 API（≤10MB/≤20 页）',
+    documentParseModelVersion: '解析模型',
+    documentParseMaxChars: '注入字符上限',
+
     theme: '主题',
     themeLight: '浅色',
     themeDark: '深色',

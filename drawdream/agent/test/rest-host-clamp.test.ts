@@ -70,6 +70,7 @@ test("探测成功后模型对象档位能力写回，切换档位不再 clamp �
 			reasoning: false,
 			thinkingLevelMap: undefined,
 		} as unknown as RestHostSession["model"];
+		let sessionActiveTools: string[] = ["read", "bash", "edit", "write", "lorebook_search"];
 		const session = {
 			model: modelObj,
 			thinkingLevel: "off",
@@ -84,9 +85,14 @@ test("探测成功后模型对象档位能力写回，切换档位不再 clamp �
 				refresh: () => {},
 			},
 			setModel: async () => {},
-			setThinkingLevel: (lvl: never) => {
-				session.thinkingLevel = lvl as string;
-			},
+		setThinkingLevel: (lvl: never) => {
+			session.thinkingLevel = lvl as string;
+		},
+		getActiveToolNames: () => ["read", "bash", "edit", "write", "lorebook_search"],
+		getAllTools: () => [],
+		setActiveToolsByName: (names: string[]) => {
+			sessionActiveTools = [...names];
+		},
 		} as unknown as RestHostSession;
 		const deps = {
 			getCwd: () => cwd,

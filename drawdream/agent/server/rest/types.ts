@@ -89,6 +89,8 @@ export interface RestHost {
 	/** 取某 provider 的运行时模型/端点快照 */
 	providerSnapshot(provider: string): ProviderRuntimeSnapshot | null;
 	refreshModels(): void;
+	/** 依据 backendControl 动态收敛本机工具集（read/bash/edit/write） */
+	applyBackendToolPolicy(): void;
 	/** 会话重载（session_start 重放，素材重装）+ 服务端显示名刷新 + 全端对齐 */
 	reloadSession(): Promise<void>;
 	/**

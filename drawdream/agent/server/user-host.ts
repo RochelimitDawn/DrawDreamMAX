@@ -299,7 +299,6 @@ const runtime = await createAgentSessionRuntime(createRuntime, {
 });
 
 let session: AgentSession = runtime.session;
-let storyToolNames: string[] | undefined;
 let unsubscribe: (() => void) | undefined;
 let eventSequence = 0;
 let sessionRevision = 0;
@@ -674,7 +673,6 @@ const onStoryEvent = createStoryEventHandler({
 
 const bindSession = async () => {
 	session = runtime.session;
-	storyToolNames = undefined;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- headless stub 集合，形状对齐 rpc-mode 的实现
 	await session.bindExtensions({
 		uiContext: uiContext as any,
@@ -956,9 +954,11 @@ try {
 	const config = loadConfig(cwd);
 	const searchAllowed = webSearch && config.smartSearch?.enabled !== false;
 	setSearchTurnPolicy(cwd, session.sessionId, searchAllowed ? "force" : "off");
-	storyToolNames ??= session.getActiveToolNames();
+	// 基于当前 active 工具过滤 smart_search（不缓存 storyToolNames：
+	// backendControl 热更新会动态收敛本机工具集，缓存旧值会导致 prompt 时误清空工具）。
+	const currentTools = session.getActiveToolNames();
 	session.setActiveToolsByName(
-		searchAllowed ? storyToolNames : storyToolNames.filter((name) => name !== "smart_search"),
+		searchAllowed ? currentTools : currentTools.filter((name) => name !== "smart_search"),
 	);
 	await session.prompt(trimmed);
 	// 斜杠命令可能改写历史（/rewind /reroll /import）或注入消息：全量对齐

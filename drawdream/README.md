@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.82`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.83`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.82` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.83` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.82
+└── package.json         # 2.0.0-alpha.1-mobile.83
 ```
 
 ```text
@@ -114,6 +114,13 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.83）
+
+- **思考计时器暂停修复**：思考段结束、正文首 token 到来时，时间线里 think 步骤不再保持流式——计时器立即暂停并冻结显示思考耗时（此前正文已开始但计时仍在走）
+- **本机工具开关热更新生效**：关闭「本机工具（bash/文件）」后，配置热更新即时收敛工具集，AI 不再能调用 read/bash/edit/write（此前 reload 保留旧工具集，开关失效）
+- **文档解析（MinerU）**：设置 → 高级新增「文档解析」配置；上传 PDF/Word/PPT/Excel 等自动结构化解析为 Markdown 注入对话，剧情 AI 可直接阅读。配置 API Token 走精准解析（≤200MB/≤200 页），留空走免 Token 的轻量 API（≤10MB/≤20 页）
+- 继承 mobile.82：思考档缓存写回与 setThinkingLevel 兜底
 
 ## 本版要点（mobile.82）
 

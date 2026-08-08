@@ -14,6 +14,7 @@ import { join } from "node:path";
 import {
 	RP_COMMANDS,
 } from "../../../src/commands.ts";
+import { parseUploadedDocument } from "../../../src/document-parse.ts";
 import {
 	formatBytes,
 	listMedia,
@@ -95,6 +96,8 @@ export async function handleMiscRoutes(ctx: RouteCtx): Promise<boolean> {
 				const data = await readBodyRaw(req, MAX_UPLOAD);
 				if (data.length === 0) throw new Error("文件内容为空");
 				const saved = saveUpload(host.cwd, rawName, data);
+				// 文档类上传且开启了文档解析：后台结构化解析，结果注入后续上下文
+				void triggerDocumentParse(host, saved.file);
 				sendJson(res, 200, { ok: true, file: saved.file, bytes: saved.bytes, size: formatBytes(saved.bytes) });
 				return true;
 			}
@@ -295,4 +298,40 @@ export async function handleEnvironmentRoute(ctx: RouteCtx): Promise<boolean> {
 		_echo: url,
 	});
 	return true;
+}
+
+/**
+ * 后台触发文档解析：上传的是可解析文档且配置开启了 documentParse 时，
+ * 异步调 MinerU 结构化解析，成功后把结果落盘并在会话广播提示。
+ * 失败/未开启时安静返回，不阻塞上传响应。
+ */
+async function triggerDocumentParse(host: RestHost, relPath: string): Promise<void> {
+	try {
+		const { isParseableDocument, parseUploadedDocument, truncateForInjection } = await import(
+			"../../../src/document-parse.ts"
+		);
+		if (!isParseableDocument(relPath)) return;
+		const { loadConfig } = await import("../config.ts");
+		const documentParse = loadConfig(host.cwd).documentParse;
+		if (!documentParse?.enabled) return;
+		const cwd = host.cwd;
+		const { join } = await import("node:path");
+		const { existsSync } = await import("node:fs");
+		const abs = join(cwd, relPath);
+		if (!existsSync(abs)) return;
+		host.notify("info", `正在解析文档：${relPath.split("/").pop()}`);
+		const result = await parseUploadedDocument(cwd, relPath, abs, documentParse);
+		if (result?.ok) {
+			// 注入解析内容：写入 uploads 区 md 文件由目录速览引用（truncate 供上下文注入预览）
+			truncateForInjection(result.markdown, documentParse.maxChars);
+			host.notify(
+				"info",
+				`文档已解析（${result.mode === "precise" ? "精准" : "轻量"}）：${relPath.split("/").pop()}，Markdown 已写入上传区，可让剧情 AI 读取`,
+			);
+		} else if (result && !result.ok) {
+			host.notify("warning", `文档解析失败：${result.error}`);
+		}
+	} catch {
+		/* 解析异常不向上抛，避免影响上传主流程 */
+	}
 }

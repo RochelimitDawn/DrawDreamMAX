@@ -205,6 +205,22 @@ export interface RpConfig {
 		mode?: "simple" | "multi";
 		maxQueries?: number;
 	};
+	/**
+	 * 文档解析（MinerU）。
+	 * 上传 PDF/Word/PPT/Excel/图片时结构化解析为 Markdown，注入对话供模型阅读。
+	 * - apiKey 留空 → Agent 轻量解析 API（免 Token，≤10MB/≤20 页，仅 Markdown）
+	 * - apiKey 配置 → 精准解析 API（Bearer Token，≤200MB/≤200 页，含表格/公式）
+	 * 文档：https://mineru.net/apiManage/docs
+	 */
+	documentParse?: {
+		enabled?: boolean;
+		/** MinerU 精准解析 Token；留空使用免 Token 的轻量 API */
+		apiKey?: string;
+		/** pipeline | vlm | MinerU-HTML，默认 vlm（精准 API 生效） */
+		modelVersion?: string;
+		/** 自动注入上文的字符上限（默认 8000，超出截断并提示已保存全文） */
+		maxChars?: number;
+	};
 	/** 按角色卡 Runtime Manifest fingerprint 隔离的外部模块授权。 */
 	tavernModuleGrants?: Record<string, string[]>;
 	/**

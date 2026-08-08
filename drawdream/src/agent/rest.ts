@@ -674,6 +674,12 @@ export interface RpConfig {
     mode?: 'simple' | 'multi'
     maxQueries?: number
   }
+  documentParse?: {
+    enabled?: boolean
+    apiKey?: string
+    modelVersion?: string
+    maxChars?: number
+  }
   tavernModuleGrants?: Record<string, string[]>
 }
 

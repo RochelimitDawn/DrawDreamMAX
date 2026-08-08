@@ -778,6 +778,14 @@ export default {
     smartSearchTopicNews: 'News',
     smartSearchTopicFinance: 'Finance',
 
+    documentParse: 'Document Parse (MinerU)',
+    documentParseEnabled: 'Enable document parsing',
+    documentParseEnabledDesc: 'Parse uploaded PDF/Word/PPT/Excel into Markdown automatically and inject into the chat so the story AI can read the content. Docs: mineru.net/apiManage/docs',
+    documentParseApiKey: 'MinerU API Token',
+    documentParseApiKeyPlaceholder: 'Leave empty for the token-free light API (≤10MB/≤20 pages)',
+    documentParseModelVersion: 'Parse model',
+    documentParseMaxChars: 'Injection char limit',
+
     theme: 'Theme',
     themeLight: 'Light',
     themeDark: 'Dark',
