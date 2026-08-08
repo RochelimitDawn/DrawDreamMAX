@@ -13,6 +13,7 @@ import {
   type McpTransport,
 } from '../agent/rest'
 import { ConfirmDialog } from './ConfirmDialog'
+import { Select } from './Select'
 import './McpPanel.css'
 
 const TRANSPORTS: McpTransport[] = ['stdio', 'http', 'sse']
@@ -258,17 +259,12 @@ export function McpPanel() {
             </div>
             <div>
               <label className="field-label">{t('settings.mcpTransport')}</label>
-              <select
-                className="field-input"
+              <Select
+                fullWidth
                 value={form.transport}
-                onChange={(e) => setForm({ ...form, transport: e.target.value as McpTransport })}
-              >
-                {TRANSPORTS.map((tr) => (
-                  <option key={tr} value={tr}>
-                    {tr}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => setForm({ ...form, transport: v as McpTransport })}
+                options={TRANSPORTS.map((tr) => ({ value: tr, label: tr }))}
+              />
             </div>
           </div>
           {form.transport === 'stdio' ? (

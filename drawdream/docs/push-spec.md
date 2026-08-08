@@ -8,6 +8,18 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.79 变更摘要
+
+1. **渠道编辑卡片就近弹出**
+   - 原：点击渠道卡片后，编辑表单（`api-edit-block`）在页面底部渲染（向量模型区块之后），窄屏/移动端易不可见
+   - 改：编辑表单移至渠道卡片网格（`provider-grid`）正下方就近展开，符合直觉
+
+2. **MCP 连接方式定制下拉**
+   - 添加/编辑 MCP 服务时，「连接方式」（stdio/http/sse）由原生 `<select>` 改为项目定制 `Select` 组件，与全站下拉交互一致
+
+3. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.79` 触发 APK workflow
+
 ## mobile.78 变更摘要
 
 1. **修复覆盖安装后滚动更新失效**

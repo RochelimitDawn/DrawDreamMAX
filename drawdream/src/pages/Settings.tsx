@@ -1298,6 +1298,136 @@ export function SettingsPage() {
               </div>
 
               {channelCards}
+              {channelName ? (
+                <div className="api-edit-block surface-inset">
+                  <h3 className="settings-subhead">
+                    <ProviderIcon name={channelName} baseUrl={endpoint} size={20} />
+                    {channelName}
+                    {defaultProvider === channelName ? (
+                      <span className="chip chip-brand">{t('settings.default')}</span>
+                    ) : null}
+                  </h3>
+                  <div>
+                    <label className="field-label">{t('settings.apiEndpoint')}</label>
+                    <input
+                      className="field-input"
+                      value={endpoint}
+                      onChange={(e) => setEndpoint(e.target.value)}
+                      placeholder="https://api.example.com/v1"
+                    />
+                    <p className="settings-endpoint-preview">
+                      {t('settings.actualEndpoint')}: {actualEndpoint(endpoint, activeChannel?.api || newApi, modelKey.split('::')[1] || '{model}')}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('settings.apiKey')}</label>
+                    <input
+                      className="field-input"
+                      type="password"
+                      value={apiKey}
+                      placeholder={
+                        activeChannel?.hasKey
+                          ? t('settings.apiKeyKeep')
+                          : t('settings.apiKeyPlaceholder')
+                      }
+                      onChange={(e) => setApiKey(e.target.value)}
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div>
+                    <label className="field-label">{t('settings.modelName')}</label>
+                    <Select
+                      fullWidth
+                      value={modelKey}
+                      onChange={(v) => {
+                        setModelKey(v)
+                        void (async () => {
+                          const [provider, id] = v.split('::')
+                          if (!provider || !id) return
+                          try {
+                            const cur = await selectModel(provider, id)
+                            setCurrent(cur)
+                            setChannelName(provider)
+                            setDefaultProvider(provider)
+                            setAvailableLevels(cur.availableLevels ?? [])
+                            toast(t('settings.modelApplied', { name: `${provider}/${id}` }), 'success')
+                          } catch (e) {
+                            toast(e instanceof Error ? e.message : String(e), 'error')
+                          }
+                        })()
+                      }}
+                      options={
+                        modelOptions.length
+                          ? modelOptions
+                          : [{ value: '', label: t('settings.noModels') }]
+                      }
+                    />
+                    {fetchingModels ? (
+                      <p className="settings-item-desc" style={{ marginTop: 6 }}>
+                        {t('settings.autoPulling')}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div>
+                    <label className="field-label">{t('settings.manualModel')}</label>
+                    <div className="manual-model-row">
+                      <input
+                        className="field-input"
+                        value={manualModel}
+                        onChange={(e) => setManualModel(e.target.value)}
+                        placeholder={t('settings.manualModelPlaceholder')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            void applyManualModel()
+                          }
+                        }}
+                      />
+                      <button type="button" className="btn btn-ghost" onClick={() => void applyManualModel()}>
+                        {t('settings.manualModelApply')}
+                      </button>
+                    </div>
+                  </div>
+                  {probe ? (
+                    <div className={`probe-result ${probe.ok ? 'is-ok' : 'is-fail'}`}>
+                      <Activity size={16} />
+                      <div>
+                        <strong>
+                          {probe.ok ? t('settings.testOk') : t('settings.testFail')}
+                          {probe.latencyMs > 0 ? ` · ${probe.latencyMs} ms` : ''}
+                        </strong>
+                        <p>{probe.detail}</p>
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="form-actions">
+                    <button type="button" className="btn btn-primary" onClick={() => void saveChannel()}>
+                      {t('settings.saveChannel')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      disabled={probing}
+                      onClick={() => void runProbe()}
+                    >
+                      <Wifi size={14} />
+                      {probing ? t('settings.testing') : t('settings.testConnection')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      disabled={fetchingModels}
+                      onClick={() => {
+                        autoPullRef.current = ''
+                        void pullModels({ silent: false })
+                      }}
+                    >
+                      {fetchingModels ? t('settings.pulling') : t('settings.pullModels')}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
 
               {/* 思考强度显式探测：默认探测默认模型 */}
               <div className="provider-section-head" style={{ marginTop: 20 }}>
@@ -1468,135 +1598,6 @@ export function SettingsPage() {
                 </div>
               ) : null}
 
-              {channelName ? (
-                <div className="api-edit-block surface-inset">
-                  <h3 className="settings-subhead">
-                    <ProviderIcon name={channelName} baseUrl={endpoint} size={20} />
-                    {channelName}
-                    {defaultProvider === channelName ? (
-                      <span className="chip chip-brand">{t('settings.default')}</span>
-                    ) : null}
-                  </h3>
-                  <div>
-                    <label className="field-label">{t('settings.apiEndpoint')}</label>
-                    <input
-                      className="field-input"
-                      value={endpoint}
-                      onChange={(e) => setEndpoint(e.target.value)}
-                      placeholder="https://api.example.com/v1"
-                    />
-                    <p className="settings-endpoint-preview">
-                      {t('settings.actualEndpoint')}: {actualEndpoint(endpoint, activeChannel?.api || newApi, modelKey.split('::')[1] || '{model}')}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="field-label">{t('settings.apiKey')}</label>
-                    <input
-                      className="field-input"
-                      type="password"
-                      value={apiKey}
-                      placeholder={
-                        activeChannel?.hasKey
-                          ? t('settings.apiKeyKeep')
-                          : t('settings.apiKeyPlaceholder')
-                      }
-                      onChange={(e) => setApiKey(e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-                  <div>
-                    <label className="field-label">{t('settings.modelName')}</label>
-                    <Select
-                      fullWidth
-                      value={modelKey}
-                      onChange={(v) => {
-                        setModelKey(v)
-                        void (async () => {
-                          const [provider, id] = v.split('::')
-                          if (!provider || !id) return
-                          try {
-                            const cur = await selectModel(provider, id)
-                            setCurrent(cur)
-                            setChannelName(provider)
-                            setDefaultProvider(provider)
-                            setAvailableLevels(cur.availableLevels ?? [])
-                            toast(t('settings.modelApplied', { name: `${provider}/${id}` }), 'success')
-                          } catch (e) {
-                            toast(e instanceof Error ? e.message : String(e), 'error')
-                          }
-                        })()
-                      }}
-                      options={
-                        modelOptions.length
-                          ? modelOptions
-                          : [{ value: '', label: t('settings.noModels') }]
-                      }
-                    />
-                    {fetchingModels ? (
-                      <p className="settings-item-desc" style={{ marginTop: 6 }}>
-                        {t('settings.autoPulling')}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div>
-                    <label className="field-label">{t('settings.manualModel')}</label>
-                    <div className="manual-model-row">
-                      <input
-                        className="field-input"
-                        value={manualModel}
-                        onChange={(e) => setManualModel(e.target.value)}
-                        placeholder={t('settings.manualModelPlaceholder')}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            void applyManualModel()
-                          }
-                        }}
-                      />
-                      <button type="button" className="btn btn-ghost" onClick={() => void applyManualModel()}>
-                        {t('settings.manualModelApply')}
-                      </button>
-                    </div>
-                  </div>
-                  {probe ? (
-                    <div className={`probe-result ${probe.ok ? 'is-ok' : 'is-fail'}`}>
-                      <Activity size={16} />
-                      <div>
-                        <strong>
-                          {probe.ok ? t('settings.testOk') : t('settings.testFail')}
-                          {probe.latencyMs > 0 ? ` · ${probe.latencyMs} ms` : ''}
-                        </strong>
-                        <p>{probe.detail}</p>
-                      </div>
-                    </div>
-                  ) : null}
-                  <div className="form-actions">
-                    <button type="button" className="btn btn-primary" onClick={() => void saveChannel()}>
-                      {t('settings.saveChannel')}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      disabled={probing}
-                      onClick={() => void runProbe()}
-                    >
-                      <Wifi size={14} />
-                      {probing ? t('settings.testing') : t('settings.testConnection')}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      disabled={fetchingModels}
-                      onClick={() => {
-                        autoPullRef.current = ''
-                        void pullModels({ silent: false })
-                      }}
-                    >
-                      {fetchingModels ? t('settings.pulling') : t('settings.pullModels')}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
             </div>
           )}
 
@@ -2241,7 +2242,7 @@ export function SettingsPage() {
               </div>
               <p>{t('settings.aboutText')}</p>
               <div className="chip">
-                {t('settings.version')} 2.0.0-alpha.1 · mobile.78 · DrawDream Agent
+                {t('settings.version')} 2.0.0-alpha.1 · mobile.79 · DrawDream Agent
               </div>
               <div className="form-actions" style={{ marginTop: 12 }}>
                 <button
