@@ -8,6 +8,16 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.82 变更摘要
+
+1. **思考档切换彻底修复（切换显示「已更新」但实际 Off）**
+   - 根因：覆盖安装/重启后命中磁盘缓存时，`selectModel` 的 `if (!cached && !probingSet.has(...))` 直接跳过 `runThinkingProbe`，**能力从未写回**（`reasoning` 仍 false）；内核 `getSupportedThinkingLevels` 依据模型 `reasoning` 只返回 `["off"]`，用户切换任意档位都被 clamp 回退 → toast「已更新思考档」但按钮/实际档位仍是 Off
+   - 修复：`selectModel` 缓存命中时同步 `applyProbeCapability` + `applyLowestThinkingLevel`；`setThinkingLevel` 切换前兜底检查当前模型能力，未写回且有缓存时先写回再设置档位
+   - 新增断言：`rest-host-clamp.test.ts` 覆盖「selectModel 命中缓存后切换档位生效」「setThinkingLevel 兜底写回」两个场景
+
+2. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.82` 触发 APK workflow
+
 ## mobile.81 变更摘要
 
 1. **修复「未知接口：POST /api/presets/preview」**

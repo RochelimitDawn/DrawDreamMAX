@@ -148,6 +148,25 @@ test("探测成功后模型对象档位能力写回，切换档位不再 clamp �
 		assert.ok(map2, "缓存命中后 thinkingLevelMap 应被写回");
 		host2.setThinkingLevel("medium");
 		assert.equal(session.thinkingLevel, "medium", "缓存命中后切换档位应生效而非回退");
+
+		// —— selectModel 命中缓存：模型对象能力未写回时，选完模型切换档位仍应生效 ——
+		modelObj.reasoning = false;
+		(modelObj as unknown as { thinkingLevelMap?: Record<string, string | null> }).thinkingLevelMap = undefined;
+		const hitsBefore2 = srv.probeCount();
+		await host2.selectModel("tr", "deepseek-v4-flash-0731");
+		assert.equal(srv.probeCount(), hitsBefore2, "selectModel 命中缓存不应发起探测");
+		assert.equal(modelObj.reasoning, true, "selectModel 命中缓存应写回模型能力");
+		// 缓存命中的最低档应已应用（非 off）
+		assert.notEqual(session.thinkingLevel, "off", "selectModel 命中缓存应应用最低可用档");
+		// 切换到高可用档位仍不被 clamp 回退
+		host2.setThinkingLevel("high");
+		assert.equal(session.thinkingLevel, "high", "selectModel 缓存命中后切换档位应生效");
+
+		// —— setThinkingLevel 兜底写回：模型能力丢失时切换档位仍生效 ——
+		modelObj.reasoning = false;
+		(modelObj as unknown as { thinkingLevelMap?: Record<string, string | null> }).thinkingLevelMap = undefined;
+		host2.setThinkingLevel("low");
+		assert.equal(session.thinkingLevel, "low", "setThinkingLevel 应兜底写回能力后生效");
 	} finally {
 		rmSync(cwd, { recursive: true, force: true });
 		srv.close();

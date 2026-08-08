@@ -383,7 +383,12 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 			// 不依赖 reasoning 标志：未标记的模型也尝试探测，由真实端点决定（命中缓存/无 Key 时零成本）。
 			const cacheKey = probeCacheKey(provider, id);
 			const cached = thinkingProbeCache.get(cacheKey);
-			if (!cached && !probingSet.has(cacheKey)) {
+			if (cached && cached.length) {
+				// 缓存命中（覆盖安装/重启后从磁盘加载）：同步写回模型能力并应用最低档，
+				// 否则内核 clamp 依据未标记 reasoning 的模型条目把档位回退到 off。
+				applyProbeCapability(provider, id, cached);
+				applyLowestThinkingLevel(provider, id, cached);
+			} else if (!probingSet.has(cacheKey)) {
 				probingSet.add(cacheKey);
 				void (async () => {
 					try {
@@ -427,6 +432,21 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 			const session = deps.getSession();
 			const lv = level.trim();
 			if (!lv) throw new Error("思考档位不能为空");
+			// 切换前确保当前模型能力已写回：命中磁盘缓存后模型对象 reasoning
+			// 可能仍为 false，内核 getSupportedThinkingLevels 会只返回 ["off"]，
+			// 导致任意档位都被 clamp 回退到 off（UI 显示已更新但实际未生效）。
+			const cur = session.model;
+			if (cur && cur.provider !== "unknown" && cur.id !== "unknown") {
+				const m = session.modelRegistry.find(cur.provider, cur.id) as
+					| { reasoning?: boolean; thinkingLevelMap?: Record<string, string | null> }
+					| null;
+				if (m && !m.reasoning) {
+					const cached = thinkingProbeCache.get(probeCacheKey(cur.provider, cur.id));
+					if (cached && cached.length) {
+						applyProbeCapability(cur.provider, cur.id, cached);
+					}
+				}
+			}
 			session.setThinkingLevel(lv as never);
 			const current = currentModelInfo();
 			if (!current) throw new Error("会话未就绪");
