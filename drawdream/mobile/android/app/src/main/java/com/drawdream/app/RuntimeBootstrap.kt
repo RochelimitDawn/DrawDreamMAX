@@ -192,14 +192,24 @@ object RuntimeBootstrap {
         val root = runtimeRoot(ctx)
         val marker = File(root, MARKER)
         val entry = File(root, "agent/mobile-entry.mjs")
+        val single = File(root, "agent/single.mjs")
         val node = nativeNode(ctx)
-        if (!marker.exists() || !entry.exists() || !node.exists()) return false
+        if (!marker.exists() || !entry.exists() || !single.exists() || !node.exists()) return false
         val schemaOk = try {
             marker.readText().contains("schema=$READY_SCHEMA")
         } catch (_: Exception) {
             false
         }
-        return schemaOk
+        if (!schemaOk) return false
+        // 校验 single.mjs 是单文件 bundle（含 __DD_SINGLE_FILE_BUNDLE 标志）。
+        // 覆盖安装若保留了旧版（tree-shaking 漏 typebox 等）的 runtime，
+        // 该标志缺失 → 视为未就绪，强制解压 APK 内的新 runtime，
+        // 避免旧损坏 runtime 一直占着 active 位置导致滚动更新失效。
+        return try {
+            single.readText().contains("__DD_SINGLE_FILE_BUNDLE")
+        } catch (_: Exception) {
+            false
+        }
     }
 
     fun ensureReady(

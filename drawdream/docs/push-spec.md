@@ -8,6 +8,16 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.78 变更摘要
+
+1. **修复覆盖安装后滚动更新失效**
+   - 根因：覆盖安装保留 `getExternalFilesDir` 旧 runtime 数据；旧版（tree-shaking 漏 typebox 等）的 `single.mjs` 不携带 `__DD_SINGLE_FILE_BUNDLE` 标志，但 `isReady` 只校验 marker/mobile-entry.mjs，误判其可用。若 activeVersion 与新 APK runtimeId 恰被命中旧缓存，新 runtime 无法切换到 active 位置，旧损坏 runtime 持续运行（表现为覆盖安装升级后仍卡/异常，卸载重装才正常）
+   - 修复：`isReady` 增加 `agent/single.mjs` 单文件 bundle 标志校验——缺失则视为未就绪，`ensureReady` 走解压分支，用 APK 内的新 runtime 覆盖
+   - 用户验证：卸载重装后 mobile.77 正常（typebox 修复有效）；本次加固让覆盖安装路径同样可靠
+
+2. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.78` 触发 APK workflow
+
 ## mobile.77 变更摘要
 
 1. **修复真机运行时卡死（关键）**
