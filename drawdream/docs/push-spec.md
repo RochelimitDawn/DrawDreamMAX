@@ -8,6 +8,19 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.81 变更摘要
+
+1. **修复「未知接口：POST /api/presets/preview」**
+   - 根因：路由分发 `isStCompatPath` 把 `presets` 段判为 SillyTavern 兼容路径（`ST_COMPAT_SEGMENTS` 含 `"presets"`），`/api/presets/*` 全部被兼容层劫持；兼容层只处理 `save/delete/restore`，其余（preview/import/select/saveas/rename/export）落到 404「未知接口」
+   - 修复：`isStCompatPath` 对 `/api/presets/*` 仅当命中 `ST_PRESET_METHODS`（save/delete/restore）时判为 ST，其余归 DrawDream `presets` 域路由
+   - 新增断言：`compatibility-route.test.ts` 验证 presets 各方法分流正确；端到端实测 `POST /api/presets/preview` 返回 200
+
+2. **设置页对话 tab 移除思考切换区块**
+   - 设置 → 对话的思考强度卡片（`settings-intensity-card` + `ThinkingIntensityWheel`）移除，思考强度统一通过对话输入框思考按钮切换
+
+3. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.81` 触发 APK workflow
+
 ## mobile.80 变更摘要
 
 1. **Logo 资源全量生效（修复空白显示）**

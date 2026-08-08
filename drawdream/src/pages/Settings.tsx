@@ -78,10 +78,7 @@ import { ProviderIcon } from '../components/ProviderIcon'
 import { ColorPicker } from '../components/ColorPicker'
 import { Select } from '../components/Select'
 import { Slider } from '../components/Slider'
-import {
-  ThinkingIntensityWheel,
-  type ThinkingIntensity,
-} from '../components/ThinkingIntensityWheel'
+import type { ThinkingIntensity } from '../components/ThinkingIntensityWheel'
 import { Toggle } from '../components/Toggle'
 import { applyTheme, getStoredTheme, type ThemeMode } from '../theme'
 import { applyDensity, getChatPrefs, setChatPrefs, type ChatPrefs } from '../utils/prefs'
@@ -1871,36 +1868,6 @@ export function SettingsPage() {
 
           {tab === 'chat' && (
             <div className="settings-list">
-              {availableLevels.filter((lv) => !/^(off|none|disabled|false|0)$/i.test(lv)).length > 0 ? (
-                <div className="settings-intensity-card" data-intensity={thinking}>
-                  <div className="settings-intensity-main">
-                    <div className="settings-intensity-kicker">{t('settings.thinkingKicker')}</div>
-                    <h3 className="settings-intensity-title">{t('settings.thinkingIntensity')}</h3>
-                    <p className="settings-intensity-desc">{t(`settings.thinkingDesc.${thinking}`)}</p>
-                    <div className="settings-intensity-meta">
-                      {(
-                        [
-                          { level: 'low' as const, label: t('settings.thinkingLow') },
-                          { level: 'medium' as const, label: t('settings.thinkingMedium') },
-                          { level: 'high' as const, label: t('settings.thinkingHigh') },
-                        ] as const
-                      ).map(({ level, label }) => (
-                        <button
-                          key={level}
-                          type="button"
-                          className={`settings-intensity-chip ${thinking === level ? 'is-on' : ''}`}
-                          onClick={() => void onThinking(level)}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="settings-intensity-wheel-wrap">
-                    <ThinkingIntensityWheel value={thinking} onChange={(v) => void onThinking(v)} />
-                  </div>
-                </div>
-              ) : null}
               <div className="settings-item">
                 <SIcon icon={ChevronsDown} />
                 <div className="settings-item-main">
@@ -2242,7 +2209,7 @@ export function SettingsPage() {
               </div>
               <p>{t('settings.aboutText')}</p>
               <div className="chip">
-                {t('settings.version')} 2.0.0-alpha.1 · mobile.80 · DrawDream Agent
+                {t('settings.version')} 2.0.0-alpha.1 · mobile.81 · DrawDream Agent
               </div>
               <div className="form-actions" style={{ marginTop: 12 }}>
                 <button

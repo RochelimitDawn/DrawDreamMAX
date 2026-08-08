@@ -61,12 +61,25 @@ const ST_COMPAT_SEGMENTS = new Set([
 	"content", "horde", "users", "ping", "sd",
 ]);
 
+/** SillyTavern 原生 /api/presets/* 具体方法（仅这些被兼容层接管，其余归 DrawDream presets 域路由） */
+const ST_PRESET_METHODS = new Set([
+	"POST /api/presets/save",
+	"POST /api/presets/delete",
+	"POST /api/presets/restore",
+]);
+
 /** 非 /api/* 前缀的 SillyTavern 原生路径 */
 const ST_ROOT_PATHS = new Set(["/csrf-token", "/version"]);
 
-function isStCompatPath(urlPath: string): boolean {
+/** 是否 SillyTavern 兼容路径（导出供测试） */
+export function isStCompatPath(urlPath: string, method = "GET"): boolean {
 	if (ST_ROOT_PATHS.has(urlPath)) return true;
 	if (!urlPath.startsWith("/api/")) return false;
+	// /api/presets/*：仅 SillyTavern 兼容层明确接管的方法（save/delete/restore）走兼容层；
+	// 其余（preview/import/select/saveas/rename/export 等）归 DrawDream presets 域路由。
+	if (urlPath.startsWith("/api/presets")) {
+		return ST_PRESET_METHODS.has(`${method} ${urlPath}`);
+	}
 	const seg = urlPath.split("/", 3)[2] ?? "";
 	return ST_COMPAT_SEGMENTS.has(seg);
 }
@@ -95,7 +108,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 		const ctx: RouteCtx = { req, res, host, query, route, url, refuseWhileStreaming };
 
 		try {
-			const handler = isStCompatPath(url) ? handleSillyTavernCompatRoutes : pickHandler(url);
+			const handler = isStCompatPath(url, req.method ?? "GET") ? handleSillyTavernCompatRoutes : pickHandler(url);
 			const handled = await handler(ctx);
 			if (handled) return true;
 			sendJson(res, 404, { error: `未知接口：${route}` });
