@@ -88,6 +88,19 @@ class AgentRuntimeService : Service() {
                     bootstrapThread = thread(name = "agent-bootstrap") {
                         bootstrapAndStart()
                     }
+                    // 看护：bootstrap（解压/启动）若超过 90s 未进入 ready/error，主动标记错误，
+                    // 避免异常导致无限卡在「准备/解压」且 UI 无反馈。
+                    thread(name = "agent-bootstrap-watchdog") {
+                        Thread.sleep(90_000)
+                        if (!stopping && !switchingRuntime &&
+                            lastStatus != "ready" && lastStatus != "error"
+                        ) {
+                            Log.w(TAG, "bootstrap watchdog fired; status=$lastStatus")
+                            lastError = "bootstrap timed out (status=$lastStatus); ${RuntimeBootstrap.runtimeInfo(this@AgentRuntimeService)}"
+                            setStatus("error", lastError!!)
+                            updateNotification(getString(R.string.status_error))
+                        }
+                    }
                 }
             }
         }

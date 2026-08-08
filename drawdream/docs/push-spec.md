@@ -8,6 +8,23 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.77 变更摘要
+
+1. **修复真机运行时卡死（关键）**
+   - 根因：mobile 用 esbuild 把 agent 打包为单文件 `single.mjs`（裁剪树无 node_modules）。扩展加载器在 Node 模式下用 `jiti + alias` 走 `require.resolve("typebox")`，但裁剪树没有 node_modules/typebox → 加载 `roleplay.ts` 时抛 `Cannot find module 'typebox'`，服务 listening 后会话创建卡死/崩溃
+   - 修复：`bundle-agent.mjs` 打包时注入 `globalThis.__DD_SINGLE_FILE_BUNDLE=true`（esbuild banner）；`loader.ts` 检测该标志后走 `virtualModules`（typebox 等已由 loader.ts 静态 import 内联进 bundle），不再依赖文件系统解析
+   - 本地冒烟验证：single.mjs 启动 → 登录 → 会话创建成功，无 typebox 错误
+
+2. **bootstrap 看护（防无限卡「准备/解压」）**
+   - `AgentRuntimeService` 新增 watchdog：bootstrap 线程启动 90s 内未进入 ready/error 则强制标记 error 并输出 `runtimeInfo` 诊断，避免异常导致无限卡在 splash 且 UI 无反馈
+
+3. **解压健壮性**
+   - 解压前先 `pruneOldReleases` 释放历史运行时占用空间，并校验可用空间（<64MB 明确报错，而非反复解压失败）
+   - `renameTo` 失败（跨存储/个别 ROM）时回退为逐文件复制安装，避免"解压成功但安装失败反复重试"
+
+4. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.77` 触发 APK workflow
+
 ## mobile.76 变更摘要
 
 1. **切后台后入场恢复兜底**

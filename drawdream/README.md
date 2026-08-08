@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.76`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.77`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.76` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.77` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.76
+└── package.json         # 2.0.0-alpha.1-mobile.77
 ```
 
 ```text
@@ -114,6 +114,13 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.77）
+
+- **修复真机运行时卡死**：esbuild 单文件打包裁剪树无 node_modules，扩展加载 `roleplay.ts` 时 `Cannot find module 'typebox'` 导致会话创建卡死；改为打包注入单文件标志、扩展走 `virtualModules`（typebox 已内联），会话正常创建
+- **bootstrap 看护**：启动 90s 未进入 ready/error 强制报错并输出诊断，不再无限卡在「准备/解压」
+- **解压健壮性**：解压前清理历史 runtime + 校验空间（<64MB 明确报错）；`renameTo` 失败回退复制安装
+- 继承 mobile.76：切后台恢复、Logo 抠图、入场背景精致化
 
 ## 本版要点（mobile.76）
 

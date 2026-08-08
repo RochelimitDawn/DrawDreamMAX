@@ -379,12 +379,17 @@ async function loadExtensionModule(extensionPath: string, cacheToken?: Extension
 		}
 	}
 
+	// In Bun binary: use virtualModules for bundled packages (no filesystem resolution)
+	// Also disable tryNative so jiti handles ALL imports (not just the entry point)
+	// In Node.js/dev: use aliases to resolve to node_modules paths
+	// In single-file bundle (mobile runtime, no node_modules): virtualModules also apply,
+	// because typebox & friends are inlined into the bundle via the static imports above.
+	const useVirtual =
+		isBunBinary ||
+		(typeof globalThis !== "undefined" && (globalThis as { __DD_SINGLE_FILE_BUNDLE?: boolean }).__DD_SINGLE_FILE_BUNDLE === true);
 	const jiti = createJiti(import.meta.url, {
 		moduleCache: false,
-		// In Bun binary: use virtualModules for bundled packages (no filesystem resolution)
-		// Also disable tryNative so jiti handles ALL imports (not just the entry point)
-		// In Node.js/dev: use aliases to resolve to node_modules paths
-		...(isBunBinary ? { virtualModules: VIRTUAL_MODULES, tryNative: false } : { alias: getAliases() }),
+		...(useVirtual ? { virtualModules: VIRTUAL_MODULES, tryNative: false } : { alias: getAliases() }),
 	});
 
 	const module = await jiti.import(extensionPath, { default: true });

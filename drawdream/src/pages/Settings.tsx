@@ -2241,7 +2241,7 @@ export function SettingsPage() {
               </div>
               <p>{t('settings.aboutText')}</p>
               <div className="chip">
-                {t('settings.version')} 2.0.0-alpha.1 · mobile.76 · DrawDream Agent
+                {t('settings.version')} 2.0.0-alpha.1 · mobile.77 · DrawDream Agent
               </div>
               <div className="form-actions" style={{ marginTop: 12 }}>
                 <button

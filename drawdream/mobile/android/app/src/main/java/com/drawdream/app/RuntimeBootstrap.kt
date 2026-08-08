@@ -231,6 +231,18 @@ object RuntimeBootstrap {
                 pruneOldReleases(ctx)
                 return Result.success(root)
             }
+            // 进入解压前：先清理历史 releases 释放空间，并校验可用空间，
+            // 避免历史 runtime 累积占满存储后反复解压失败/卡在解压。
+            pruneOldReleases(ctx)
+            val usable = runCatching { runtimeBase(ctx).usableSpace }.getOrDefault(-1L)
+            if (usable > 0 && usable < 64L * 1024 * 1024) {
+                return Result.failure(
+                    IllegalStateException(
+                        "存储空间不足（可用 ${usable / (1024 * 1024)}MB，需约 64MB）。" +
+                            "请清理存储后重试。",
+                    ),
+                )
+            }
             onProgress(ctx.getString(R.string.status_extracting))
             val version = expectedRuntime
             val staged = File(runtimeBase(ctx), "staging-$version-${System.currentTimeMillis()}")
@@ -287,7 +299,16 @@ object RuntimeBootstrap {
             val release = File(runtimeBase(ctx), "releases/$version")
             release.parentFile?.mkdirs()
             if (release.exists()) release.deleteRecursively()
-            if (!staged.renameTo(release)) throw IllegalStateException("无法安装 runtime $version")
+            // renameTo 在同一文件系统内通常成功；失败（跨存储/个别 ROM）时回退为逐文件复制
+            val moved = staged.renameTo(release)
+            if (!moved) {
+                release.mkdirs()
+                staged.copyRecursively(release, overwrite = true)
+                staged.deleteRecursively()
+                if (!File(release, MARKER).exists()) {
+                    throw IllegalStateException("无法安装 runtime $version（rename + copy 均失败）")
+                }
+            }
             val previous = activeVersion(ctx)
             val pointer = JSONObject().put("activeVersion", version)
             if (!previous.isNullOrBlank()) pointer.put("previousVersion", previous)
@@ -325,6 +346,7 @@ object RuntimeBootstrap {
         var files = 0
         var bytes = 0L
         var lastUi = 0L
+        Log.i(TAG, "unzipAsset start: $assetName -> ${dest.absolutePath}")
         ctx.assets.open(assetName).use { input ->
             ZipInputStream(input).use { zis ->
                 var entry = zis.nextEntry

@@ -39,7 +39,10 @@ export async function bundleAgent() {
       '--bundle',
       '--platform=node',
       '--format=esm',
-      `--banner:js=${REQUIRE_SHIM}`,
+      // 单文件 bundle 模式：裁剪树无 node_modules，扩展加载须走
+      // VIRTUAL_MODULES（typebox 等已由 loader.ts 静态 import 内联进 bundle），
+      // 而非 Node 的 require.resolve（找不到 typebox 会崩）。
+      `--banner:js=${REQUIRE_SHIM}globalThis.__DD_SINGLE_FILE_BUNDLE=true;`,
       `--outfile=${outFile}`,
       '--log-level=warning',
     ],
