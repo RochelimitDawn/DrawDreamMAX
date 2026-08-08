@@ -8,6 +8,23 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.80 变更摘要
+
+1. **Logo 资源全量生效（修复空白显示）**
+   - 根因：`public/brand/logo-mark.svg`、`public/favicon.svg`、`logo-wordmark.svg` 用 SVG `<image href="xxx.png">` 外部引用 PNG；部分 WebView/浏览器对 SVG 内嵌外部资源加载失败，导致 logo/favicon 显示为空白
+   - 修复：三个 SVG 改为**内嵌 base64 PNG**（`data:image/png;base64,...`），不再依赖外部文件加载，任何环境可靠渲染
+
+2. **思考档切换修复（缓存命中后档位被 clamp 回退）**
+   - 根因：`runThinkingProbe` 命中磁盘缓存（`reason:"cache"`）时直接返回，**不写回模型能力**（`reasoning`/`thinkingLevelMap`）；而内核 `session.setThinkingLevel` 的 clamp 依据模型 `reasoning` + `thinkingLevelMap`，未标记的自定义渠道会把档位 clamp 回退 → 前端「已保存」但实际未生效
+   - 修复：抽取 `applyProbeCapability()`，探测成功**与缓存命中**都写回模型能力；新增测试断言缓存命中后切换档位生效
+   - 新增断言：`rest-host-clamp.test.ts` 验证缓存命中后 `reasoning`/`thinkingLevelMap` 写回、`setThinkingLevel("medium")` 不被回退
+
+3. **对话页移除思考档 Select**
+   - 对话页顶部工具栏的思考档下拉移除（与思考按钮/设置页思考强度存在重复入口，且曾与切换冲突）；思考强度统一通过输入框思考按钮（ChatComposer）切换
+
+4. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.80` 触发 APK workflow
+
 ## mobile.79 变更摘要
 
 1. **渠道编辑卡片就近弹出**

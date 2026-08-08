@@ -142,6 +142,12 @@ test("探测成功后模型对象档位能力写回，切换档位不再 clamp �
 		assert.equal(r2.reason, "cache");
 		assert.deepEqual([...r2.levels].sort(), ["high", "low", "medium", "off"].sort());
 		assert.equal(srv.probeCount(), hitsBefore, "命中缓存后不应再向端点发起探测");
+		// 缓存命中也会把能力写回模型对象：再次切换档位不被 clamp 回退
+		assert.equal(modelObj.reasoning, true, "缓存命中后模型 reasoning 应被写回");
+		const map2 = (modelObj as unknown as { thinkingLevelMap?: Record<string, string | null> }).thinkingLevelMap;
+		assert.ok(map2, "缓存命中后 thinkingLevelMap 应被写回");
+		host2.setThinkingLevel("medium");
+		assert.equal(session.thinkingLevel, "medium", "缓存命中后切换档位应生效而非回退");
 	} finally {
 		rmSync(cwd, { recursive: true, force: true });
 		srv.close();

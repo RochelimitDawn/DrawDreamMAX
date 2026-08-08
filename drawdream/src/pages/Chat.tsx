@@ -1856,15 +1856,6 @@ export function ChatPage() {
                 >
                   <Wifi size={18} />
                 </button>
-                {thinkingOptions.length > 0 ? (
-                  <Select
-                    value={thinkingLevel}
-                    options={thinkingOptions}
-                    onChange={(v) => void onThinkingChange(v)}
-                    size="sm"
-                    ariaLabel={t('chat.thinkingLevel')}
-                  />
-                ) : null}
                 <Select
                   value={modelKey}
                   options={modelOptions}

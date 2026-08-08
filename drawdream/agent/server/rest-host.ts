@@ -272,6 +272,33 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 	};
 
 	/**
+	 * 把探测结果写回模型对象能力：内核 session.setThinkingLevel 的档位 clamp
+	 * 依据 getSupportedThinkingLevels(model)（model.reasoning + thinkingLevelMap），
+	 * 不写回的话未标记 reasoning 的自定义渠道（如 tokenrhythm）会把档位 clamp 回 off。
+	 * 探测成功与命中磁盘缓存时都必须调用，否则缓存命中后切换档位仍会被 clamp 回退。
+	 */
+	const applyProbeCapability = (
+		provider: string,
+		id: string,
+		accepted: string[],
+	): void => {
+		const session = deps.getSession();
+		const modelEntry = session.modelRegistry.find(provider, id) as
+			| { reasoning?: boolean; thinkingLevelMap?: Record<string, string | null> }
+			| null;
+		if (!modelEntry) return;
+		modelEntry.reasoning = true;
+		// getSupportedThinkingLevels 过滤规则：
+		// - 非 xhigh 档位 mapped === null 才排除（因此不支持的档位必须显式设 null）
+		// - xhigh 档位 mapped !== undefined 才保留（因此不支持时不要设置该键）
+		const map: Record<string, string | null> = {};
+		for (const lvl of ["off", "minimal", "low", "medium", "high"]) {
+			map[lvl] = accepted.includes(lvl) ? (lvl === "off" ? "none" : lvl) : null;
+		}
+		modelEntry.thinkingLevelMap = map;
+	};
+
+	/**
 	 * 对指定模型执行思考档位探测（同步等待真实探测完成）：
 	 * - 命中缓存直接返回（成功缓存会话期内持久）
 	 * - 渠道无实值 Key → reason "no-config"
@@ -286,7 +313,11 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 		if (!m) return { levels: [], reason: "no-model" };
 		const cacheKey = probeCacheKey(provider, id);
 		const cached = thinkingProbeCache.get(cacheKey);
-		if (cached && cached.length) return { levels: cached, reason: "cache" };
+		if (cached && cached.length) {
+			// 缓存命中也要写回模型能力，否则切换档位被 clamp 回退（见 applyProbeCapability）
+			applyProbeCapability(provider, id, cached);
+			return { levels: cached, reason: "cache" };
+		}
 		const target = probeTargetFromConfig(deps.getCwd(), provider, id);
 		if (!target) return { levels: [], reason: "no-config" };
 		const map = builtinThinkingMap(m);
@@ -295,23 +326,8 @@ export function createRestHost(deps: RestHostDeps): RestHost {
 		if (r.reason === "probe" && r.accepted.length) {
 			thinkingProbeCache.set(cacheKey, r.accepted);
 			saveThinkingProbeCache(deps.getCwd());
-			// 把探测结果写回模型对象能力：内核 session.setThinkingLevel 的档位 clamp
-			// 依据 getSupportedThinkingLevels(model)（model.reasoning + thinkingLevelMap），
-			// 不写回的话未标记 reasoning 的自定义渠道（如 tokenrhythm）会把档位 clamp 回 off。
-			const modelEntry = session.modelRegistry.find(provider, id) as
-				| { reasoning?: boolean; thinkingLevelMap?: Record<string, string | null> }
-				| null;
-			if (modelEntry) {
-				modelEntry.reasoning = true;
-				// getSupportedThinkingLevels 过滤规则：
-				// - 非 xhigh 档位 mapped === null 才排除（因此不支持的档位必须显式设 null）
-				// - xhigh 档位 mapped !== undefined 才保留（因此不支持时不要设置该键）
-				const map: Record<string, string | null> = {};
-				for (const lvl of ["off", "minimal", "low", "medium", "high"]) {
-					map[lvl] = r.accepted.includes(lvl) ? (lvl === "off" ? "none" : lvl) : null;
-				}
-				modelEntry.thinkingLevelMap = map;
-			}
+			// 把探测结果写回模型对象能力（见 applyProbeCapability）
+			applyProbeCapability(provider, id, r.accepted);
 			return { levels: r.accepted, reason: "probe" };
 		}
 		return { levels: [], reason: "probe-fail" };

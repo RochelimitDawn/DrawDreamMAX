@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.79`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.80`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.79` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.80` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.79
+└── package.json         # 2.0.0-alpha.1-mobile.80
 ```
 
 ```text
@@ -114,6 +114,13 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.80）
+
+- **Logo 资源全量生效**：页面内 logo/favicon/wordmark 的 SVG 由「外部引用 PNG」改为「内嵌 base64」，规避 WebView 对 SVG `<image>` 外部资源加载失败导致的空白显示
+- **思考档切换修复**：命中磁盘缓存后不再写回模型能力导致档位切换被 clamp 回退（显示已保存但回退）；缓存命中同样写回 `reasoning`/`thinkingLevelMap`
+- **对话页移除思考档 Select**：对话页顶部工具栏的思考档下拉移除，思考强度统一通过输入框思考按钮切换
+- 继承 mobile.79：渠道编辑卡片就近弹出、MCP 定制下拉
 
 ## 本版要点（mobile.79）
 
