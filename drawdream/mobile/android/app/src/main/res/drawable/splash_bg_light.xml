@@ -6,13 +6,13 @@
             <solid android:color="#FAF6F0" />
         </shape>
     </item>
-    <!-- 顶部暖金光晕 wash -->
+    <!-- 顶部极淡暖金高光 wash：克制的精致感 -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:angle="270"
-                android:startColor="#EED9BC"
-                android:centerColor="#F7EDE0"
+                android:startColor="#F6EBD8"
+                android:centerColor="#FBF7F0"
                 android:endColor="#FAF6F0"
                 android:type="linear" />
         </shape>

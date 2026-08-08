@@ -111,6 +111,8 @@ class AgentRuntimeService : Service() {
             Log.e(TAG, "bootstrap failed", err)
             setStatus("error", lastError!!)
             updateNotification(getString(R.string.status_error))
+            // 诊断：把 releases 目录结构写进日志，便于排查 runtime 缓存/清理问题
+            Log.e(TAG, "bootstrap failed; ${RuntimeBootstrap.runtimeInfo(this)}")
             return
         }
         if (!stopping) {

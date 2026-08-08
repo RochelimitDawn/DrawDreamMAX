@@ -723,6 +723,14 @@ class MainActivity : AppCompatActivity() {
         if (this::webView.isInitialized) {
             webView.onResume()
         }
+        // 切后台再切回：若 bootstrap 已完成但 openUi 尚未触发（poll 曾在 onDestroy 被移除），
+        // 这里确保恢复。lastStatus 静态跨实例保留，能兜底切后台/进程重建场景。
+        if (!loaded && AgentRuntimeService.lastStatus == "ready") {
+            openUi()
+        } else if (!loaded && !isFinishing) {
+            handler.removeCallbacks(poll)
+            handler.post(poll)
+        }
     }
 
     override fun onDestroy() {

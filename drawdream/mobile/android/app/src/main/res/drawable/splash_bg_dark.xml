@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 深色：暖棕底 -->
+    <!-- 深色：暖炭棕底 -->
     <item>
         <shape android:shape="rectangle">
             <solid android:color="#161210" />
@@ -11,8 +11,8 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="270"
-                android:startColor="#3A2C1A"
-                android:centerColor="#221B12"
+                android:startColor="#4A3824"
+                android:centerColor="#241D15"
                 android:endColor="#161210"
                 android:type="linear" />
         </shape>

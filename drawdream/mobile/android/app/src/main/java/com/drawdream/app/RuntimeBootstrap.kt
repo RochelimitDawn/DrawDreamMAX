@@ -36,6 +36,24 @@ object RuntimeBootstrap {
         }
     }
 
+    /** 诊断：列出 releases 目录结构（排查缓存/清理问题）。 */
+    fun runtimeInfo(ctx: Context): String {
+        return try {
+            val releases = File(runtimeBase(ctx), "releases")
+            val list = if (releases.isDirectory) releases.list()?.sorted()?.joinToString() ?: "(empty)"
+            else "(no releases dir)"
+            "active=${activeVersion(ctx)} previous=${
+                try {
+                    val f = activeFile(ctx)
+                    if (f.exists()) JSONObject(f.readText()).optString("previousVersion").ifBlank { "(none)" }
+                    else "(no current.json)"
+                } catch (_: Exception) { "(read fail)" }
+            } releases=[$list]"
+        } catch (e: Exception) {
+            "runtimeInfo failed: ${e.message}"
+        }
+    }
+
     fun homeDir(ctx: Context): File = File(appStorage(ctx), "home").also { it.mkdirs() }
 
     fun dataRoot(ctx: Context): File = File(appStorage(ctx), "data").also { it.mkdirs() }

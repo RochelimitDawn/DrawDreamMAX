@@ -8,6 +8,25 @@
 - CI：推送匹配 `v*` 的 tag 触发 [`.github/workflows/release-apk.yml`](../../.github/workflows/release-apk.yml)
 - 远程策略：只保留**最新** `v2.0.0-alpha.1-mobile.*` Release/tag
 
+## mobile.76 变更摘要
+
+1. **切后台后入场恢复兜底**
+   - 根因：`MainActivity.onDestroy` 会 `removeCallbacks(poll)`；切后台若 Activity 重建，poll 曾丢失，且 `ACTION_READY` 广播可能在 receiver 注册前发出，导致一直停在「正在准备运行时」而无法进入 WebView
+   - 修复：`onResume` 增加兜底——未加载时若 `lastStatus=="ready"` 直接 `openUi()`，否则重启 poll 继续轮询；跨实例静态 `lastStatus` 保证进程重建后可恢复
+   - 诊断：bootstrap 失败时写 `RuntimeBootstrap.runtimeInfo()`（active/previous/releases 列表）到日志，便于定位 runtime 缓存/清理问题
+
+2. **Logo 抠除背景（透明底）**
+   - 根因：新 Logo 设计图整体不透明（米黄底 `#FAF6F0`），直接导出导致图标、favicon、Android 启动图标都带米黄底
+   - 修复：基于背景色 flood-fill 抠图（只透明化从边界可达的背景，保留主体内部浅色），批量重生成 `public/brand/logo-icon-{32,64,180,192,512}.png`、`logo-icon.png/.webp`、`favicon-{32,64}.png`，以及 Android `logo_mark.png` / `logo_mark_launcher.png`
+   - 四角 alpha=0，主体完整；Android 启动图标透明底 + 圆角
+
+3. **入场背景精致化**
+   - 调低暖金饱和度：浅色顶部高光 `#F6EBD8→#FBF7F0`（极淡金色，克制不艳），深色顶部微光 `#4A3824→#241D15`
+   - 网格线改淡：浅色暖金 `#D2A46C` alpha 72，深色 `#C6A05C` alpha 95（若有若无的纹理感）
+
+4. **发布验证**
+   - tag `v2.0.0-alpha.1-mobile.76` 触发 APK workflow
+
 ## mobile.75 变更摘要
 
 1. **思考实时计时**
@@ -28,7 +47,21 @@
    - 修复：`RuntimeBootstrap.pruneOldReleases(ctx)` 列出 `releases/`，保留 active 与 previous 两个版本（回退用），删除更早版本；在新版本激活后与每次启动快路径命中时调用
    - 兼容：`scheduleRuntimeUpdate` 失败回退依赖 previous 版本，prune 保留它，回退不受影响
 
-4. **发布验证**
+4. **切后台后入场恢复兜底**
+   - 根因：`MainActivity.onDestroy` 会 `removeCallbacks(poll)`；切后台若 Activity 重建，poll 曾丢失，且 `ACTION_READY` 广播可能在 receiver 注册前发出，导致一直停在「正在准备运行时」而无法进入 WebView
+   - 修复：`onResume` 增加兜底——未加载时若 `lastStatus=="ready"` 直接 `openUi()`，否则重启 poll 继续轮询；跨实例静态 `lastStatus` 保证进程重建后可恢复
+   - 诊断：bootstrap 失败时写 `runtimeInfo`（active/previous/releases 列表）到日志，便于定位 runtime 缓存/清理问题
+
+5. **Logo 抠除背景（透明底）**
+   - 根因：新 Logo 设计图整体不透明（米黄底 `#FAF6F0`），直接导出导致图标、favicon、Android 启动图标都带米黄底
+   - 修复：基于背景色 flood-fill 抠图（只透明化从边界可达的背景，保留主体内部浅色），批量重生成 `public/brand/logo-icon-{32,64,180,192,512}.png`、`logo-icon.png/.webp`、`favicon-{32,64}.png`，以及 Android `logo_mark.png` / `logo_mark_launcher.png`
+   - 四角 alpha=0，主体完整；Android 启动图标透明底 + 圆角
+
+6. **入场背景精致化**
+   - 调低暖金饱和度：浅色顶部高光 `#F6EBD8→#FBF7F0`（极淡金色，克制不艳），深色顶部微光 `#4A3824→#241D15`
+   - 网格线改淡：浅色暖金 `#D2A46C` alpha 72，深色 `#C6A05C` alpha 95（若有若无的纹理感）
+
+7. **发布验证**
    - tag `v2.0.0-alpha.1-mobile.75` 触发 APK workflow
 
 ## mobile.74 变更摘要

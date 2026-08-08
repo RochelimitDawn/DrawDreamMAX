@@ -1,7 +1,7 @@
 {
   "name": "drawdream",
   "private": true,
-  "version": "2.0.0-alpha.1-mobile.75",
+  "version": "2.0.0-alpha.1-mobile.76",
   "type": "module",
   "description": "DrawDreamMAX Alpha 2.0 — UI + embedded DrawDream Agent (port 7620)",
   "scripts": {
