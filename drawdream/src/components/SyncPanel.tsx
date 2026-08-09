@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import {
+  AlertTriangle,
   Check,
   Cloud,
   Database,
   Loader2,
   RefreshCw,
   Server,
+  Shield,
   Smartphone,
+  Wifi,
   X,
 } from 'lucide-react'
 import { apiGet, apiPost, apiPut } from '../agent/rest'
@@ -60,7 +62,6 @@ const EMPTY: SyncStatus = {
 }
 
 export function SyncPanel() {
-  const { t } = useTranslation()
   const [status, setStatus] = useState<SyncStatus>(EMPTY)
   const [host, setHost] = useState('')
   const [port, setPort] = useState('4000')
@@ -205,106 +206,75 @@ export function SyncPanel() {
     }
   }
 
+  const statusLabel = status.enabled
+    ? status.connected
+      ? '已连接'
+      : status.connecting
+        ? '连接中'
+        : '同步暂停'
+    : '未启用'
+
   return (
     <div className="sync-panel">
-      <div className="sync-head">
-        <Cloud size={18} strokeWidth={2} />
-        <span>{t('settings.syncTitle')}</span>
-        <span className={`sync-badge ${status.enabled ? (status.connected ? 'is-on' : 'is-busy') : 'is-off'}`}>
-          {status.enabled
-            ? status.connected
-              ? '已连接'
-              : status.connecting
-                ? '连接中'
-                : '同步暂停'
-            : '未启用'}
-        </span>
-      </div>
-      {status.lastError && <div className="sync-error">同步错误：{status.lastError}</div>}
-
-      {status.enabled ? (
-        <div className="sync-enabled">
-          <div className="sync-stats">
-            <div className="sync-stat">
-              <span className="sync-stat-label">已同步 seq</span>
-              <strong>{status.lastSeq}</strong>
-            </div>
-            <div className="sync-stat">
-              <span className="sync-stat-label">云端最大</span>
-              <strong>{status.remoteMaxSeq}</strong>
-            </div>
-            <div className="sync-stat">
-              <span className="sync-stat-label">待同步</span>
-              <strong>{status.pendingCount}</strong>
-            </div>
-            <div className="sync-stat">
-              <span className="sync-stat-label">冲突</span>
-              <strong>{status.conflictCount}</strong>
-            </div>
-          </div>
-          <div className="sync-actions">
-            <button className="btn" onClick={syncNow} disabled={busy}>
-              {busy ? <Loader2 className="spin" size={16} /> : <RefreshCw size={16} />}
-              立即同步
-            </button>
-            <button className="btn" onClick={() => void disable()} disabled={busy}>
-              <X size={16} />
-              停用同步
-            </button>
-          </div>
-
-          <h4>同步设备</h4>
-          <div className="sync-devices">
-            {devices.map((d) => (
-              <div className="sync-device-row" key={d.deviceId}>
-                <Smartphone size={16} />
-                <span className="sync-device-name">{d.name}</span>
-                <span className={`sync-badge ${d.active ? 'is-on' : 'is-off'}`}>
-                  {d.active ? '在线' : '离线'}
-                </span>
-                <span className="sync-device-seen">
-                  {d.lastSeenAt ? new Date(d.lastSeenAt).toLocaleString() : '—'}
-                </span>
-                <button
-                  className="sync-device-rename"
-                  onClick={() => {
-                    const name = window.prompt('设备名称', d.name)
-                    if (name && name.trim()) void renameDevice(d.deviceId, name.trim())
-                  }}
-                >
-                  重命名
+      {/* 卡片 1：连接状态 */}
+      <section className="sync-card sync-card-status">
+        <div className="sync-card-head">
+          <span className="sync-card-icon"><Wifi size={16} strokeWidth={2} /></span>
+          <span className="sync-card-title">同步状态</span>
+          <span className={`sync-badge ${status.enabled ? (status.connected ? 'is-on' : 'is-busy') : 'is-off'}`}>
+            {statusLabel}
+          </span>
+        </div>
+        <div className="sync-card-body">
+          {status.lastError && <div className="sync-error">同步错误：{status.lastError}</div>}
+          {status.enabled ? (
+            <>
+              <div className="sync-stats">
+                <div className="sync-stat">
+                  <span className="sync-stat-label">已同步</span>
+                  <strong>{status.lastSeq}</strong>
+                </div>
+                <div className="sync-stat">
+                  <span className="sync-stat-label">云端最大</span>
+                  <strong>{status.remoteMaxSeq}</strong>
+                </div>
+                <div className="sync-stat">
+                  <span className="sync-stat-label">待同步</span>
+                  <strong>{status.pendingCount}</strong>
+                </div>
+                <div className="sync-stat">
+                  <span className="sync-stat-label">冲突</span>
+                  <strong>{status.conflictCount}</strong>
+                </div>
+              </div>
+              <div className="sync-actions">
+                <button className="btn" onClick={syncNow} disabled={busy}>
+                  {busy ? <Loader2 className="spin" size={16} /> : <RefreshCw size={16} />}
+                  立即同步
+                </button>
+                <button className="btn btn-ghost" onClick={() => void disable()} disabled={busy}>
+                  <X size={16} />
+                  停用同步
                 </button>
               </div>
-            ))}
-          </div>
-
-          <h4>冲突记录</h4>
-          <div className="sync-conflicts">
-            {conflicts.length === 0 ? (
-              <div className="sync-empty">无未解决冲突</div>
-            ) : (
-              conflicts.map((c) => (
-                <div className="sync-conflict-row" key={`${c.entityType}:${c.entityId}:${c.fieldPath}`}>
-                  <span className="sync-conflict-path">
-                    {c.entityType} · {c.fieldPath}
-                  </span>
-                  <button
-                    className="btn"
-                    onClick={() => {
-                      const value = window.prompt('保留的值（JSON）', '"远端值"')
-                      if (value) void resolveConflict(c, value)
-                    }}
-                  >
-                    解决
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
+            </>
+          ) : (
+            <div className="sync-idle-hint">
+              连接 TiDB Cloud 后，多台设备将共享同一份数据。
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="sync-setup">
-          <div className="settings-form sync-form">
+      </section>
+
+      {/* 卡片 2：云同步 API */}
+      <section className="sync-card">
+        <div className="sync-card-head">
+          <span className="sync-card-icon"><Database size={16} strokeWidth={2} /></span>
+          <span className="sync-card-title">云同步 API</span>
+          <span className="sync-card-sub">TiDB Serverless 连接</span>
+        </div>
+        <div className="sync-card-body">
+          <div className="sync-form">
             <label className="sync-field">
               <span>数据库主机</span>
               <input
@@ -348,44 +318,134 @@ export function SyncPanel() {
               {busy ? <Loader2 className="spin" size={16} /> : <Server size={16} />}
               测试连接
             </button>
-            <button className="btn" onClick={() => void saveConfig()} disabled={busy || !host}>
-              <Database size={16} />
+            <button className="btn btn-ghost" onClick={() => void saveConfig()} disabled={busy || !host}>
               保存配置
             </button>
           </div>
-
-          <h4>云账号（多设备共享）</h4>
-          <div className="settings-form sync-form">
-            <label className="sync-field">
-              <span>账号用户名</span>
-              <input
-                type="text"
-                value={accountUsername}
-                onChange={(e) => setAccountUsername(e.target.value)}
-                placeholder="首次启用将注册该账号"
-              />
-            </label>
-            <label className="sync-field">
-              <span>账号密码</span>
-              <input
-                type="password"
-                value={accountPassword}
-                onChange={(e) => setAccountPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-            </label>
-            <label className="sync-field">
-              <span>本设备名称</span>
-              <input type="text" value={deviceName} onChange={(e) => setDeviceName(e.target.value)} />
-            </label>
-          </div>
-          <div className="sync-actions">
-            <button className="btn sync-enable" onClick={() => void enable()} disabled={busy}>
-              {busy ? <Loader2 className="spin" size={16} /> : <Check size={16} />}
-              启用云同步
-            </button>
-          </div>
         </div>
+      </section>
+
+      {/* 卡片 3：云账号（多设备共享） */}
+      <section className="sync-card">
+        <div className="sync-card-head">
+          <span className="sync-card-icon"><Shield size={16} strokeWidth={2} /></span>
+          <span className="sync-card-title">云账号</span>
+          <span className="sync-card-sub">多设备共享</span>
+        </div>
+        <div className="sync-card-body">
+          {!status.enabled ? (
+            <>
+              <div className="sync-form">
+                <label className="sync-field">
+                  <span>账号用户名</span>
+                  <input
+                    type="text"
+                    value={accountUsername}
+                    onChange={(e) => setAccountUsername(e.target.value)}
+                    placeholder="首次启用将注册该账号"
+                  />
+                </label>
+                <label className="sync-field">
+                  <span>账号密码</span>
+                  <input
+                    type="password"
+                    value={accountPassword}
+                    onChange={(e) => setAccountPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </label>
+                <label className="sync-field">
+                  <span>本设备名称</span>
+                  <input type="text" value={deviceName} onChange={(e) => setDeviceName(e.target.value)} />
+                </label>
+              </div>
+              <div className="sync-actions">
+                <button className="btn sync-enable" onClick={() => void enable()} disabled={busy}>
+                  {busy ? <Loader2 className="spin" size={16} /> : <Check size={16} />}
+                  启用云同步
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="sync-account-info">
+              <Cloud size={16} strokeWidth={2} />
+              <span>账号已绑定，组：{status.groupId || '—'}</span>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 卡片 4：设备管理 */}
+      {status.enabled && (
+        <section className="sync-card">
+          <div className="sync-card-head">
+            <span className="sync-card-icon"><Smartphone size={16} strokeWidth={2} /></span>
+            <span className="sync-card-title">同步设备</span>
+          </div>
+          <div className="sync-card-body">
+            <div className="sync-devices">
+              {devices.length === 0 ? (
+                <div className="sync-empty">暂无其他设备</div>
+              ) : (
+                devices.map((d) => (
+                  <div className="sync-device-row" key={d.deviceId}>
+                    <Smartphone size={16} />
+                    <span className="sync-device-name">{d.name}</span>
+                    <span className={`sync-badge ${d.active ? 'is-on' : 'is-off'}`}>
+                      {d.active ? '在线' : '离线'}
+                    </span>
+                    <span className="sync-device-seen">
+                      {d.lastSeenAt ? new Date(d.lastSeenAt).toLocaleString() : '—'}
+                    </span>
+                    <button
+                      className="sync-device-rename"
+                      onClick={() => {
+                        const name = window.prompt('设备名称', d.name)
+                        if (name && name.trim()) void renameDevice(d.deviceId, name.trim())
+                      }}
+                    >
+                      重命名
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 卡片 5：冲突记录 */}
+      {status.enabled && (
+        <section className="sync-card">
+          <div className="sync-card-head">
+            <span className="sync-card-icon"><AlertTriangle size={16} strokeWidth={2} /></span>
+            <span className="sync-card-title">冲突记录</span>
+          </div>
+          <div className="sync-card-body">
+            <div className="sync-conflicts">
+              {conflicts.length === 0 ? (
+                <div className="sync-empty">无未解决冲突</div>
+              ) : (
+                conflicts.map((c) => (
+                  <div className="sync-conflict-row" key={`${c.entityType}:${c.entityId}:${c.fieldPath}`}>
+                    <span className="sync-conflict-path">
+                      {c.entityType} · {c.fieldPath}
+                    </span>
+                    <button
+                      className="btn"
+                      onClick={() => {
+                        const value = window.prompt('保留的值（JSON）', '"远端值"')
+                        if (value) void resolveConflict(c, value)
+                      }}
+                    >
+                      解决
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
       )}
     </div>
   )

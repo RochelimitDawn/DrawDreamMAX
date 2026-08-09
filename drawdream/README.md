@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.84`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.85`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.84` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.85` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.84
+└── package.json         # 2.0.0-alpha.1-mobile.85
 ```
 
 ```text
@@ -114,6 +114,17 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.85）
+
+- **设置页全面重构（移动端卡片化）**：设置内各分区采用「大框套小框」分组卡片设计，与桌面端 provider-card 逻辑统一
+  - **通用**：外观（语言/主题）+ 数据与备份两张卡片
+  - **API 与模型**：模型渠道 / 思考强度探测 / 向量模型 / 添加渠道 各自独立卡片
+  - **高级**：世界信息 / Agent 行为 / 叙事流水线 / 智能搜索 / 文档解析 分组卡片
+  - **云同步**：同步状态 / 云同步 API / 云账号 / 同步设备 / 冲突记录 五张卡片
+  - **界面 / 对话 / 阅读**：统一为单张分组卡片
+  - 每张卡片：图标 + 标题头部，内部为小输入框/开关/选择器；修复移动端内容溢出边框问题（输入框 box-sizing、窄屏单列、统计 2 列）
+- 继承 mobile.84：跨端云同步（Cloud Sync V1）
 
 ## 本版要点（mobile.84）
 

@@ -177,6 +177,34 @@ const SIcon = ({ icon: Icon, size = 16 }: { icon: LucideIcon; size?: number }) =
   </span>
 )
 
+/** 大卡片容器（大框套小框）：卡片头含图标+标题，卡片体内放小控件/输入框 */
+function SettingsCard({
+  icon: Icon,
+  title,
+  sub,
+  children,
+  className,
+}: {
+  icon: LucideIcon
+  title: ReactNode
+  sub?: ReactNode
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <section className={`settings-card${className ? ` ${className}` : ''}`}>
+      <div className="settings-card-head">
+        <span className="settings-card-icon" aria-hidden>
+          <Icon size={16} strokeWidth={2} />
+        </span>
+        <span className="settings-card-title">{title}</span>
+        {sub ? <span className="settings-card-sub">{sub}</span> : null}
+      </div>
+      <div className="settings-card-body">{children}</div>
+    </section>
+  )
+}
+
 const API_TYPES = [
   { value: 'openai-completions', label: 'OpenAI 兼容' },
   { value: 'openai-responses', label: 'OpenAI Responses' },
@@ -1212,108 +1240,115 @@ export function SettingsPage() {
             <p>{t(`settings.tab${tab[0].toUpperCase()}${tab.slice(1)}Hint`)}</p>
           </header>
           {tab === 'general' && (
-            <div className="settings-list">
-              <div className="settings-item">
-                <SIcon icon={Languages} />
-                <div className="settings-item-main">
-                  <div className="settings-item-title">{t('common.language')}</div>
-                  <div className="settings-item-desc">{t('settings.langDesc')}</div>
+            <div className="settings-stack">
+              <SettingsCard icon={Languages} title={t('settings.generalAppearance')}>
+                <div className="settings-list">
+                  <div className="settings-item">
+                    <SIcon icon={Languages} />
+                    <div className="settings-item-main">
+                      <div className="settings-item-title">{t('common.language')}</div>
+                      <div className="settings-item-desc">{t('settings.langDesc')}</div>
+                    </div>
+                    <Select
+                      value={lang}
+                      onChange={(v) => {
+                        onLang(v)
+                        void syncSettingsToServer()
+                      }}
+                      options={[
+                        { value: 'zh', label: t('common.chinese') },
+                        { value: 'en', label: t('common.english') },
+                      ]}
+                      size="sm"
+                    />
+                  </div>
+                  <div className="settings-item">
+                    <SIcon icon={Palette} />
+                    <div className="settings-item-main">
+                      <div className="settings-item-title">{t('settings.theme')}</div>
+                    </div>
+                    <Select
+                      value={theme}
+                      onChange={(v) => {
+                        onTheme(v)
+                        void syncSettingsToServer()
+                      }}
+                      options={[
+                        { value: 'light', label: t('settings.themeLight') },
+                        { value: 'dark', label: t('settings.themeDark') },
+                        { value: 'system', label: t('settings.themeSystem') },
+                      ]}
+                      size="sm"
+                    />
+                  </div>
                 </div>
-                <Select
-                  value={lang}
-                  onChange={(v) => {
-                    onLang(v)
-                    void syncSettingsToServer()
-                  }}
-                  options={[
-                    { value: 'zh', label: t('common.chinese') },
-                    { value: 'en', label: t('common.english') },
-                  ]}
-                  size="sm"
-                />
-              </div>
-              <div className="settings-item">
-                <SIcon icon={Palette} />
-                <div className="settings-item-main">
-                  <div className="settings-item-title">{t('settings.theme')}</div>
+              </SettingsCard>
+              <SettingsCard icon={DatabaseBackup} title={t('settings.backupTitle')}>
+                <div className="settings-list">
+                  <div className="settings-item settings-item-stack">
+                    <div className="settings-item-main">
+                      <div className="settings-item-title">{t('settings.backupTitle')}</div>
+                      <div className="settings-item-desc">{t('settings.backupDesc')}</div>
+                    </div>
+                    <div className="settings-backup-actions">
+                      <input
+                        ref={importFileRef}
+                        type="file"
+                        accept="application/json,.json"
+                        hidden
+                        onChange={(e) => {
+                          const f = e.target.files?.[0]
+                          if (f) void importAllSettingsFromFile(f)
+                        }}
+                      />
+                      <button type="button" className="btn btn-dark btn-sm" onClick={exportAllSettings}>
+                        {t('settings.exportAll')}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        disabled={importingSettings}
+                        onClick={() => importFileRef.current?.click()}
+                      >
+                        {importingSettings ? t('settings.importing') : t('settings.importAll')}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <Select
-                  value={theme}
-                  onChange={(v) => {
-                    onTheme(v)
-                    void syncSettingsToServer()
-                  }}
-                  options={[
-                    { value: 'light', label: t('settings.themeLight') },
-                    { value: 'dark', label: t('settings.themeDark') },
-                    { value: 'system', label: t('settings.themeSystem') },
-                  ]}
-                  size="sm"
-                />
-              </div>
-              <div className="settings-item settings-item-stack">
-                <SIcon icon={DatabaseBackup} />
-                <div className="settings-item-main">
-                  <div className="settings-item-title">{t('settings.backupTitle')}</div>
-                  <div className="settings-item-desc">{t('settings.backupDesc')}</div>
-                </div>
-                <div className="settings-backup-actions">
-                  <input
-                    ref={importFileRef}
-                    type="file"
-                    accept="application/json,.json"
-                    hidden
-                    onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      if (f) void importAllSettingsFromFile(f)
-                    }}
-                  />
-                  <button type="button" className="btn btn-dark btn-sm" onClick={exportAllSettings}>
-                    {t('settings.exportAll')}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    disabled={importingSettings}
-                    onClick={() => importFileRef.current?.click()}
-                  >
-                    {importingSettings ? t('settings.importing') : t('settings.importAll')}
-                  </button>
-                </div>
-              </div>
+              </SettingsCard>
             </div>
           )}
 
           {tab === 'api' && (
-            <div className="settings-form">
-              {current ? (
-                <div className="chip chip-brand api-current-chip">
-                  {t('settings.currentModel')}: {current.provider}/{current.id}
-                </div>
-              ) : null}
+            <div className="settings-stack">
+              <SettingsCard icon={Server} title={t('settings.providersTitle')}>
+                {current ? (
+                  <div className="chip chip-brand api-current-chip">
+                    {t('settings.currentModel')}: {current.provider}/{current.id}
+                  </div>
+                ) : null}
 
-              <div className="provider-section-head">
-                <h3 className="settings-subhead">{t('settings.providersTitle')}</h3>
-                <div className="form-actions" style={{ marginTop: 0 }}>
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => void loadAgentApi()}>
-                    <RefreshCw size={14} />
-                    {t('settings.refresh')}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={() => {
-                      setShowAdd((v) => !v)
-                      if (!showAdd) applyPreset(newPreset)
-                    }}
-                  >
-                    <Plus size={14} />
-                    {t('settings.addChannel')}
-                  </button>
+                <div className="provider-section-head">
+                  <div className="form-actions" style={{ marginTop: 0 }}>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => void loadAgentApi()}>
+                      <RefreshCw size={14} />
+                      {t('settings.refresh')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => {
+                        setShowAdd((v) => !v)
+                        if (!showAdd) applyPreset(newPreset)
+                      }}
+                    >
+                      <Plus size={14} />
+                      {t('settings.addChannel')}
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {channelCards}
+                {channelCards}
               {channelName ? (
                 <div className="api-edit-block surface-inset">
                   <h3 className="settings-subhead">
@@ -1445,125 +1480,126 @@ export function SettingsPage() {
               ) : null}
 
 
+              </SettingsCard>
+
               {/* 思考强度显式探测：默认探测默认模型 */}
-              <div className="provider-section-head" style={{ marginTop: 20 }}>
-                <h3 className="settings-subhead">{t('settings.thinkingProbeTitle')}</h3>
-              </div>
-              <div className="thinking-probe-panel">
-                <div className="thinking-probe-main">
-                  <div className="thinking-probe-target">
-                    <span className="thinking-probe-label">{t('settings.thinkingProbeTarget')}</span>
-                    <span className="thinking-probe-value">
-                      {current ? `${current.provider}/${current.id}` : t('settings.noModelSelected')}
-                    </span>
-                  </div>
-                  <p className="settings-item-desc">{t('settings.thinkingProbeDesc')}</p>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={probingThinking || !current}
-                  onClick={() => void runThinkingProbe()}
-                >
-                  <RefreshCw size={14} className={probingThinking ? 'is-spin' : ''} />
-                  {probingThinking ? t('settings.thinkingProbing') : t('settings.thinkingProbe')}
-                </button>
-                {thinkingProbeMsg ? (
-                  <div className={`probe-result ${thinkingProbeMsg.ok ? 'is-ok' : 'is-fail'}`}>
-                    <Activity size={16} />
-                    <div>
-                      <strong>
-                        {thinkingProbeMsg.ok ? t('settings.testOk') : t('settings.testFail')}
-                      </strong>
-                      <p>{thinkingProbeMsg.text}</p>
+              <SettingsCard icon={Activity} title={t('settings.thinkingProbeTitle')}>
+                <div className="thinking-probe-panel">
+                  <div className="thinking-probe-main">
+                    <div className="thinking-probe-target">
+                      <span className="thinking-probe-label">{t('settings.thinkingProbeTarget')}</span>
+                      <span className="thinking-probe-value">
+                        {current ? `${current.provider}/${current.id}` : t('settings.noModelSelected')}
+                      </span>
                     </div>
+                    <p className="settings-item-desc">{t('settings.thinkingProbeDesc')}</p>
                   </div>
-                ) : null}
-              </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={probingThinking || !current}
+                    onClick={() => void runThinkingProbe()}
+                  >
+                    <RefreshCw size={14} className={probingThinking ? 'is-spin' : ''} />
+                    {probingThinking ? t('settings.thinkingProbing') : t('settings.thinkingProbe')}
+                  </button>
+                  {thinkingProbeMsg ? (
+                    <div className={`probe-result ${thinkingProbeMsg.ok ? 'is-ok' : 'is-fail'}`}>
+                      <Activity size={16} />
+                      <div>
+                        <strong>
+                          {thinkingProbeMsg.ok ? t('settings.testOk') : t('settings.testFail')}
+                        </strong>
+                        <p>{thinkingProbeMsg.text}</p>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </SettingsCard>
 
               {/* 独立向量模型区块：与对话模型分开配置，可折叠卡片（默认折叠） */}
-              <div className="provider-section-head" style={{ marginTop: 20 }}>
-                <h3 className="settings-subhead">{t('settings.vectorSectionTitle')}</h3>
-              </div>
-              <div className="vector-card">
-                <button
-                  type="button"
-                  className="vector-card-head"
-                  aria-expanded={vectorOpen}
-                  onClick={() => setVectorOpen((v) => !v)}
-                >
-                  <span className="vector-card-icon" aria-hidden>
-                    <BrainCog size={16} strokeWidth={2} />
-                  </span>
-                  <span className="vector-card-title">{t('settings.vectorSectionTitle')}</span>
-                  <span className="vector-card-summary">
-                    {vectorChannel
-                      ? vectorModelId
-                        ? `${vectorChannel} · ${vectorModelId}`
-                        : vectorChannel
-                      : t('settings.vectorChannelNone')}
-                  </span>
-                  <span className={`vector-card-chev${vectorOpen ? ' is-open' : ''}`} aria-hidden>
-                    <ChevronDown size={16} strokeWidth={2} />
-                  </span>
-                </button>
-                {vectorOpen ? (
-                  <div className="vector-card-body surface-inset">
-                    <div>
-                      <label className="field-label">{t('settings.vectorChannel')}</label>
-                      <Select
-                        fullWidth
-                        value={vectorChannel}
-                        onChange={(v) => {
-                          setVectorChannel(v)
-                          setVectorModelId('')
-                        }}
-                        options={[
-                          { value: '', label: t('settings.vectorChannelNone'), meta: '' },
-                          ...channels.map((c) => ({ value: c.name, label: c.name, meta: c.name })),
-                        ]}
-                      />
+              <SettingsCard icon={BrainCog} title={t('settings.vectorSectionTitle')}>
+                <div className="vector-card">
+                  <button
+                    type="button"
+                    className="vector-card-head"
+                    aria-expanded={vectorOpen}
+                    onClick={() => setVectorOpen((v) => !v)}
+                  >
+                    <span className="vector-card-icon" aria-hidden>
+                      <BrainCog size={16} strokeWidth={2} />
+                    </span>
+                    <span className="vector-card-title">{t('settings.vectorSectionTitle')}</span>
+                    <span className="vector-card-summary">
+                      {vectorChannel
+                        ? vectorModelId
+                          ? `${vectorChannel} · ${vectorModelId}`
+                          : vectorChannel
+                        : t('settings.vectorChannelNone')}
+                    </span>
+                    <span className={`vector-card-chev${vectorOpen ? ' is-open' : ''}`} aria-hidden>
+                      <ChevronDown size={16} strokeWidth={2} />
+                    </span>
+                  </button>
+                  {vectorOpen ? (
+                    <div className="vector-card-body surface-inset">
+                      <div>
+                        <label className="field-label">{t('settings.vectorChannel')}</label>
+                        <Select
+                          fullWidth
+                          value={vectorChannel}
+                          onChange={(v) => {
+                            setVectorChannel(v)
+                            setVectorModelId('')
+                          }}
+                          options={[
+                            { value: '', label: t('settings.vectorChannelNone'), meta: '' },
+                            ...channels.map((c) => ({ value: c.name, label: c.name, meta: c.name })),
+                          ]}
+                        />
+                      </div>
+                      <div>
+                        <label className="field-label">{t('settings.vectorModel')}</label>
+                        <Select
+                          fullWidth
+                          value={vectorModelId}
+                          onChange={(v) => setVectorModelId(v)}
+                          disabled={!vectorChannel}
+                          options={[
+                            { value: '', label: t('settings.embeddingNone'), meta: '' },
+                            ...(channels.find((c) => c.name === vectorChannel)?.models.map((m) => ({
+                              value: m.id,
+                              label: m.name || m.id,
+                              meta: vectorChannel,
+                            })) ?? []),
+                          ]}
+                        />
+                        <p className="settings-item-desc" style={{ marginTop: 6 }}>
+                          {t('settings.embeddingModelHint')}
+                        </p>
+                      </div>
+                      <div className="form-actions">
+                        <button type="button" className="btn btn-primary" onClick={() => void saveVectorModel()}>
+                          {t('settings.vectorSave')}
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <label className="field-label">{t('settings.vectorModel')}</label>
-                      <Select
-                        fullWidth
-                        value={vectorModelId}
-                        onChange={(v) => setVectorModelId(v)}
-                        disabled={!vectorChannel}
-                        options={[
-                          { value: '', label: t('settings.embeddingNone'), meta: '' },
-                          ...(channels.find((c) => c.name === vectorChannel)?.models.map((m) => ({
-                            value: m.id,
-                            label: m.name || m.id,
-                            meta: vectorChannel,
-                          })) ?? []),
-                        ]}
-                      />
-                      <p className="settings-item-desc" style={{ marginTop: 6 }}>
-                        {t('settings.embeddingModelHint')}
-                      </p>
-                    </div>
-                    <div className="form-actions">
-                      <button type="button" className="btn btn-primary" onClick={() => void saveVectorModel()}>
-                        {t('settings.vectorSave')}
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
+                  ) : null}
+                </div>
+              </SettingsCard>
 
               {showAdd ? (
-                <div className="provider-add surface-inset">
-                  <PresetPicker
-                    label={t('settings.preset')}
-                    value={newPreset}
-                    options={PROVIDER_PRESETS}
-                    onChange={applyPreset}
-                  />
-                  <div>
-                    <label className="field-label">{t('settings.channelName')}</label>
-                    <input
+                <SettingsCard icon={Plus} title={t('settings.addChannel')}>
+                  <div className="provider-add surface-inset">
+                    <PresetPicker
+                      label={t('settings.preset')}
+                      value={newPreset}
+                      options={PROVIDER_PRESETS}
+                      onChange={applyPreset}
+                    />
+                    <div>
+                      <label className="field-label">{t('settings.channelName')}</label>
+                      <input
                       className="field-input"
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
@@ -1611,72 +1647,79 @@ export function SettingsPage() {
                       {t('common.cancel')}
                     </button>
                   </div>
-                </div>
+                  </div>
+                </SettingsCard>
               ) : null}
 
             </div>
           )}
 
           {tab === 'ui' && (
-            <div className="settings-list">
-              <div className="settings-item">
-                <SIcon icon={Rows3} />
-                <div className="settings-item-main">
-                  <div className="settings-item-title">{t('settings.density')}</div>
+            <div className="settings-stack">
+              <SettingsCard icon={Palette} title={t('settings.uiAppearance')}>
+                <div className="settings-list">
+                  <div className="settings-item">
+                    <SIcon icon={Rows3} />
+                    <div className="settings-item-main">
+                      <div className="settings-item-title">{t('settings.density')}</div>
+                    </div>
+                    <Select
+                      value={density}
+                      onChange={(v) => {
+                        const next = v === 'compact' ? 'compact' : 'comfort'
+                        patchPrefs({ density: next })
+                        toast(t('common.saved'), 'success')
+                      }}
+                      options={[
+                        { value: 'comfort', label: t('settings.densityComfort') },
+                        { value: 'compact', label: t('settings.densityCompact') },
+                      ]}
+                      size="sm"
+                    />
+                  </div>
+                  <div className="settings-item">
+                    <SIcon icon={EyeOff} />
+                    <div className="settings-item-main">
+                      <div className="settings-item-title">{t('settings.blurNSFW')}</div>
+                    </div>
+                    <Toggle
+                      checked={blurNsfw}
+                      onChange={(v) => patchPrefs({ blurNsfw: v })}
+                      ariaLabel={t('settings.blurNSFW')}
+                    />
+                  </div>
+                  <div className="settings-item">
+                    <SIcon icon={Clock} />
+                    <div className="settings-item-main">
+                      <div className="settings-item-title">{t('settings.showTimestamps')}</div>
+                    </div>
+                    <Toggle
+                      checked={timestamps}
+                      onChange={(v) => patchPrefs({ showTimestamps: v })}
+                      ariaLabel={t('settings.showTimestamps')}
+                    />
+                  </div>
                 </div>
-                <Select
-                  value={density}
-                  onChange={(v) => {
-                    const next = v === 'compact' ? 'compact' : 'comfort'
-                    patchPrefs({ density: next })
-                    toast(t('common.saved'), 'success')
-                  }}
-                  options={[
-                    { value: 'comfort', label: t('settings.densityComfort') },
-                    { value: 'compact', label: t('settings.densityCompact') },
-                  ]}
-                  size="sm"
-                />
-              </div>
-              <div className="settings-item">
-                <SIcon icon={EyeOff} />
-                <div className="settings-item-main">
-                  <div className="settings-item-title">{t('settings.blurNSFW')}</div>
-                </div>
-                <Toggle
-                  checked={blurNsfw}
-                  onChange={(v) => patchPrefs({ blurNsfw: v })}
-                  ariaLabel={t('settings.blurNSFW')}
-                />
-              </div>
-              <div className="settings-item">
-                <SIcon icon={Clock} />
-                <div className="settings-item-main">
-                  <div className="settings-item-title">{t('settings.showTimestamps')}</div>
-                </div>
-                <Toggle
-                  checked={timestamps}
-                  onChange={(v) => patchPrefs({ showTimestamps: v })}
-                  ariaLabel={t('settings.showTimestamps')}
-                />
-              </div>
+              </SettingsCard>
             </div>
           )}
 
           {tab === 'reading' && (
-            <div className="settings-list">
-              <div className="settings-item">
-                <SIcon icon={Highlighter} />
-                <div className="settings-item-main">
-                  <div className="settings-item-title">{t('settings.readColorize')}</div>
-                  <div className="settings-item-desc">{t('settings.readColorizeDesc')}</div>
-                </div>
-                <Toggle
-                  checked={reading.colorizeEnabled}
-                  onChange={(v) => patchReading({ colorizeEnabled: v })}
-                  ariaLabel={t('settings.readColorize')}
-                />
-              </div>
+            <div className="settings-stack">
+              <SettingsCard icon={BookOpen} title={t('settings.reading')}>
+                <div className="settings-list">
+                  <div className="settings-item">
+                    <SIcon icon={Highlighter} />
+                    <div className="settings-item-main">
+                      <div className="settings-item-title">{t('settings.readColorize')}</div>
+                      <div className="settings-item-desc">{t('settings.readColorizeDesc')}</div>
+                    </div>
+                    <Toggle
+                      checked={reading.colorizeEnabled}
+                      onChange={(v) => patchReading({ colorizeEnabled: v })}
+                      ariaLabel={t('settings.readColorize')}
+                    />
+                  </div>
               {COLOR_RULE_IDS.map((id) => (
                 <div
                   key={id}
@@ -1882,74 +1925,82 @@ export function SettingsPage() {
                   ariaLabel={t('settings.readStickyChapter')}
                 />
               </div>
+                </div>
+              </SettingsCard>
             </div>
           )}
 
           {tab === 'chat' && (
-            <div className="settings-list">
-              <div className="settings-item">
-                <SIcon icon={ChevronsDown} />
-                <div className="settings-item-main">
-                  <div className="settings-item-title">{t('settings.autoScroll')}</div>
+            <div className="settings-stack">
+              <SettingsCard icon={MessageCircle} title={t('settings.chatBehavior')}>
+                <div className="settings-list">
+                  <div className="settings-item">
+                    <SIcon icon={ChevronsDown} />
+                    <div className="settings-item-main">
+                      <div className="settings-item-title">{t('settings.autoScroll')}</div>
+                    </div>
+                    <Toggle
+                      checked={autoScroll}
+                      onChange={(v) => patchPrefs({ autoScroll: v })}
+                      ariaLabel={t('settings.autoScroll')}
+                    />
+                  </div>
+                  <div className="settings-item">
+                    <SIcon icon={Waves} />
+                    <div className="settings-item-main">
+                      <div className="settings-item-title">{t('settings.streamReply')}</div>
+                      <div className="settings-item-desc">{t('settings.streamReplyDesc')}</div>
+                    </div>
+                    <Toggle
+                      checked={stream}
+                      onChange={(v) => patchPrefs({ streamReply: v })}
+                      ariaLabel={t('settings.streamReply')}
+                    />
+                  </div>
+                  <div className="settings-item">
+                    <SIcon icon={Send} />
+                    <div className="settings-item-main">
+                      <div className="settings-item-title">{t('settings.enterSend')}</div>
+                      <div className="settings-item-desc">{t('settings.enterSendDesc')}</div>
+                    </div>
+                    <Toggle
+                      checked={enterSend}
+                      onChange={(v) => patchPrefs({ enterSend: v })}
+                      ariaLabel={t('settings.enterSend')}
+                    />
+                  </div>
                 </div>
-                <Toggle
-                  checked={autoScroll}
-                  onChange={(v) => patchPrefs({ autoScroll: v })}
-                  ariaLabel={t('settings.autoScroll')}
-                />
-              </div>
-              <div className="settings-item">
-                <SIcon icon={Waves} />
-                <div className="settings-item-main">
-                  <div className="settings-item-title">{t('settings.streamReply')}</div>
-                  <div className="settings-item-desc">{t('settings.streamReplyDesc')}</div>
-                </div>
-                <Toggle
-                  checked={stream}
-                  onChange={(v) => patchPrefs({ streamReply: v })}
-                  ariaLabel={t('settings.streamReply')}
-                />
-              </div>
-              <div className="settings-item">
-                <SIcon icon={Send} />
-                <div className="settings-item-main">
-                  <div className="settings-item-title">{t('settings.enterSend')}</div>
-                  <div className="settings-item-desc">{t('settings.enterSendDesc')}</div>
-                </div>
-                <Toggle
-                  checked={enterSend}
-                  onChange={(v) => patchPrefs({ enterSend: v })}
-                  ariaLabel={t('settings.enterSend')}
-                />
-              </div>
+              </SettingsCard>
             </div>
           )}
 
           {tab === 'advanced' && (
-            <div className="settings-form">
-              <div className="grid-2">
-                <div>
-                  <label className="field-label">{t('settings.worldInfoDepth')}</label>
-                  <Select
-                    fullWidth
-                    value={wiDepth}
-                    onChange={setWiDepth}
-                    options={['2', '4', '6', '8', '12', '20'].map((v) => ({ value: v, label: v }))}
-                  />
+            <div className="settings-stack">
+              <SettingsCard icon={Layers} title={t('settings.worldInfo')}>
+                <div className="grid-2">
+                  <div>
+                    <label className="field-label">{t('settings.worldInfoDepth')}</label>
+                    <Select
+                      fullWidth
+                      value={wiDepth}
+                      onChange={setWiDepth}
+                      options={['2', '4', '6', '8', '12', '20'].map((v) => ({ value: v, label: v }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="field-label">{t('settings.lorebookBudget')}</label>
+                    <Select
+                      fullWidth
+                      value={maxLore}
+                      onChange={setMaxLore}
+                      options={['0', '1', '2', '3', '5', '8', '10'].map((v) => ({ value: v, label: v }))}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="field-label">{t('settings.lorebookBudget')}</label>
-                  <Select
-                    fullWidth
-                    value={maxLore}
-                    onChange={setMaxLore}
-                    options={['0', '1', '2', '3', '5', '8', '10'].map((v) => ({ value: v, label: v }))}
-                  />
-                </div>
-              </div>
+              </SettingsCard>
 
-              <h3 className="settings-subhead">{t('settings.agentBehavior')}</h3>
-              <div className="settings-list" style={{ marginTop: 8 }}>
+              <SettingsCard icon={Sparkles} title={t('settings.agentBehavior')}>
+              <div className="settings-list">
                 <div className="settings-item">
                   <SIcon icon={Sparkles} />
                   <div className="settings-item-main">
@@ -2046,13 +2097,14 @@ export function SettingsPage() {
                   </div>
                   <Toggle
                     checked={greetingOn}
-                    onChange={setGreetingOn}
-                    ariaLabel={t('settings.greeting')}
-                  />
+                     onChange={setGreetingOn}
+                     ariaLabel={t('settings.greeting')}
+                   />
                 </div>
               </div>
+              </SettingsCard>
 
-              <h3 className="settings-subhead">{t('settings.pipeline')}</h3>
+              <SettingsCard icon={GitBranch} title={t('settings.pipeline')}>
               <div className="grid-2">
                 <div>
                   <label className="field-label">{t('settings.pipelineMode')}</label>
@@ -2073,15 +2125,16 @@ export function SettingsPage() {
                   <label className="field-label">{t('settings.pipelineMaxSummaries')}</label>
                   <Select
                     fullWidth
-                    value={pipelineMaxSummaries}
-                    onChange={setPipelineMaxSummaries}
-                    options={['10', '20', '40', '80', '120'].map((v) => ({ value: v, label: v }))}
-                  />
+                     value={pipelineMaxSummaries}
+                     onChange={setPipelineMaxSummaries}
+                     options={['10', '20', '40', '80', '120'].map((v) => ({ value: v, label: v }))}
+                   />
                 </div>
               </div>
+              </SettingsCard>
 
-              <h3 className="settings-subhead">{t('settings.smartSearch')}</h3>
-              <div className="settings-list" style={{ marginTop: 8 }}>
+              <SettingsCard icon={Search} title={t('settings.smartSearch')}>
+              <div className="settings-list">
                 <div className="settings-item">
                   <SIcon icon={Search} />
                   <div className="settings-item-main">
@@ -2173,20 +2226,21 @@ export function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="field-label">{t('settings.smartSearchMaxQueries')}</label>
-                      <Select
-                        fullWidth
-                        value={smartSearchMaxQueries}
-                        onChange={setSmartSearchMaxQueries}
-                        options={['1', '2', '3', '4'].map((v) => ({ value: v, label: v }))}
-                      />
+                       <label className="field-label">{t('settings.smartSearchMaxQueries')}</label>
+                       <Select
+                         fullWidth
+                         value={smartSearchMaxQueries}
+                         onChange={setSmartSearchMaxQueries}
+                         options={['1', '2', '3', '4'].map((v) => ({ value: v, label: v }))}
+                       />
                     </div>
                   </div>
                 </>
               ) : null}
+              </SettingsCard>
 
-              <h3 className="settings-subhead">{t('settings.documentParse')}</h3>
-              <div className="settings-list" style={{ marginTop: 8 }}>
+              <SettingsCard icon={FileText} title={t('settings.documentParse')}>
+              <div className="settings-list">
                 <div className="settings-item">
                   <SIcon icon={FileText} />
                   <div className="settings-item-main">
@@ -2274,6 +2328,7 @@ export function SettingsPage() {
                   {t('settings.resetAll')}
                 </button>
               </div>
+              </SettingsCard>
             </div>
           )}
 

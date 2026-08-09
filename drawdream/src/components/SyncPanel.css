@@ -1,7 +1,72 @@
 .sync-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* 大框套小框：与设置页 settings-card 视觉统一 */
+.sync-card {
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sync-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 0;
+  min-width: 0;
+}
+
+.sync-card-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 10%, var(--bg-muted, var(--border)));
+  border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--border));
+}
+
+.sync-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-card-sub {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-tertiary, var(--text-secondary));
+  flex-shrink: 0;
+}
+
+.sync-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px 14px;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.sync-card-body > .sync-form,
+.sync-card-body > .sync-stats,
+.sync-card-body > .sync-actions {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .sync-head {
@@ -107,6 +172,8 @@
 }
 
 .sync-field input {
+  width: 100%;
+  box-sizing: border-box;
   height: 40px;
   padding: 0 12px;
   border-radius: var(--radius-md);
@@ -114,6 +181,7 @@
   background: var(--bg-input, var(--bg-elevated));
   color: var(--text);
   font-size: 13px;
+  min-width: 0;
 }
 
 .sync-field input:focus {
@@ -201,5 +269,29 @@
 @keyframes sync-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* 窄屏：统计 2 列、端口/库名单列、设备行可换行 */
+@media (max-width: 480px) {
+  .sync-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sync-field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .sync-device-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .sync-device-seen {
+    margin-left: 0;
+  }
+
+  .sync-conflict-row {
+    flex-wrap: wrap;
   }
 }
