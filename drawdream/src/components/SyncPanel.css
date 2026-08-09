@@ -7,6 +7,7 @@
 
 /* 大框套小框：与设置页 settings-card 视觉统一 */
 .sync-card {
+  position: relative;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   border-radius: 18px;
@@ -15,6 +16,20 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* 便当盒折角：左下角向内折角（与设置页 settings-card 同款） */
+.sync-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  background:
+    linear-gradient(to top left, transparent 47%, color-mix(in srgb, var(--text) 20%, transparent) 50%, transparent 53%),
+    linear-gradient(to top right, color-mix(in srgb, var(--text) 10%, var(--bg-elevated)) 50%, transparent 50%);
 }
 
 .sync-card-head {

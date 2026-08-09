@@ -13,6 +13,7 @@
 }
 
 .settings-card {
+  position: relative;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   border-radius: 18px;
@@ -21,6 +22,20 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* 便当盒折角：左下角向内折角（与桌面端 settings-item 同款） */
+.settings-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  background:
+    linear-gradient(to top left, transparent 47%, color-mix(in srgb, var(--text) 20%, transparent) 50%, transparent 53%),
+    linear-gradient(to top right, color-mix(in srgb, var(--text) 10%, var(--bg-elevated)) 50%, transparent 50%);
 }
 
 .settings-card-head {
@@ -75,7 +90,13 @@
   max-width: 100%;
 }
 
+/* 卡片内嵌项：不叠加折角（外层大卡已折角，避免视觉过密） */
+.settings-card-body .settings-item::after {
+  display: none;
+}
+
 .settings-item {
+  position: relative;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   transition: border-color var(--transition), box-shadow var(--transition);
@@ -87,6 +108,20 @@
   display: flex;
   flex-wrap: wrap;
   min-width: 0;
+}
+
+/* 便当盒折角：左下角向内折角（移动/桌面统一） */
+.settings-item::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  background:
+    linear-gradient(to top left, transparent 47%, color-mix(in srgb, var(--text) 18%, transparent) 50%, transparent 53%),
+    linear-gradient(to top right, color-mix(in srgb, var(--text) 8%, var(--bg-elevated)) 50%, transparent 50%);
 }
 
 .settings-item > :last-child {
