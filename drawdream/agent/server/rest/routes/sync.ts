@@ -15,7 +15,7 @@ import type { TidbConfig } from "../../sync/types.ts";
 export async function handleSyncRoutes(ctx: RouteCtx): Promise<boolean> {
 	const { req, res, host } = ctx;
 	const route = ctx.route;
-	if (!route.startsWith("/api/sync/")) return false;
+	if (!ctx.url.startsWith("/api/sync/")) return false;
 
 	const cwd = host.cwd;
 	const agentDir = host.agentDir();

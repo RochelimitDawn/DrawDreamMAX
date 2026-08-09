@@ -9,7 +9,7 @@
  * （宿主可选择推送 WS 帧或刷新会话列表）。
  */
 
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { ConflictStore } from "./conflicts.ts";
@@ -427,7 +427,6 @@ function isPlainObjectLike(v: unknown): v is Record<string, unknown> {
 
 function statSyncMtimeMs(p: string): number {
 	try {
-		const { statSync } = require("node:fs") as typeof import("node:fs");
 		return statSync(p).mtimeMs;
 	} catch {
 		return 0;

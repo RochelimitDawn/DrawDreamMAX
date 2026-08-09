@@ -5,7 +5,7 @@
  */
 
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import type { TidbConfig } from "./types.ts";
@@ -101,7 +101,6 @@ export class SyncConfigStore {
 		const tmp = this.configPath + ".tmp";
 		writeFileSync(tmp, JSON.stringify(cfg, null, 2), { mode: 0o600 });
 		// 原子替换
-		const { renameSync } = require("node:fs") as typeof import("node:fs");
 		renameSync(tmp, this.configPath);
 	}
 

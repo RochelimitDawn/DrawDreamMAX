@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.87`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.88`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.87` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.88` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.87
+└── package.json         # 2.0.0-alpha.1-mobile.88
 ```
 
 ```text
@@ -114,6 +114,12 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.88）
+
+- **修复云同步接口不可用**：`/api/sync/*` 路由守卫误用含 HTTP 方法的 route 字符串做前缀匹配，导致所有云同步接口返回「未知接口」；改为用 URL 路径判定，测试连接 / 保存配置 / 停用同步等全部恢复正常
+- **修复 ESM 下 require 崩溃**：云同步配置保存（原子重命名）、文件监听、同步引擎中的 `require("node:fs")` 在 ESM 运行时报错，改为顶部 import
+- 继承 mobile.87：卡片折角设计
 
 ## 本版要点（mobile.87）
 

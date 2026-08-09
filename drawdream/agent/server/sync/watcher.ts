@@ -10,7 +10,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { readFileSync, statSync, watch } from "node:fs";
+import { readdirSync, readFileSync, statSync, watch } from "node:fs";
 import { join, relative, sep } from "node:path";
 
 import type { ChangeBatch, ChangeKind, EntityType } from "./types.ts";
@@ -118,7 +118,6 @@ export class SyncFileWatcher {
 	}
 
 	private scanDir(t: WatchTarget): void {
-		const { readdirSync } = require("node:fs") as typeof import("node:fs");
 		let names: string[];
 		try {
 			names = readdirSync(t.dir);
