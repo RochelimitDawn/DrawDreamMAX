@@ -514,6 +514,10 @@
   .dd-composer-input {
     font-size: 16px;
     padding-right: 78px;
+    max-height: 76px;
+    /* 移动端输入框保持紧凑（看齐助手对话框）：禁用 JS 撑高 */
+    height: auto !important;
+    overflow-y: auto;
   }
 
   .dd-composer-think-lv {
