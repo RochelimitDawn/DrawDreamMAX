@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronsDown,
   Clock,
+  Cloud,
   Cpu,
   DatabaseBackup,
   EyeOff,
@@ -78,6 +79,7 @@ import { ProviderIcon } from '../components/ProviderIcon'
 import { ColorPicker } from '../components/ColorPicker'
 import { Select } from '../components/Select'
 import { Slider } from '../components/Slider'
+import { SyncPanel } from '../components/SyncPanel'
 import type { ThinkingIntensity } from '../components/ThinkingIntensityWheel'
 import { Toggle } from '../components/Toggle'
 import { applyTheme, getStoredTheme, type ThemeMode } from '../theme'
@@ -110,6 +112,7 @@ type Tab =
   | 'reading'
   | 'advanced'
   | 'environment'
+  | 'sync'
   | 'about'
 
 const TAB_KEYS: Tab[] = [
@@ -120,6 +123,7 @@ const TAB_KEYS: Tab[] = [
   'reading',
   'advanced',
   'environment',
+  'sync',
   'about',
 ]
 
@@ -132,7 +136,7 @@ const TAB_KEYS: Tab[] = [
 const NAV_GROUPS: Array<{ id: string; keys: Tab[]; groupKey?: string }> = [
   { id: 'core', keys: ['general', 'api'], groupKey: 'settings.groupCore' },
   { id: 'look', keys: ['ui', 'reading'], groupKey: 'settings.groupLook' },
-  { id: 'system', keys: ['chat', 'advanced', 'environment', 'about'], groupKey: 'settings.groupSystem' },
+  { id: 'system', keys: ['chat', 'advanced', 'environment', 'sync', 'about'], groupKey: 'settings.groupSystem' },
 ]
 
 /** 每个设置子页对应的图标（平板/移动端导航项展示，桌面端仅 hover 高亮） */
@@ -144,6 +148,7 @@ const TAB_ICONS: Record<Tab, LucideIcon> = {
   reading: BookOpen,
   advanced: Settings2,
   environment: Cpu,
+  sync: Cloud,
   about: Info,
 }
 
@@ -2273,6 +2278,8 @@ export function SettingsPage() {
           )}
 
           {tab === 'environment' && <EnvironmentPanel />}
+
+          {tab === 'sync' && <SyncPanel />}
 
           {tab === 'about' && (
             <div className="about-block">

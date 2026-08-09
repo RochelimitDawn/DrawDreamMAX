@@ -13,6 +13,7 @@
     "@drawdream/agent-runtime": "file:./packages/coding-agent",
     "@drawdream/ai": "file:./packages/ai",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "mysql2": "^3.23.2",
     "ws": "^8.18.0"
   },
   "devDependencies": {

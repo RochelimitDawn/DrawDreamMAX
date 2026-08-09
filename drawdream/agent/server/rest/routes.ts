@@ -22,6 +22,7 @@ import { handleForgeRoutes } from "./routes/forge.ts";
 import { handleCompatibilityRoutes } from "./routes/compatibility.ts";
 import { handleExtensionsRoutes } from "./routes/extensions.ts";
 import { handleSillyTavernCompatRoutes } from "./routes/sillytavern-compat.ts";
+import { handleSyncRoutes } from "./routes/sync.ts";
 
 type Handler = (ctx: RouteCtx) => Promise<boolean>;
 
@@ -49,6 +50,7 @@ const BY_SEGMENT: Record<string, Handler> = {
 	config: handleAgentRoutes,
 	compatibility: handleCompatibilityRoutes,
 	extensions: handleExtensionsRoutes,
+	sync: handleSyncRoutes,
 };
 
 /** SillyTavern 原生路径前缀（需在 DrawDream 自有路由之前匹配） */
