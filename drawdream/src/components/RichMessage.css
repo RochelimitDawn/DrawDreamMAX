@@ -1,0 +1,735 @@
+.rp-message {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  font-family: var(--font-body);
+}
+
+.rp-message :where(
+  .rp-scene-title,
+  .rp-scene-badge,
+  .rp-char-name,
+  .rp-status-head,
+  .rp-widget-badge,
+  .rp-widget-title,
+  .rp-choice-q
+) {
+  font-family: var(--font-title);
+}
+
+.rp-message.is-rich {
+  gap: 12px;
+}
+
+.rp-message.is-html-full {
+  gap: 0;
+}
+
+.rp-message.is-html-mix {
+  gap: 12px;
+}
+
+.rp-html-frame {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.rp-html-text-seg {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rp-paragraphs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65em;
+}
+
+.rp-p {
+  margin: 0;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rp-em {
+  font-style: italic;
+  color: var(--text-secondary, #71717a);
+  font-weight: 500;
+}
+
+/* 引号对白不再单独染色，避免「误识别」观感 */
+.rp-q {
+  color: inherit;
+  font-weight: inherit;
+}
+
+/* —— 场景卡片（文档卡风格） —— */
+.rp-scene {
+  border-radius: var(--radius-md, 16px);
+  border: 1px solid color-mix(in srgb, var(--brand, #c47a3a) 24%, var(--border));
+  overflow: hidden;
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--brand, #c47a3a) 8%, var(--overlay, #fff)) 0%,
+      var(--overlay, #fff) 42%
+    );
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--brand, #c47a3a) 6%, transparent),
+    0 10px 28px -14px color-mix(in srgb, var(--brand, #c47a3a) 22%, transparent),
+    0 4px 12px -8px rgba(15, 23, 42, 0.06);
+}
+
+.rp-scene-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--brand, #6366f1) 16%, var(--border, #e4e4e7));
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--brand, #6366f1) 14%, var(--bg-muted, #f4f4f5)),
+      color-mix(in srgb, var(--brand, #6366f1) 6%, var(--bg-muted, #f4f4f5))
+    );
+}
+
+.rp-scene-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    var(--brand, #c47a3a),
+    color-mix(in srgb, var(--brand, #c47a3a) 55%, #ec4899)
+  );
+  color: #fff;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--brand, #c47a3a) 32%, transparent);
+}
+
+.rp-scene-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text, #18181b);
+  letter-spacing: 0.01em;
+}
+
+.rp-scene-ambience {
+  font-size: 12px;
+  color: var(--text-secondary, #71717a);
+  margin-left: auto;
+}
+
+.rp-scene-body {
+  padding: 14px 16px 16px;
+}
+
+.rp-scene-body .rp-p {
+  color: var(--text, #18181b);
+  line-height: 1.75;
+}
+
+.rp-scene-body .rp-q {
+  color: color-mix(in srgb, var(--brand, #6366f1) 72%, var(--text, #18181b));
+  font-weight: 500;
+}
+
+/* —— 人物芯片 —— */
+.rp-char {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 10px 3px 3px;
+  margin: 0 2px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--brand, #6366f1) 35%, var(--border, #e4e4e7));
+  background: color-mix(in srgb, var(--brand, #6366f1) 10%, var(--overlay, #fff));
+  vertical-align: middle;
+  line-height: 1.2;
+  font: inherit;
+  color: inherit;
+  cursor: default;
+}
+
+.rp-char.is-clickable {
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+
+.rp-char.is-clickable:hover {
+  border-color: var(--brand, #6366f1);
+  box-shadow: 0 0 0 3px var(--brand-soft, #eef2ff);
+}
+
+.rp-char.is-active {
+  border-color: var(--brand, #6366f1);
+  box-shadow: 0 0 0 3px var(--brand-soft, #eef2ff);
+  background: color-mix(in srgb, var(--brand, #6366f1) 16%, var(--overlay, #fff));
+}
+
+.rp-char-aff {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand, #6366f1);
+  padding: 0 4px;
+  border-radius: 6px;
+  background: var(--brand-soft, #eef2ff);
+}
+
+.rp-char-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(145deg, var(--brand, #6366f1), color-mix(in srgb, var(--brand, #6366f1) 40%, #ec4899));
+  flex-shrink: 0;
+}
+
+.rp-char-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text, #18181b);
+}
+
+.rp-char-role {
+  font-size: 11px;
+  color: var(--text-secondary, #71717a);
+}
+
+/* —— 心声 / 旁白 —— */
+.rp-voice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm, 10px);
+  border-left: 3px solid var(--brand, #c47a3a);
+  background: color-mix(in srgb, var(--brand, #c47a3a) 7%, var(--bg-muted));
+}
+
+.rp-voice-aside {
+  border-left-color: #a78bfa;
+  background: color-mix(in srgb, #a78bfa 8%, var(--bg-muted, #f4f4f5));
+}
+
+.rp-voice-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand, #6366f1);
+  writing-mode: horizontal-tb;
+  align-self: start;
+  padding-top: 2px;
+  white-space: nowrap;
+}
+
+.rp-voice-aside .rp-voice-label {
+  color: #7c3aed;
+}
+
+.rp-voice-body {
+  font-style: italic;
+  color: var(--text-secondary, #52525b);
+  min-width: 0;
+}
+
+.rp-voice-body .rp-p {
+  line-height: 1.65;
+}
+
+/* —— 状态面板 —— */
+.rp-status {
+  border-radius: var(--radius-md, 16px);
+  border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--border));
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--brand) 6%, var(--bg-muted)) 0%,
+      var(--bg-muted) 50%
+    );
+  overflow: hidden;
+  box-shadow: 0 4px 16px -12px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+.rp-status-head {
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--brand);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--brand) 12%, var(--bg-muted)),
+    color-mix(in srgb, var(--brand) 4%, var(--bg-muted))
+  );
+  border-bottom: 1px solid color-mix(in srgb, var(--brand) 12%, var(--border));
+}
+
+.rp-status-body {
+  padding: 10px 12px;
+}
+
+.rp-status-kv {
+  margin: 0;
+  padding: 8px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rp-status-row {
+  display: grid;
+  grid-template-columns: minmax(72px, 32%) 1fr;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.rp-status-row dt {
+  margin: 0;
+  color: var(--text-secondary, #71717a);
+  font-weight: 600;
+}
+
+.rp-status-row dd {
+  margin: 0;
+  color: var(--text, #18181b);
+  word-break: break-word;
+}
+
+.rp-status-line {
+  font-size: 13px;
+  color: var(--text-secondary, #71717a);
+}
+
+/* —— 脚手架 —— */
+.rp-scaffold {
+  border-radius: 10px;
+  border: 1px dashed var(--border-strong, #d4d4d8);
+  padding: 6px 10px;
+  background: var(--bg-muted, #f4f4f5);
+  font-size: 12px;
+}
+
+.rp-scaffold summary {
+  cursor: pointer;
+  color: var(--text-secondary, #71717a);
+  font-weight: 600;
+  user-select: none;
+}
+
+.rp-scaffold-body {
+  margin: 8px 0 4px;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary, #52525b);
+  max-height: 240px;
+  overflow: auto;
+}
+
+.rp-message .md-body.rp-md {
+  font-size: inherit;
+  line-height: 1.7;
+  color: inherit;
+}
+
+.rp-message .rp-text .md-body {
+  font-size: inherit;
+}
+
+/* —— 抉择（卡片式，弱化 AI 感） —— */
+.rp-choice {
+  padding: 14px 14px 12px;
+  border-radius: var(--radius-lg, 24px);
+  border: 1px solid color-mix(in srgb, var(--brand, #c47a3a) 22%, var(--border));
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--brand, #c47a3a) 9%, var(--overlay, #fff)) 0%,
+      var(--overlay, #fff) 55%
+    );
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--brand) 6%, transparent),
+    0 10px 28px -14px color-mix(in srgb, var(--brand) 24%, transparent);
+}
+
+.rp-choice.is-static {
+  opacity: 0.92;
+  background: color-mix(in srgb, var(--bg-muted) 55%, var(--overlay, #fff));
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.rp-choice-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.rp-choice-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand, #6366f1) 14%, var(--bg-muted));
+  color: color-mix(in srgb, var(--brand, #6366f1) 80%, var(--text));
+}
+
+.rp-choice-muted {
+  font-size: 11px;
+  color: var(--text-secondary, #71717a);
+}
+
+.rp-choice-q {
+  margin: 0 0 12px;
+  font-weight: 650;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.rp-choice-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rp-choice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 11px 12px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 90%, var(--brand, #6366f1) 10%);
+  background: color-mix(in srgb, var(--overlay, #fff) 92%, var(--bg-muted));
+  color: inherit;
+  cursor: default;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s, background 0.15s;
+}
+
+.rp-choice.is-live .rp-choice-card {
+  cursor: pointer;
+}
+
+.rp-choice.is-live .rp-choice-card:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--brand, #6366f1) 45%, var(--border));
+  background: color-mix(in srgb, var(--brand, #6366f1) 8%, var(--overlay, #fff));
+  box-shadow: 0 6px 18px -12px color-mix(in srgb, var(--brand, #6366f1) 50%, transparent);
+  transform: translateY(-1px);
+}
+
+.rp-choice-card:disabled {
+  opacity: 0.85;
+}
+
+.rp-choice-idx {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--brand, #6366f1) 75%, var(--text));
+  background: color-mix(in srgb, var(--brand, #6366f1) 12%, var(--bg-muted));
+}
+
+.rp-choice-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.rp-choice-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rp-choice-desc {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary, #52525b);
+  white-space: pre-wrap;
+}
+
+.rp-choice-hint {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  color: var(--text-secondary, #71717a);
+}
+
+.rp-choice-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary, #71717a);
+}
+
+/* —— 酒馆 RP 组件：统一骨架 + 族色点缀 —— */
+.rp-widget {
+  --rp-accent: var(--brand, #c47a3a);
+  border-radius: var(--radius-md, 16px);
+  border: 1px solid color-mix(in srgb, var(--rp-accent) 22%, var(--border));
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--rp-accent) 8%, var(--overlay, #fff)) 0%,
+      var(--overlay, #fff) 48%
+    );
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--rp-accent) 6%, transparent),
+    0 10px 28px -14px color-mix(in srgb, var(--rp-accent) 22%, transparent),
+    0 4px 12px -8px rgba(15, 23, 42, 0.06);
+}
+
+.rp-widget-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rp-accent) 14%, var(--border));
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--rp-accent) 12%, var(--bg-muted)),
+    color-mix(in srgb, var(--rp-accent) 4%, var(--bg-muted))
+  );
+}
+
+.rp-widget-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--rp-accent),
+    color-mix(in srgb, var(--rp-accent) 55%, #ec4899)
+  );
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--rp-accent) 30%, transparent);
+}
+
+.rp-widget-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.rp-widget-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+.rp-widget-body {
+  padding: 12px 14px 14px;
+  line-height: 1.7;
+}
+
+.rp-widget-list {
+  margin: 0;
+  padding: 10px 14px 14px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.rp-widget-list li {
+  color: var(--text);
+}
+
+.rp-widget-kv {
+  margin: 0;
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.rp-widget-row {
+  display: grid;
+  grid-template-columns: minmax(72px, 30%) 1fr;
+  gap: 8px;
+  font-size: 13px;
+  align-items: start;
+}
+
+.rp-widget-row dt {
+  margin: 0;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.rp-widget-row dd {
+  margin: 0;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.rp-widget-line {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.rp-widget-meter {
+  position: relative;
+  height: 11px;
+  margin: 12px 14px 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rp-accent) 12%, var(--bg-muted));
+  overflow: hidden;
+}
+
+.rp-widget-meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--rp-accent),
+    color-mix(in srgb, var(--rp-accent) 50%, #ec4899)
+  );
+  transition: width 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rp-widget-meter-val {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 族色：只改 --rp-accent，骨架复用 */
+.rp-widget--letter { --rp-accent: #b45309; }
+.rp-widget--sms { --rp-accent: #0284c7; }
+.rp-widget--diary { --rp-accent: #7c3aed; }
+.rp-widget--doc { --rp-accent: #475569; }
+.rp-widget--notice { --rp-accent: #d97706; }
+.rp-widget--system { --rp-accent: #16a34a; }
+.rp-widget--quest { --rp-accent: #ea580c; }
+.rp-widget--inventory { --rp-accent: #0d9488; }
+.rp-widget--skill { --rp-accent: #7c3aed; }
+.rp-widget--combat { --rp-accent: #dc2626; }
+.rp-widget--meter,
+.rp-widget--dice { --rp-accent: var(--brand, #c47a3a); }
+.rp-widget--location { --rp-accent: #0891b2; }
+.rp-widget--world { --rp-accent: #2563eb; }
+.rp-widget--rel { --rp-accent: #db2777; }
+.rp-widget--memory { --rp-accent: #4f46e5; }
+.rp-widget--clue { --rp-accent: #ca8a04; }
+.rp-widget--event { --rp-accent: #334155; }
+.rp-widget--media { --rp-accent: #9333ea; }
+.rp-widget--search,
+.rp-widget--time,
+.rp-widget--generic { --rp-accent: var(--brand, #c47a3a); }
+
+/* 暗色：族色背景不刺眼 */
+[data-theme='dark'] .rp-widget {
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--rp-accent) 12%, var(--bg-elevated)) 0%,
+      var(--bg-elevated) 52%
+    );
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 12px 28px -14px rgba(0, 0, 0, 0.45);
+}
+
+/* —— TokUI 通用降级卡片 —— */
+.rp-tokui {
+  border-radius: var(--radius-md, 16px);
+  border: 1px solid color-mix(in srgb, var(--brand) 20%, var(--border));
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--brand) 7%, var(--overlay, #fff)) 0%,
+      var(--overlay, #fff) 48%
+    );
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--brand) 6%, transparent),
+    0 10px 28px -14px color-mix(in srgb, var(--brand) 20%, transparent);
+}
+
+.rp-tokui-head {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--brand) 12%, var(--bg-muted)),
+    color-mix(in srgb, var(--brand) 4%, var(--bg-muted))
+  );
+  border-bottom: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border));
+  color: var(--text);
+}
+
+.rp-tokui-body {
+  padding: 12px 14px 14px;
+}
+
+.rp-text {
+  min-width: 0;
+}
+
+/* 纯叙事 prose 组件（替代整泡浅蓝卡片壳） */
+.rp-prose {
+  min-width: 0;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 94%, var(--bg-muted));
+  padding: 12px 14px;
+}
+
+.rp-prose-body {
+  min-width: 0;
+  line-height: 1.75;
+}
+
+.rp-prose-body .md-body {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* 行内人物芯片与段落混排 */
+.rp-message > .rp-char {
+  align-self: flex-start;
+}
+
+.msg-bubble .rp-message {
+  font-size: inherit;
+}

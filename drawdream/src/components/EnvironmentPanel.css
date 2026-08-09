@@ -1,0 +1,252 @@
+/* 设置 → 环境分页：运行时/服务/磁盘/工具链状态 */
+
+.env-block {
+  display: grid;
+  gap: 14px;
+}
+
+.env-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.env-toolbar-title {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  color: var(--text-secondary);
+}
+
+.env-toolbar .icon-btn .is-spin {
+  animation: env-spin 0.9s linear infinite;
+}
+
+@keyframes env-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.env-error {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #c0392b 40%, var(--border));
+  background: color-mix(in srgb, #c0392b 8%, var(--bg-elevated));
+  color: #c0392b;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.env-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* ── 顶部概览统计条（1Panel 风格状态卡） ── */
+.env-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.env-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+  min-width: 0;
+}
+
+.env-stat-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.env-stat-icon.is-brand {
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 12%, var(--bg-muted));
+}
+
+.env-stat-icon.is-gold {
+  color: var(--accent-gold);
+  background: color-mix(in srgb, var(--accent-gold) 12%, var(--bg-muted));
+}
+
+.env-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.env-stat-value {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.env-stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-ui);
+  color: var(--text-tertiary, var(--text-secondary));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.env-grid {
+  display: grid;
+  /* 桌面端两行各两个；窄屏回退单列 */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 560px) {
+  .env-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.env-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.env-card h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  color: var(--text-secondary);
+}
+
+.env-card h4 svg {
+  color: var(--accent-gold);
+}
+
+.env-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.env-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.env-dot.is-ok {
+  background: #1e8e5a;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #1e8e5a 18%, transparent);
+}
+
+.env-dot.is-missing {
+  background: #c0392b;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #c0392b 14%, transparent);
+}
+
+.env-dot.is-loading {
+  background: var(--text-tertiary, var(--text-secondary));
+  animation: env-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes env-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.env-row-label {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  min-width: 72px;
+}
+
+.env-version {
+  color: var(--text);
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.env-path {
+  color: var(--text-secondary);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+
+.env-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  flex-shrink: 0;
+}
+
+.env-badge.is-ok {
+  color: #1e8e5a;
+  background: color-mix(in srgb, #1e8e5a 12%, transparent);
+}
+
+.env-badge.is-missing {
+  color: #c0392b;
+  background: color-mix(in srgb, #c0392b 10%, transparent);
+}
+
+.env-badge.is-loading {
+  color: var(--text-tertiary, var(--text-secondary));
+  background: color-mix(in srgb, var(--text-tertiary, var(--text-secondary)) 10%, transparent);
+}
+
+.env-toolchain-hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-tertiary, var(--text-secondary));
+}

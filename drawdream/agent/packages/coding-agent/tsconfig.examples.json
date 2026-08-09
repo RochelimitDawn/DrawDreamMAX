@@ -1,0 +1,16 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"paths": {
+			"@drawdream/agent-runtime": ["./src/index.ts"],
+			"@drawdream/agent-runtime/hooks": ["./src/core/hooks/index.ts"],
+			"@drawdream/tui": ["../tui/src/index.ts"],
+			"@drawdream/ai": ["../ai/src/index.ts"],
+			"typebox": ["../../node_modules/typebox"]
+		},
+		"skipLibCheck": true
+	},
+	"include": ["examples/**/*.ts"],
+	"exclude": ["node_modules", "dist"]
+}

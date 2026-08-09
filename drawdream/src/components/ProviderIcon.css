@@ -1,0 +1,74 @@
+.provider-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgb(15 23 42 / 6%);
+}
+
+.provider-icon.is-fallback {
+  color: var(--text-secondary, #71717a);
+  background: var(--bg-muted, #f4f4f5);
+  box-shadow: none;
+}
+
+.provider-icon.is-relay {
+  position: relative;
+  color: #fff;
+  background:
+    radial-gradient(120% 120% at 12% 8%, rgb(255 255 255 / 28%) 0%, transparent 42%),
+    linear-gradient(145deg, #4f46e5 0%, #7c3aed 42%, #db2777 100%);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 22%) inset,
+    0 4px 12px rgb(99 102 241 / 32%);
+  overflow: hidden;
+}
+
+.provider-icon-relay-ring {
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  border: 1.5px solid rgb(255 255 255 / 28%);
+  pointer-events: none;
+}
+
+.provider-icon.is-relay svg {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1px 1px rgb(15 23 42 / 25%));
+}
+
+/* 暗色：品牌图透明底，避免白底方块；黑标 logo 用 invert 提亮 */
+[data-theme='dark'] .provider-icon:not(.is-relay):not(.is-fallback) {
+  background: var(--bg-elevated, #27272a);
+  box-shadow: none;
+  /* 多数 lobe 单色 SVG 为深色路径，反色后在暗底可读 */
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
+}
+
+/* 彩色品牌图（-color.svg）保持原色，不 invert */
+[data-theme='dark'] .provider-icon.is-color:not(.is-relay):not(.is-fallback) {
+  filter: none;
+  opacity: 1;
+  background: var(--bg-elevated, #27272a);
+}
+
+[data-theme='dark'] .provider-icon.is-fallback {
+  color: #d4d4d8;
+  background: transparent;
+  box-shadow: none;
+}
+
+[data-theme='dark'] .provider-icon.is-relay {
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 16%) inset,
+    0 4px 16px rgb(99 102 241 / 42%);
+}
+
+[data-theme='dark'] .provider-icon.is-relay .provider-icon-relay-ring {
+  border-color: rgb(255 255 255 / 36%);
+}

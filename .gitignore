@@ -1,0 +1,35 @@
+# 根级
+node_modules/
+*.log
+.DS_Store
+*.zip
+
+# 本地协作 / 历史需求与规格草稿（不入库）
+.monkeycode/
+drawdream/.monkeycode/
+.monkeycode-tmp-files/
+
+# 密钥与本地配置（勿提交）
+drawdream/agent/liyuan.agent.json
+drawdream/agent/liyuan.config.json
+drawdream/agent/liyuan.agent.json.bak
+drawdream/agent/liyuan.agent.meta.json
+# 运行时数据；extensions 为产品接线源码需入库
+drawdream/agent/.liyuan/*
+!drawdream/agent/.liyuan/extensions/
+!drawdream/agent/.liyuan/extensions/**
+drawdream/agent/.liyuan-state/
+drawdream/agent/.liyuan-logs/
+drawdream/agent/.liyuan-codex/
+drawdream/agent/.liyuan-palace/
+drawdream/agent/.liyuan-summaries/
+drawdream/agent/.liyuan-uploads/
+drawdream/agent/.liyuan-skills/
+drawdream/agent/node_modules/
+drawdream/agent/web/node_modules/
+drawdream/agent/data/
+drawdream/node_modules/
+drawdream/dist/
+
+# local signing secrets — never commit
+.local-secrets/

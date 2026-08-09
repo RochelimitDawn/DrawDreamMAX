@@ -1,0 +1,30 @@
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "vitest/config";
+
+const aiSrcIndex = fileURLToPath(new URL("../ai/src/index.ts", import.meta.url));
+const aiSrcCompat = fileURLToPath(new URL("../ai/src/compat.ts", import.meta.url));
+const aiSrcOAuth = fileURLToPath(new URL("../ai/src/oauth.ts", import.meta.url));
+const agentSrcIndex = fileURLToPath(new URL("../agent/src/index.ts", import.meta.url));
+const tuiSrcIndex = fileURLToPath(new URL("../tui/src/index.ts", import.meta.url));
+
+export default defineConfig({
+	test: {
+		globals: true,
+		environment: "node",
+		testTimeout: 30000,
+		server: {
+			deps: {
+				external: [/@silvia-odwyer\/photon-node/],
+			},
+		},
+	},
+	resolve: {
+		alias: [
+			{ find: /^@drawdream\/ai$/, replacement: aiSrcIndex },
+			{ find: /^@drawdream\/ai\/compat$/, replacement: aiSrcCompat },
+			{ find: /^@drawdream\/ai\/oauth$/, replacement: aiSrcOAuth },
+			{ find: /^@drawdream\/agent-core$/, replacement: agentSrcIndex },
+			{ find: /^@drawdream\/tui$/, replacement: tuiSrcIndex },
+		],
+	},
+});

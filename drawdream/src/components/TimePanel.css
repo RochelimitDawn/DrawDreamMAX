@@ -1,0 +1,115 @@
+/**
+ * 世界时间面板 — 绘梦卡片语言
+ */
+
+.dd-time-panel {
+  margin: 0.35em 0 0.75em;
+  border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--border));
+  border-radius: var(--radius-md, 16px);
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--brand) 9%, var(--bg-elevated)) 0%,
+      var(--bg-elevated) 48%
+    );
+  overflow: hidden;
+  font-family: var(--font-body);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--brand) 6%, transparent),
+    0 10px 28px -14px color-mix(in srgb, var(--brand) 20%, transparent);
+}
+
+.dd-tp-badge,
+.dd-tp-clock {
+  font-family: var(--font-title);
+}
+
+.dd-tp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 10px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border));
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--brand) 12%, var(--bg-muted)),
+    color-mix(in srgb, var(--brand) 4%, var(--bg-muted))
+  );
+}
+
+.dd-tp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--brand),
+    color-mix(in srgb, var(--brand) 55%, #ec4899)
+  );
+  border-radius: 999px;
+  padding: 3px 10px;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--brand) 28%, transparent);
+}
+
+.dd-tp-zone {
+  font-size: 12px;
+  color: var(--text-secondary);
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dd-tp-body {
+  padding: 1rem 1rem 1.1rem;
+}
+
+.dd-tp-clock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dd-tp-time {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  color: var(--text);
+  background: linear-gradient(
+    135deg,
+    var(--text) 40%,
+    color-mix(in srgb, var(--brand) 55%, var(--text))
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@supports (-webkit-background-clip: text) {
+  .dd-tp-time {
+    color: transparent;
+  }
+}
+
+.dd-tp-date {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.dd-tp-hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm, 10px);
+  background: color-mix(in srgb, var(--brand) 7%, var(--bg-muted));
+  border: 1px solid color-mix(in srgb, var(--brand) 12%, transparent);
+}

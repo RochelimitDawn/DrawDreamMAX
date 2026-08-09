@@ -1,0 +1,166 @@
+.tool-call-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0 4px;
+  width: 100%;
+  max-width: min(100%, 520px);
+}
+
+.tool-call-list-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-tertiary, var(--text-secondary));
+  opacity: 0.9;
+  margin-bottom: 1px;
+}
+
+.tool-call-chip-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.tool-call-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated, var(--bg)) 92%, var(--bg-muted, transparent));
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: left;
+  transition:
+    background var(--transition, 0.15s ease),
+    border-color var(--transition, 0.15s ease),
+    color var(--transition, 0.15s ease);
+}
+
+button.tool-call-chip {
+  cursor: pointer;
+  font: inherit;
+}
+
+button.tool-call-chip:hover {
+  background: color-mix(in srgb, var(--bg-muted, var(--border)) 35%, var(--bg-elevated, var(--bg)));
+}
+
+.tool-call-chip-title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.tool-call-chip-icon {
+  flex-shrink: 0;
+  opacity: 0.72;
+  color: var(--text-secondary);
+}
+
+.tool-call-status {
+  flex-shrink: 0;
+  opacity: 0.9;
+  color: var(--text-tertiary, var(--text-secondary));
+}
+
+.tool-call-status.is-spin {
+  color: var(--brand, var(--accent));
+  animation: tool-call-spin 0.85s linear infinite;
+}
+
+.tool-call-status.is-ok {
+  color: color-mix(in srgb, #16a34a 80%, var(--text-secondary));
+}
+
+.tool-call-status.is-error {
+  color: #e11d48;
+}
+
+.tool-call-chip.status-error,
+.tool-call-chip-wrap.status-error > .tool-call-chip {
+  border-color: color-mix(in srgb, #f43f5e 35%, var(--border));
+  background: color-mix(in srgb, #f43f5e 7%, var(--bg-elevated, var(--bg)));
+}
+
+.tool-call-chip.status-running,
+.tool-call-chip-wrap.status-running > .tool-call-chip {
+  border-color: color-mix(in srgb, var(--brand, var(--accent)) 28%, var(--border));
+  background: color-mix(in srgb, var(--brand, var(--accent)) 6%, var(--bg-elevated, var(--bg)));
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 0%, transparent);
+  animation: tool-call-breath 2s ease-in-out infinite;
+}
+
+.tool-call-chip.status-running .tool-call-chip-title {
+  color: color-mix(in srgb, var(--brand) 55%, var(--text-secondary));
+}
+
+.tool-call-chip.status-running .tool-call-chip-icon {
+  color: var(--brand);
+  opacity: 0.9;
+}
+
+.tool-call-chip-chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--text-tertiary, var(--text-secondary));
+  opacity: 0.85;
+}
+
+.tool-call-chip-detail {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--bg-muted, var(--border)) 28%, var(--bg-elevated, var(--bg)));
+  max-height: min(40vh, 280px);
+  overflow: auto;
+}
+
+.tool-call-chip-detail pre {
+  margin: 0;
+  padding: 10px 12px;
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-secondary);
+}
+
+@keyframes tool-call-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tool-call-breath {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 0%, transparent);
+    border-color: color-mix(in srgb, var(--brand, var(--accent)) 22%, var(--border));
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 12%, transparent);
+    border-color: color-mix(in srgb, var(--brand, var(--accent)) 38%, var(--border));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-call-status.is-spin,
+  .tool-call-chip.status-running,
+  .tool-call-chip-wrap.status-running > .tool-call-chip {
+    animation: none;
+  }
+}

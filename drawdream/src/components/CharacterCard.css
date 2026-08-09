@@ -1,0 +1,481 @@
+.dd-card {
+  break-inside: avoid;
+  margin-bottom: 18px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.dd-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: color-mix(in srgb, var(--brand) 22%, var(--border));
+}
+
+.dd-card-link {
+  display: block;
+  height: 100%;
+  color: inherit;
+}
+
+.dd-card-cover {
+  position: relative;
+  min-height: 180px;
+  height: calc(100% - 86px);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 18px;
+}
+
+.dd-card.is-compact .dd-card-cover {
+  min-height: 140px;
+  height: 160px;
+}
+
+.dd-card-glow {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.45;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.dd-card-badge,
+.dd-card-chip {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.dd-card-chip.tone-hot {
+  background: linear-gradient(135deg, #fb7185, #e11d48);
+  color: #fff;
+}
+
+.dd-card-chip.tone-dark {
+  background: rgba(15, 23, 42, 0.88);
+  color: #fff;
+}
+
+.dd-card-chip.tone-soft {
+  background: rgba(255, 255, 255, 0.94);
+  color: #111;
+}
+
+.dd-card-mono {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-title);
+  font-size: 72px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  user-select: none;
+  transform: translateY(8px);
+  transition: transform var(--transition), opacity var(--transition);
+}
+
+.dd-card-hover {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 48px 16px 16px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.72));
+  color: #fff;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--transition), transform var(--transition);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.dd-card-hover p {
+  font-size: 13px;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dd-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dd-card-tags span {
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dd-card:hover .dd-card-hover {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dd-card:hover .dd-card-mono {
+  opacity: 0.15;
+  transform: scale(1.08) translateY(0);
+}
+
+.dd-card-body {
+  padding: 14px 14px 16px;
+}
+
+.dd-card-title {
+  font-size: 16px;
+  line-height: 1.3;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dd-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dd-card-author {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.dd-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.dd-card-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Poster mode: cover-driven, LOFTER/PODO style */
+.dd-card.is-poster {
+  margin-bottom: 0;
+  border: none;
+  border-radius: 18px;
+  height: 100%;
+  min-height: 0;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.dd-card.is-poster:hover {
+  border-color: transparent;
+}
+
+.dd-card.is-poster .dd-card-cover {
+  min-height: 0;
+  height: 100%;
+  aspect-ratio: 3 / 4.2;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.dd-card.is-poster .dd-card-mono {
+  font-size: 56px;
+  transform: none;
+  opacity: 0.9;
+}
+
+.dd-card.is-poster:hover .dd-card-mono {
+  opacity: 0.35;
+  transform: scale(1.06);
+}
+
+.dd-card-poster-mask {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 2;
+  padding: 48px 12px 14px;
+  background: linear-gradient(
+    to top,
+    rgba(8, 12, 20, 0.9) 0%,
+    rgba(8, 12, 20, 0.42) 58%,
+    transparent 100%
+  );
+  color: #fff;
+}
+
+.dd-card-poster-title {
+  font-family: var(--font-title);
+  font-size: 16px;
+  line-height: 1.25;
+  margin: 0 0 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  letter-spacing: -0.01em;
+}
+
+.dd-card-poster-desc {
+  margin: 0 0 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.72);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dd-card-poster-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.dd-card-poster-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.dd-card-poster-meta span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dd-card-poster-meta span:last-child {
+  color: #fda4af;
+  flex-shrink: 0;
+}
+
+/* Emby dense poster */
+.dd-card.is-emby {
+  position: relative;
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 14%);
+  background: #0b0f17;
+}
+
+.dd-card.is-emby .dd-card-cover {
+  aspect-ratio: 2 / 3;
+  border-radius: 14px;
+}
+
+.dd-card.is-emby .dd-card-poster-mask {
+  padding: 36px 10px 12px;
+  background: linear-gradient(
+    to top,
+    rgba(5, 8, 14, 0.94) 0%,
+    rgba(5, 8, 14, 0.35) 55%,
+    transparent 100%
+  );
+}
+
+.dd-card.is-emby .dd-card-poster-title {
+  font-size: 14px;
+  margin-bottom: 4px;
+  -webkit-line-clamp: 2;
+}
+
+.dd-card.is-emby .dd-card-poster-meta {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.dd-card.is-emby .dd-card-poster-file {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.dd-card-fav-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #fda4af;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.dd-card-emby-hover {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 8, 14, 0.28);
+  opacity: 0;
+  transition: opacity var(--transition);
+  pointer-events: none;
+}
+
+.dd-card.is-emby:hover .dd-card-emby-hover,
+.dd-card.is-emby:focus-within .dd-card-emby-hover {
+  opacity: 1;
+}
+
+.dd-card-play {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: color-mix(in srgb, var(--brand) 88%, #000);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 35%);
+  transform: scale(0.88);
+  transition: transform var(--transition);
+}
+
+.dd-card.is-emby:hover .dd-card-play {
+  transform: scale(1);
+}
+
+.dd-card-emby-actions {
+  position: absolute;
+  right: 8px;
+  bottom: 46px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--transition), transform var(--transition);
+  pointer-events: none;
+}
+
+.dd-card.is-emby:hover .dd-card-emby-actions,
+.dd-card.is-emby:focus-within .dd-card-emby-actions {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.dd-card-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+
+.dd-card-icon-btn:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.dd-card-icon-btn.is-fav {
+  color: #fda4af;
+}
+
+.dd-card-icon-btn.is-play {
+  background: color-mix(in srgb, var(--brand) 80%, #000);
+  border-color: transparent;
+}
+
+.dd-card-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (hover: none) {
+  .dd-card-emby-actions {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .dd-card-emby-hover {
+    display: none;
+  }
+}
+
+/* 移动端海报遮罩：更短更紧，避免信息条过长 */
+@media (max-width: 720px) {
+  .dd-card.is-poster .dd-card-cover {
+    aspect-ratio: 2 / 3;
+  }
+
+  .dd-card-poster-mask {
+    padding: 28px 10px 10px;
+    background: linear-gradient(
+      to top,
+      rgba(8, 12, 20, 0.92) 0%,
+      rgba(8, 12, 20, 0.38) 52%,
+      transparent 100%
+    );
+  }
+
+  .dd-card-poster-title {
+    font-size: 13.5px;
+    margin-bottom: 4px;
+    -webkit-line-clamp: 2;
+  }
+
+  .dd-card-poster-desc {
+    display: none;
+  }
+
+  .dd-card-poster-meta {
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  .dd-card.is-emby .dd-card-poster-mask {
+    padding: 24px 9px 9px;
+  }
+
+  .dd-card.is-emby .dd-card-poster-title {
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+}

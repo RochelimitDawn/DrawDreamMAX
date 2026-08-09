@@ -1,0 +1,229 @@
+.card-cover {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-muted, #f4f4f5);
+}
+
+.card-cover-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.card-cover-glow {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.45;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.card-cover-mono {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-title);
+  font-size: clamp(40px, 12vw, 72px);
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+}
+
+/* 3D flip for NSFW covers（保持 overflow:hidden，圆角与底栏遮罩裁切一致） */
+.card-cover.card-flip {
+  perspective: 1000px;
+}
+
+.card-flip-inner {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.card-flip-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.card-flip-face {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-shadow:
+    rgba(0, 0, 0, 0.35) 0 2px 2px,
+    rgba(0, 0, 0, 0.25) 0 7px 13px -3px,
+    rgba(0, 0, 0, 0.15) 0 -1px 0 inset;
+}
+
+.card-flip-front {
+  background: #171717;
+}
+
+.card-flip-back {
+  background: #171717;
+  transform: rotateY(180deg);
+}
+
+.card-cover.is-blur-sensitive .card-flip-front .card-cover-img,
+.card-cover.is-blur-sensitive .card-flip-front .card-cover-mono {
+  filter: blur(18px) brightness(0.55);
+  transform: scale(1.06);
+  transition: filter 0.35s ease, transform 0.35s ease;
+}
+
+/*
+ * Uiverse lock toggle (Javierrocadev)
+ * unchecked = 锁定/模糊 (rose) · checked = 揭开 (emerald)
+ */
+.card-nsfw-lock {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card-nsfw-lock-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.card-nsfw-lock-track {
+  position: relative;
+  width: 5.5rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background: #fb7185;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  outline: none;
+  transition: background-color 0.3s ease;
+}
+
+.card-nsfw-lock-track::after {
+  content: '';
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background: #f9fafb;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition: transform 0.3s ease;
+}
+
+.card-nsfw-lock:hover .card-nsfw-lock-track::after {
+  transform: scale(0.95);
+}
+
+.card-nsfw-lock-input:checked + .card-nsfw-lock-track {
+  background: #10b981;
+}
+
+.card-nsfw-lock-input:checked + .card-nsfw-lock-track::after {
+  transform: translateX(2.75rem);
+}
+
+.card-nsfw-lock:hover .card-nsfw-lock-input:checked + .card-nsfw-lock-track::after {
+  transform: translateX(2.75rem) scale(0.95);
+}
+
+.card-nsfw-lock-input:focus-visible + .card-nsfw-lock-track {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.28),
+    0 0 0 3px rgba(255, 255, 255, 0.45);
+}
+
+.card-nsfw-lock-icon {
+  position: absolute;
+  top: 0.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  fill: #111827;
+  pointer-events: none;
+}
+
+.card-nsfw-lock-icon.is-open {
+  left: 2.85rem;
+}
+
+.card-nsfw-lock-icon.is-closed {
+  left: 0.25rem;
+}
+
+/* 列表小卡略缩，避免压住底栏标题 */
+.dd-card.is-poster .card-nsfw-lock-track {
+  width: 4.5rem;
+  height: 2.25rem;
+}
+
+.dd-card.is-poster .card-nsfw-lock-track::after,
+.dd-card.is-poster .card-nsfw-lock-icon {
+  width: 1.85rem;
+  height: 1.85rem;
+  top: 0.2rem;
+}
+
+.dd-card.is-poster .card-nsfw-lock-track::after {
+  left: 0.2rem;
+}
+
+.dd-card.is-poster .card-nsfw-lock-icon.is-closed {
+  left: 0.2rem;
+}
+
+.dd-card.is-poster .card-nsfw-lock-icon.is-open {
+  left: 2.35rem;
+}
+
+.dd-card.is-poster .card-nsfw-lock-input:checked + .card-nsfw-lock-track::after {
+  transform: translateX(2.25rem);
+}
+
+.dd-card.is-poster .card-nsfw-lock:hover .card-nsfw-lock-input:checked + .card-nsfw-lock-track::after {
+  transform: translateX(2.25rem) scale(0.95);
+}
+
+/*
+ * children（poster mask / chip / fav）叠在 flip 层之上。
+ * 只抬 z-index，禁止改 position：子元素自带 absolute（底栏/角标），
+ * 若写成 relative 会进 flex 流，标题与路径会被挤到遮罩中央。
+ */
+.card-cover.card-flip > :not(.card-flip-inner):not(.card-nsfw-lock) {
+  z-index: 4;
+  pointer-events: none;
+}
+
+.card-cover.card-flip .dd-card-emby-actions,
+.card-cover.card-flip .dd-card-icon-btn {
+  pointer-events: auto;
+}

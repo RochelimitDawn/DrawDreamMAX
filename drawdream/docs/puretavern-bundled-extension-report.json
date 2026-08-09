@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "referenceCommit": "847c04235a4fa113bef7994929779f7e1eb50871",
+  "totals": {
+    "extensions": 2,
+    "manifestLoadable": 2,
+    "runnable": 2,
+    "requiresAdapter": 0,
+    "blocked": 0
+  },
+  "extensions": [
+    {
+      "id": "js-slash-runner-4.8.19",
+      "displayName": "酒馆助手",
+      "repository": "https://github.com/N0VI028/JS-Slash-Runner",
+      "releaseTag": "4.8.19",
+      "revision": "0e965f2f6be878031dbbfd0c2171fa49de10ecca",
+      "archiveFile": "js-slash-runner-4.8.19.zip",
+      "archiveBytes": 2332740,
+      "archiveSha256": "03c905748a1fdf469fe48246f499aec4b6000866ce0fc4b3dac16151e98d277f",
+      "manifestVersion": "4.8.19",
+      "js": "dist/index.js",
+      "css": "dist/index.css",
+      "requiredApis": [
+        "TavernHelper",
+        "SillyTavern",
+        "eventSource",
+        "generate",
+        "iframe"
+      ],
+      "drawdreamCapabilities": [
+        "context.read",
+        "variables.read",
+        "variables.write",
+        "messages.send",
+        "messages.update",
+        "events.subscribe",
+        "assets.read",
+        "card.ui",
+        "slash.execute",
+        "generate",
+        "worldbook",
+        "preset",
+        "character",
+        "inject",
+        "audio"
+      ],
+      "status": "supported",
+      "loadStatus": "manifest-loadable",
+      "runtimeStatus": "runnable",
+      "missingCapabilities": []
+    },
+    {
+      "id": "st-prompt-template-1.16",
+      "displayName": "Prompt Template/提示词模板",
+      "repository": "https://github.com/zonde306/ST-Prompt-Template",
+      "releaseTag": "1.16",
+      "revision": "191ba3bbe0cf47771c3fd2632a9e45730ef92121",
+      "archiveFile": "st-prompt-template-1.16.zip",
+      "archiveBytes": 1745368,
+      "archiveSha256": "2d08ada234f1a7884e5d556ddcf28b9a88620600fa4694575ec79f06e979a943",
+      "manifestVersion": "1.16.3.0",
+      "js": "dist/index.js",
+      "css": "",
+      "requiredApis": [
+        "SillyTavern",
+        "eventSource",
+        "generate",
+        "iframe"
+      ],
+      "drawdreamCapabilities": [
+        "context.read",
+        "variables.read",
+        "variables.write",
+        "messages.send",
+        "messages.update",
+        "events.subscribe",
+        "card.ui",
+        "slash.execute",
+        "generate",
+        "worldbook",
+        "preset",
+        "character",
+        "inject"
+      ],
+      "status": "supported",
+      "loadStatus": "manifest-loadable",
+      "runtimeStatus": "runnable",
+      "missingCapabilities": []
+    }
+  ]
+}

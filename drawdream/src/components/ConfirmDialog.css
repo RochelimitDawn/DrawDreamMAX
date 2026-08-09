@@ -1,0 +1,99 @@
+.dd-confirm-root {
+  position: fixed;
+  inset: 0;
+  /* 高于侧栏(4)/主栏 dock(8)/抽屉(70)/菜单(80)，且挂 body 后不受局部 stacking 限制 */
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.dd-confirm-mask {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(8, 12, 20, 0.48);
+  cursor: pointer;
+}
+
+.dd-confirm-panel {
+  position: relative;
+  z-index: 1;
+  width: min(400px, 100%);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  /* 中性阴影；危险语义只在确认按钮上，避免整卡粉红外沿“发光” */
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  padding: 16px 16px 14px;
+  outline: none;
+}
+
+.dd-confirm-panel:focus,
+.dd-confirm-panel:focus-visible {
+  outline: none;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.dd-confirm-panel :focus,
+.dd-confirm-panel :focus-visible {
+  outline: none;
+}
+
+.dd-confirm-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dd-confirm-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.dd-confirm-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+
+.dd-confirm-close:hover {
+  background: var(--bg-muted);
+  border-color: var(--border);
+}
+
+.dd-confirm-body {
+  margin-top: 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.dd-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.btn-danger {
+  background: #f43f5e;
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+.btn-danger:hover {
+  filter: brightness(0.96);
+}
+
+.btn-danger:disabled {
+  opacity: 0.6;
+}

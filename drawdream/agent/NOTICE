@@ -1,0 +1,9 @@
+DrawDream Agent
+Copyright (c) 2026 DrawDream contributors
+
+This product includes software developed as a fork of pi (https://github.com/earendil-works/pi)
+Copyright (c) 2025 Mario Zechner, licensed under the MIT License.
+See packages/*/LICENSE for details.
+
+Historical design references include the Liyuan (梨园) project by weidu12123.
+DrawDream maintains its own product code, branding, and licensing for the application layer.

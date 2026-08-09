@@ -1,0 +1,410 @@
+/* Thinking intensity wheel — adapted from Uiverse.io by byllzz, DrawDream tokens */
+.wheel-selector {
+  --wheel-accent: var(--brand);
+  --wheel-panel: var(--bg-muted);
+  --wheel-panel-border: var(--border-strong);
+  --wheel-track: color-mix(in srgb, var(--text) 8%, var(--bg-muted));
+  --wheel-track-alt: color-mix(in srgb, var(--text) 14%, var(--bg-muted));
+  --wheel-text: var(--text);
+  --wheel-text-idle: color-mix(in srgb, var(--text) 18%, transparent);
+  --wheel-glow: color-mix(in srgb, var(--wheel-accent) 35%, transparent);
+  --wheel-rotate-offset: 0deg;
+  --wheel-spin-speed: 28s;
+  --wheel-pulse-speed: 2.4s;
+  --wheel-indicator-scale: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.wheel-selector.intensity-low {
+  --wheel-accent: #38bdf8;
+  --wheel-glow: rgba(56, 189, 248, 0.35);
+  --wheel-spin-speed: 40s;
+  --wheel-pulse-speed: 3.2s;
+  --wheel-indicator-scale: 0.92;
+  --wheel-rotate-offset: 30deg;
+}
+
+.wheel-selector.intensity-medium {
+  --wheel-accent: var(--brand);
+  --wheel-glow: color-mix(in srgb, var(--brand) 40%, transparent);
+  --wheel-spin-speed: 28s;
+  --wheel-pulse-speed: 2.2s;
+  --wheel-indicator-scale: 1;
+  --wheel-rotate-offset: 0deg;
+}
+
+.wheel-selector.intensity-high {
+  --wheel-accent: #ff4d4f;
+  --wheel-glow: rgba(255, 77, 79, 0.45);
+  --wheel-spin-speed: 16s;
+  --wheel-pulse-speed: 1.4s;
+  --wheel-indicator-scale: 1.12;
+  --wheel-rotate-offset: -30deg;
+}
+
+[data-theme='dark'] .wheel-selector {
+  --wheel-panel: #121826;
+  --wheel-panel-border: #2a3648;
+  --wheel-track: #1c2433;
+  --wheel-track-alt: #242e40;
+}
+
+.wheel-hint {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  white-space: nowrap;
+  animation: wheelHintPulse var(--wheel-pulse-speed) infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes wheelHintPulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+.radio-input {
+  position: relative;
+  height: 168px;
+  width: 148px;
+  background: var(--wheel-panel);
+  border: 1px solid var(--wheel-panel-border);
+  border-radius: 22px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent),
+    inset 0 -12px 28px color-mix(in srgb, #000 12%, transparent);
+  transition:
+    border-color 0.45s ease,
+    box-shadow 0.45s ease,
+    background 0.45s ease;
+}
+
+.wheel-selector.intensity-high .radio-input {
+  box-shadow:
+    0 12px 32px var(--wheel-glow),
+    inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent),
+    inset 0 -12px 28px color-mix(in srgb, #000 18%, transparent);
+  border-color: color-mix(in srgb, var(--wheel-accent) 35%, var(--wheel-panel-border));
+}
+
+.wheel-selector.intensity-low .radio-input {
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent),
+    inset 0 -10px 22px color-mix(in srgb, #000 8%, transparent);
+}
+
+.radio-input::after {
+  content: '';
+  position: absolute;
+  right: -118px;
+  width: 240px;
+  height: 240px;
+  background: repeating-conic-gradient(
+    from 0deg,
+    var(--wheel-track) 0deg 10deg,
+    var(--wheel-track-alt) 10deg 20deg
+  );
+  border-radius: 50%;
+  z-index: 1;
+  opacity: 0.55;
+  animation: wheelSpin var(--wheel-spin-speed) linear infinite;
+  transition: opacity 0.4s ease;
+}
+
+.wheel-selector.intensity-high .radio-input::after {
+  opacity: 0.78;
+}
+
+.wheel-selector.intensity-low .radio-input::after {
+  opacity: 0.38;
+}
+
+@keyframes wheelSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.radio-input::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%) scale(var(--wheel-indicator-scale));
+  width: 7px;
+  height: 7px;
+  background: var(--wheel-accent);
+  border-radius: 50%;
+  z-index: 30;
+  box-shadow:
+    0 0 12px var(--wheel-accent),
+    0 0 22px var(--wheel-glow);
+  pointer-events: none;
+  transition:
+    background 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.45s cubic-bezier(0.19, 1, 0.22, 1);
+  animation: wheelDotPulse var(--wheel-pulse-speed) ease-in-out infinite;
+}
+
+@keyframes wheelDotPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px var(--wheel-accent),
+      0 0 18px var(--wheel-glow);
+  }
+  50% {
+    box-shadow:
+      0 0 16px var(--wheel-accent),
+      0 0 28px var(--wheel-glow);
+  }
+}
+
+.wheel-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.glass-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, #fff 12%, transparent) 0%,
+    transparent 48%,
+    color-mix(in srgb, #000 14%, transparent) 100%
+  );
+  z-index: 25;
+  pointer-events: none;
+}
+
+.wheel-slot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.wheel-label {
+  position: absolute;
+  left: 28px;
+  top: 50%;
+  margin-top: -1.1em;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+  transform-origin: 220px center;
+  transform: rotate(calc(var(--angle) + var(--wheel-rotate-offset)));
+  filter: blur(1.5px);
+  opacity: 0.14;
+  z-index: 5;
+  cursor: pointer;
+  pointer-events: auto;
+  color: var(--wheel-text);
+}
+
+.wheel-num {
+  font-family: var(--font-body);
+  font-weight: 900;
+  font-size: 0.68rem;
+  color: var(--wheel-accent);
+  margin-bottom: -2px;
+  letter-spacing: 0.06em;
+  transition: color 0.35s ease;
+}
+
+.wheel-text {
+  font-family: var(--font-title);
+  font-weight: 900;
+  font-size: 1.55rem;
+  color: var(--wheel-text);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  transition: text-shadow 0.4s ease, color 0.35s ease;
+}
+
+.wheel-label.is-active {
+  opacity: 1;
+  filter: blur(0);
+  transform: rotate(0deg) translateX(6px);
+  z-index: 10;
+}
+
+.wheel-label.is-active .wheel-text {
+  text-shadow: 0 0 18px color-mix(in srgb, var(--wheel-accent) 28%, transparent);
+}
+
+.wheel-selector.intensity-high .wheel-label.is-active .wheel-text {
+  text-shadow: 0 0 22px color-mix(in srgb, var(--wheel-accent) 55%, transparent);
+}
+
+.wheel-selector.intensity-low .wheel-label.is-active .wheel-text {
+  text-shadow: 0 0 12px color-mix(in srgb, var(--wheel-accent) 18%, transparent);
+}
+
+.wheel-next-trigger {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.wheel-label {
+  z-index: 21;
+}
+
+.wheel-label.is-active {
+  z-index: 22;
+}
+
+/* Settings feature card layout */
+.settings-intensity-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px 28px;
+  align-items: center;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand) 6%, var(--bg-elevated)) 0%,
+    var(--bg-elevated) 48%,
+    color-mix(in srgb, var(--bg-muted) 80%, var(--bg-elevated)) 100%
+  );
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.settings-intensity-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--wheel-accent, var(--brand));
+  opacity: 0.9;
+  transition: background 0.35s ease;
+}
+
+.settings-intensity-card[data-intensity='low']::before {
+  background: #38bdf8;
+}
+
+.settings-intensity-card[data-intensity='medium']::before {
+  background: var(--brand);
+}
+
+.settings-intensity-card[data-intensity='high']::before {
+  background: #ff4d4f;
+}
+
+.settings-intensity-main {
+  min-width: 0;
+  padding-left: 8px;
+}
+
+.settings-intensity-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.settings-intensity-title {
+  font-family: var(--font-title);
+  font-size: 22px;
+  line-height: 1.15;
+  margin: 0 0 8px;
+  color: var(--text);
+}
+
+.settings-intensity-desc {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.65;
+  max-width: 42ch;
+}
+
+.settings-intensity-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-intensity-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+}
+
+.settings-intensity-chip.is-on {
+  color: #fff;
+  border-color: transparent;
+  background: var(--brand);
+}
+
+.settings-intensity-card[data-intensity='low'] .settings-intensity-chip.is-on {
+  background: #0ea5e9;
+}
+
+.settings-intensity-card[data-intensity='high'] .settings-intensity-chip.is-on {
+  background: #ff4d4f;
+}
+
+.settings-intensity-wheel-wrap {
+  position: relative;
+  padding-top: 22px;
+}
+
+@media (max-width: 720px) {
+  .settings-intensity-card {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .settings-intensity-wheel-wrap {
+    justify-self: center;
+  }
+}

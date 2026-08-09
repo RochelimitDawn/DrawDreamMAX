@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 浅色：暖羊皮纸底 -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FAF6F0" />
+        </shape>
+    </item>
+    <!-- 顶部极淡暖金高光 wash：克制的精致感 -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#F6EBD8"
+                android:centerColor="#FBF7F0"
+                android:endColor="#FAF6F0"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>

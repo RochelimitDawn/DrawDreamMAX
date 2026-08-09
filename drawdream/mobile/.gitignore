@@ -1,0 +1,14 @@
+runtime/
+.cache/
+drawdream-runtime.tgz
+drawdream-runtime.sha256
+android/.gradle/
+android/local.properties
+android/**/build/
+android/app/src/main/assets/runtime.zip
+android/app/src/main/assets/runtime/
+android/app/src/main/assets/native-node.json
+android/app/src/main/jniLibs/
+*.apk
+*.aab
+*.keystore

@@ -1,0 +1,98 @@
+.library-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.library-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.library-hero-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  color: var(--brand, #b45309);
+  background:
+    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--brand) 28%, transparent), transparent 62%),
+    color-mix(in srgb, var(--brand) 12%, var(--bg-muted, #f4f4f5));
+  border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--border, transparent));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--brand) 16%, transparent);
+  flex-shrink: 0;
+}
+
+.library-hero h1 {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 1.45rem;
+}
+
+.library-hero p {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.library-card {
+  padding: 18px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 220px;
+}
+
+.library-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--brand, #b45309) 12%, var(--bg-muted));
+  color: var(--brand, #b45309);
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border, transparent));
+}
+
+.library-card h3 {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 16px;
+}
+
+.library-card-desc {
+  margin: 0;
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.library-card-inject {
+  display: block;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--bg-muted, #f4f4f5);
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.library-card-go {
+  align-self: flex-start;
+  margin-top: 4px;
+}

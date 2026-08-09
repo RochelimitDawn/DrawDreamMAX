@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DrawDream</string>
+    <string name="splash_tagline">本地 AI 角色扮演 · Local Roleplay Agent</string>
+    <string name="splash_footer">首次启动会解压运行时 · First launch unpacks runtime</string>
+    <string name="splash_log_title">drawdream@mobile</string>
+    <string name="splash_log_tab">boot</string>
+    <string name="agent_channel_name">DrawDream Agent</string>
+    <string name="agent_channel_desc">Keep local Node Agent running in background</string>
+    <string name="agent_notification_title">DrawDream 运行中</string>
+    <string name="agent_notification_text">Local Agent · loopback</string>
+    <string name="status_preparing">正在准备运行时… Preparing runtime…</string>
+    <string name="status_runtime_ready">运行时已就绪 · Runtime ready</string>
+    <string name="status_extracting">正在解压运行时… Extracting runtime…</string>
+    <string name="status_extracting_progress">解压中… %1$d files · ~%2$.0f MB</string>
+    <string name="status_extracted">解压完成 · Extracted %1$d files in %2$.1fs</string>
+    <string name="status_copying">正在复制运行时资源… Copying assets…</string>
+    <string name="status_starting">正在启动 Agent… Starting agent…</string>
+    <string name="status_starting_node">启动 Agent… %1$s</string>
+    <string name="status_agent_running">Agent 进程已在运行 · Agent already running</string>
+    <string name="status_waiting_health">等待服务就绪… Waiting health · %1$d ms</string>
+    <string name="status_ready">就绪 · Ready</string>
+    <string name="status_error">启动失败 — 点按重试 · Failed, tap to retry</string>
+    <string name="status_stopped">已停止 · Stopped</string>
+    <string name="file_chooser_title">选择文件 · Choose file</string>
+    <string name="download_description">DrawDream export</string>
+    <string name="download_started">开始下载 · Downloading: %1$s</string>
+    <string name="download_saved">已保存到下载 · Saved: %1$s</string>
+</resources>
