@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.83`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.84`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.83` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.84` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.83
+└── package.json         # 2.0.0-alpha.1-mobile.84
 ```
 
 ```text
@@ -114,6 +114,16 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.84）
+
+- **跨端云同步（Cloud Sync V1）**：设置 → 云同步新增 TiDB Cloud 连接配置，多设备共享账号，会话/记忆/角色卡/预设/世界书/人设/配置全量双向同步
+  - **本地为权威存储**：离线可用、读写零延迟；TiDB 仅作跨设备变更中转与云端副本
+  - **增量同步**：会话 JSONL 按行增量传输（append-only），带 parentId 的会话树分支（rewind）不丢数据
+  - **字段级合并**：配置/卡/预设冲突时三方合并，异字段各自保留、同字段双写按时间晚者胜，冲突记录可在设置页查阅解决
+  - **多设备配对**：同账号连同一 TiDB 库自动成组，无需邀请码；新设备全量拉取，断网 outbox 队列自动重放
+  - **凭据加密**：TiDB 连接密码 AES-256-GCM 加密存储（权限 600），明文不落盘；全程 TLS
+- 继承 mobile.83：思考计时器暂停修复、本机工具开关热更新、MinerU 文档解析
 
 ## 本版要点（mobile.83）
 
