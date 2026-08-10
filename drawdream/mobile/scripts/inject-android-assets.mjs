@@ -73,13 +73,66 @@ function shouldKeepLib(name) {
   return KEEP_LIB_PREFIXES.some((p) => base === p || base.startsWith(p))
 }
 
-function listLibEntries(libDir) {
+/**
+ * 计算 node 的递归依赖闭包（NEEDED soname 集合）。
+ * 只注入闭包内库，避免打进 node 未引用的 so（libicuio/icutest/icutu 等）。
+ */
+function computeDepClosure(nodePath, libDir) {
+  const closure = new Set()
+  const queue = [nodePath]
+  const libFiles = existsSync(libDir) ? readdirSync(libDir) : []
+  while (queue.length) {
+    const bin = queue.pop()
+    const needed = run('patchelf', ['--print-needed', bin])
+    const names = (needed.stdout || '')
+      .split('\n')
+      .map((s) => s.trim())
+      .filter((s) => s && s.includes('.so'))
+    for (const n of names) {
+      if (closure.has(n)) continue
+      closure.add(n)
+      // 匹配 libDir 中的 soname / 实体（含 symlink 名）
+      let hit = libFiles.find((f) => f === n)
+      if (!hit) hit = libFiles.find((f) => f.startsWith(n) || n.startsWith(f.replace(/\.so\..+$/, '.so') + '.'))
+      if (hit) {
+        const real = realpathSafe(join(libDir, hit))
+        if (real) queue.push(real)
+      }
+    }
+  }
+  return closure
+}
+
+function realpathSafe(p) {
+  try {
+    return realpathSync(p)
+  } catch {
+    return null
+  }
+}
+
+/** 文件名（如 libicudata.so.78.3）是否属于 node 依赖闭包 */
+function inDepClosure(name, closure) {
+  const plain = name.replace(/\.so(\..*)?$/, '')
+  if (closure.has(name)) return true
+  for (const c of closure) {
+    const cPlain = c.replace(/\.so(\..*)?$/, '')
+    if (plain === cPlain) return true
+  }
+  return false
+}
+
+function listLibEntries(libDir, closure) {
   /** @type {{orig:string, real:string}[]} */
   const out = []
   if (!existsSync(libDir)) return out
   for (const name of readdirSync(libDir)) {
     if (!name.includes('.so')) continue
     if (!shouldKeepLib(name)) continue
+    if (closure && !inDepClosure(name, closure)) {
+      log('skip (not in dep closure):', name)
+      continue
+    }
     const p = join(libDir, name)
     let lst
     try {
@@ -117,10 +170,14 @@ function stageJniLibs() {
     throw new Error(`缺少 ${srcNode}，请先 prepare-runtime（arm64/android node）`)
   }
 
+  // node 递归依赖闭包：只注入闭包内 so，省掉未引用的 libicuio/icutest 等
+  const closure = computeDepClosure(srcNode, srcLib)
+  log('node dep closure:', [...closure].sort().join(', '))
+
   rmSync(jniDir, { recursive: true, force: true })
   mkdirSync(jniDir, { recursive: true })
 
-  const entries = listLibEntries(srcLib)
+  const entries = listLibEntries(srcLib, closure)
   /** contentHash -> { jniName, real, origNames: string[] } */
   const byHash = new Map()
   for (const { orig, real } of entries) {
@@ -130,6 +187,26 @@ function stageJniLibs() {
     } else {
       byHash.get(h).origNames.push(orig)
     }
+  }
+
+  // 精简 ICU 数据（build-min-icu 产物）存在时，替换完整 libicudata（省 ~30MB）。
+  // node 依赖闭包包含 libicudata.so.78；此处把对应实体的数据换成 zh/en-only 精简版。
+  const minIcu = join(mobileRoot, '.cache', 'min-icu', 'libicudata.so')
+  if (existsSync(minIcu)) {
+    const icudataKey = [...byHash.keys()].find((h) => {
+      const g = byHash.get(h)
+      return g.origNames.some((n) => /^libicudata(\.so\.\d+)?$/.test(n))
+    })
+    if (icudataKey) {
+      const g = byHash.get(icudataKey)
+      log('replace full libicudata with min-icu', `${(sha256File(g.real).length ? '' : '')}${(statSync(g.real).size / 1048576).toFixed(1)}MB -> ${(statSync(minIcu).size / 1048576).toFixed(1)}MB`)
+      g.real = minIcu
+      g.origNames = ['libicudata.so.78']
+    } else {
+      log('warn: min-icu present but libicudata not found in closure')
+    }
+  } else {
+    log('min-icu not found; using full libicudata', minIcu)
   }
 
   /** origName -> jniName */
@@ -170,12 +247,18 @@ function stageJniLibs() {
   const pairs = [...rename.entries()].filter(([a, b]) => a !== b)
 
   for (const bin of allBins) {
+    const base = bin.split('/').pop()
+    // libicudata 是纯数据容器（无 NEEDED/重定位）；patchelf 会使其体积翻倍，
+    // 且数据本身无需改。跳过其 rpath/soname 处理。
+    if (base && base.startsWith('libicudata_')) {
+      log('skip patchelf (data container):', base)
+      continue
+    }
     run('patchelf', ['--set-rpath', '$ORIGIN', bin])
     for (const [from, to] of pairs) {
       run('patchelf', ['--replace-needed', from, to, bin])
     }
     // soname 与文件名一致，避免 loader 困惑
-    const base = bin.split('/').pop()
     if (base && base !== NODE_JNI) {
       run('patchelf', ['--set-soname', base, bin])
     }

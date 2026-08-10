@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.90`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.91`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.90` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.91` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.90
+└── package.json         # 2.0.0-alpha.1-mobile.91
 ```
 
 ```text
@@ -114,6 +114,12 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.91）
+
+- **APK 体积裁剪**：引入 `mobile/scripts/build-min-icu.mjs` 构建只含 zh/en 的精简 ICU 78.3 数据（`libicudata.so` 33MB → 12.7MB），jniLibs 从 102MB 降至 89MB，预估 APK 66MB → ~53MB
+- **jniLibs 按依赖闭包注入**：`inject-android-assets` 只注入 node 递归 NEEDED 的共享库，去掉未引用的 libandroid-support、重复 libsqlite 等；libicudata 数据容器跳过 patchelf 避免体积翻倍
+- 继承 mobile.90：云同步配置持久化 + 启用开关
 
 ## 本版要点（mobile.90）
 

@@ -53,7 +53,7 @@ jobs:
         working-directory: .
         run: |
           sudo apt-get update -y
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y binutils patchelf xz-utils zstd rsync
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y binutils patchelf xz-utils zstd rsync gcc-aarch64-linux-gnu
 
       - name: Build UI + runtime
         env:
@@ -62,6 +62,7 @@ jobs:
         run: |
           npm run build
           node mobile/scripts/fetch-android-node.mjs
+          node mobile/scripts/build-min-icu.mjs
           node mobile/scripts/prepare-runtime.mjs
           node mobile/scripts/inject-android-assets.mjs
 
