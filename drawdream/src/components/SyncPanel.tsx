@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react'
 import { apiGet, apiPost, apiPut } from '../agent/rest'
+import { Toggle } from './Toggle'
 import { toast } from '../utils/toast'
 import './SyncPanel.css'
 
@@ -30,6 +31,16 @@ interface SyncStatus {
   deviceId: string
   deviceName: string
   groupId: string
+}
+
+interface SyncConfigInfo {
+  configured: boolean
+  enabled: boolean
+  host: string | null
+  port: number | null
+  user: string | null
+  database: string | null
+  hasPassword: boolean
 }
 
 interface DeviceInfo {
@@ -94,9 +105,23 @@ export function SyncPanel() {
     }
   }, [])
 
+  /** 回填已保存的连接配置（持久化：切换页面后表单仍保留上次配置）。 */
+  const loadConfig = useCallback(async () => {
+    try {
+      const cfg = await apiGet<SyncConfigInfo>('/api/sync/config', { bypassCache: true })
+      if (cfg.host) setHost(cfg.host)
+      if (cfg.port) setPort(String(cfg.port))
+      if (cfg.user) setUser(cfg.user)
+      if (cfg.database) setDatabase(cfg.database)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
   useEffect(() => {
     void refresh()
-  }, [refresh])
+    void loadConfig()
+  }, [refresh, loadConfig])
 
   const testConnection = async () => {
     setBusy(true)
@@ -178,6 +203,24 @@ export function SyncPanel() {
     }
   }
 
+  /** 开关切换：开→启用（未配置账号先提示），关→停用。 */
+  const handleToggle = async (on: boolean) => {
+    if (busy) return
+    if (on) {
+      if (!host || !user || !database) {
+        toast('请先填写云同步 API 连接信息', 'error')
+        return
+      }
+      if (!accountUsername || !accountPassword) {
+        toast('请先在「云账号」填写账号用户名与密码', 'error')
+        return
+      }
+      await enable()
+    } else {
+      await disable()
+    }
+  }
+
   const syncNow = async () => {
     setBusy(true)
     try {
@@ -231,6 +274,11 @@ export function SyncPanel() {
           <span className={`sync-badge ${status.enabled ? (status.connected ? 'is-on' : 'is-busy') : 'is-off'}`}>
             {statusLabel}
           </span>
+          <Toggle
+            checked={status.enabled}
+            onChange={(v) => void handleToggle(v)}
+            ariaLabel="云同步开关"
+          />
         </div>
         <div className="sync-card-body">
           {status.lastError && <div className="sync-error">同步错误：{status.lastError}</div>}
