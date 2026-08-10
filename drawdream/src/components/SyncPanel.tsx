@@ -72,6 +72,7 @@ export function SyncPanel() {
   const [accountPassword, setAccountPassword] = useState('')
   const [deviceName, setDeviceName] = useState('DrawDream')
   const [busy, setBusy] = useState(false)
+  const [testHint, setTestHint] = useState('')
   const [devices, setDevices] = useState<DeviceInfo[]>([])
   const [conflicts, setConflicts] = useState<ConflictInfo[]>([])
 
@@ -99,13 +100,17 @@ export function SyncPanel() {
 
   const testConnection = async () => {
     setBusy(true)
+    setTestHint('')
     try {
-      const r = await apiPost<{ ok: boolean; error?: string; code?: string; message?: string }>(
+      const r = await apiPost<{ ok: boolean; error?: string; code?: string; message?: string; hint?: string }>(
         '/api/sync/test',
         { host, port: Number(port), user, password, database },
       )
       if (r.ok) toast(r.message ?? '连接成功', 'success')
-      else toast(r.error ?? '连接失败', 'error')
+      else {
+        setTestHint(r.hint ?? '')
+        toast(r.error ?? '连接失败', 'error')
+      }
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'error')
     } finally {
@@ -127,8 +132,9 @@ export function SyncPanel() {
 
   const enable = async () => {
     setBusy(true)
+    setTestHint('')
     try {
-      const r = await apiPost<{ ok: boolean; error?: string; code?: string; newAccount?: boolean }>(
+      const r = await apiPost<{ ok: boolean; error?: string; code?: string; newAccount?: boolean; hint?: string }>(
         '/api/sync/enable',
         {
           host,
@@ -147,6 +153,7 @@ export function SyncPanel() {
         setAccountPassword('')
         void refresh()
       } else {
+        setTestHint(r.hint ?? '')
         toast(r.error ?? '启用失败', 'error')
       }
     } catch (e) {
@@ -322,6 +329,7 @@ export function SyncPanel() {
               保存配置
             </button>
           </div>
+          {testHint ? <div className="sync-error">{testHint}</div> : null}
         </div>
       </section>
 

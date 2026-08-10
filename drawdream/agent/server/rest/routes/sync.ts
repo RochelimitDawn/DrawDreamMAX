@@ -101,21 +101,30 @@ export async function handleSyncRoutes(ctx: RouteCtx): Promise<boolean> {
 		}
 		try {
 			const client = new TiDBClient(cfg, "test");
-			const info = await client.init();
+			const info = await client.probe();
 			await client.close();
 			sendJson(res, 200, {
 				ok: true,
 				dbExists: info.dbExists,
 				accountCount: info.accountCount,
-				message: info.dbExists ? "连接成功（数据库已初始化）" : "连接成功（新数据库，将自动建表）",
+				message: info.dbExists
+					? "连接成功（数据库已初始化）"
+					: "连接成功（新数据库，启用同步时自动建表）",
 			});
 		} catch (err) {
 			const { classifyTidbError } = await import("../../sync/tidb.ts");
 			const info = classifyTidbError(err);
+			const hint =
+				info.kind === "permission-denied"
+					? "数据库账号对该库无操作权限，请检查「数据库名」是否与该账号可访问的库一致（TiDB Serverless 需使用账号绑定的集群库名）"
+					: info.kind === "db-not-found"
+						? "数据库不存在，请在 TiDB Cloud 中先创建对应数据库"
+						: undefined;
 			sendJson(res, 200, {
 				ok: false,
 				error: info.message,
 				code: info.kind,
+				hint,
 			});
 		}
 		return true;
@@ -201,7 +210,11 @@ export async function handleSyncRoutes(ctx: RouteCtx): Promise<boolean> {
 		} catch (err) {
 			const { classifyTidbError } = await import("../../sync/tidb.ts");
 			const info = classifyTidbError(err);
-			sendJson(res, 200, { ok: false, error: info.message, code: info.kind });
+			const hint =
+				info.kind === "permission-denied"
+					? "数据库账号对「" + (tidb?.database ?? "") + "」库无建表/写入权限。请确认：1) 数据库名是该账号可访问的库；2) 在 TiDB Cloud 控制台给该用户授予对应库权限"
+					: undefined;
+			sendJson(res, 200, { ok: false, error: info.message, code: info.kind, hint });
 		}
 		return true;
 	}

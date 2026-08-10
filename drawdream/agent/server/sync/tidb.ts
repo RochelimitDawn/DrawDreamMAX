@@ -8,7 +8,12 @@ import mysql from "mysql2/promise";
 import type { AccountRow, DeviceRow, EntityType, EntityVersionRow, SyncEntryRow, TidbConfig } from "./types.ts";
 
 /** 连接/查询错误分类，供 /api/sync/test 返回可读信息。 */
-export type TidbErrorKind = "auth-failed" | "connect-failed" | "db-not-found" | "unknown";
+export type TidbErrorKind =
+	| "auth-failed"
+	| "connect-failed"
+	| "db-not-found"
+	| "permission-denied"
+	| "unknown";
 
 export interface TidbErrorInfo {
 	kind: TidbErrorKind;
@@ -26,6 +31,12 @@ export function classifyTidbError(err: unknown): TidbErrorInfo {
 				return { kind: "auth-failed", message: msg };
 			case "ER_BAD_DB_ERROR":
 				return { kind: "db-not-found", message: msg };
+			case "ER_TABLEACCESS_DENIED_ERROR":
+			case "ER_COLUMNACCESS_DENIED_ERROR":
+			case "ER_DB_CREATE_DISALLOWED_IN_TRANSACTION":
+			case "ER_SPECIFIC_ACCESS_DENIED_ERROR":
+			case "ER_TABLE_CREATE_DISALLOWED_IN_TRANSACTION":
+				return { kind: "permission-denied", message: msg };
 			case "ECONNREFUSED":
 			case "ETIMEDOUT":
 			case "ENOTFOUND":
@@ -33,6 +44,9 @@ export function classifyTidbError(err: unknown): TidbErrorInfo {
 			case "PROTOCOL_CONNECTION_LOST":
 				return { kind: "connect-failed", message: msg };
 		}
+	}
+	if (/permission denied|command denied|operation.*denied|not permitted|execute command denied/i.test(msg)) {
+		return { kind: "permission-denied", message: msg };
 	}
 	if (/denied|authentication|access denied/i.test(msg)) return { kind: "auth-failed", message: msg };
 	if (/unknown database|database .* doesn't exist|1049/i.test(msg)) return { kind: "db-not-found", message: msg };
@@ -257,8 +271,8 @@ export class TiDBClient {
 		};
 	}
 
-	/** 初始化（测试连接 + 迁移），返回数据库是否存在（账号是否已注册过）。 */
-	async init(): Promise<{ dbExists: boolean; accountCount: number }> {
+	/** 只读探测：测试连接 + 检查 accounts 表是否已存在（不执行任何 DDL）。 */
+	async probe(): Promise<{ dbExists: boolean; accountCount: number }> {
 		await this.ping();
 		const pool = this.poolFor();
 		const [rows] = await pool.query(
@@ -268,10 +282,20 @@ export class TiDBClient {
 		const tableExists = Number((rows as Array<{ c: number }>)[0]?.c ?? 0) > 0;
 		let accountCount = 0;
 		if (tableExists) {
-			const [arows] = await pool.query("SELECT COUNT(*) AS c FROM accounts");
-			accountCount = Number((arows as Array<{ c: number }>)[0]?.c ?? 0);
+			try {
+				const [arows] = await pool.query("SELECT COUNT(*) AS c FROM accounts");
+				accountCount = Number((arows as Array<{ c: number }>)[0]?.c ?? 0);
+			} catch {
+				// accounts 表存在但无 SELECT 权限时忽略计数，不影响连接验证
+			}
 		}
-		await this.migrate();
 		return { dbExists: tableExists, accountCount };
+	}
+
+	/** 初始化（测试连接 + 建表迁移），供启用同步时调用。 */
+	async init(): Promise<{ dbExists: boolean; accountCount: number }> {
+		const info = await this.probe();
+		await this.migrate();
+		return info;
 	}
 }

@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.88`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.89`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.88` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.89` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.88
+└── package.json         # 2.0.0-alpha.1-mobile.89
 ```
 
 ```text
@@ -114,6 +114,12 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.89）
+
+- **修复云同步测试连接误触建表**：「测试连接」此前会执行建表 DDL，在 TiDB Serverless 账号无 CREATE 权限时报 `CREATE command denied`；现拆分为只读探测（连接 + 表存在性检查），建表延迟到「启用同步」时执行
+- **权限错误友好提示**：新增 permission-denied 错误分类；测试连接/启用失败时给出可操作提示（检查数据库名与账号可访问库是否一致、TiDB Cloud 控制台授权）
+- 继承 mobile.88：云同步接口修复
 
 ## 本版要点（mobile.88）
 
