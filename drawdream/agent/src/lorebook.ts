@@ -321,7 +321,7 @@ function keyMatches(key: string, textLower: string): boolean {
 	if (!k) return false;
 	if (k.length <= 2) {
 		// \b 只适用于拉丁字母/数字，中文短词使用包含匹配。
-		if (/[\p{Script=Han}]/u.test(k)) return textLower.includes(k);
+		if (new RegExp("[\\p{Script=Han}]", "u").test(k)) return textLower.includes(k);
 		// 极短关键词用词边界匹配，避免误触发
 		return new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(textLower);
 	}

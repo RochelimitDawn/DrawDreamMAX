@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.92`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.93`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.92` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.93` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.92
+└── package.json         # 2.0.0-alpha.1-mobile.93
 ```
 
 ```text
@@ -114,6 +114,12 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.93）
+
+- **彻底修复 Android 启动崩溃（mobile.92 修复无效的根因）**：正则**字面量** `/\p{RGI_Emoji}$/v` 的属性转义语法错误在**编译期**抛出，`try-catch` 无法捕获，导致 mobile.92 的惰性化修复失效。本次把 RGI_Emoji 等 Unicode 属性正则全部改为 `new RegExp("...", flags)` **字符串构造**——语法错误延迟到**运行时**且可被捕获
+- **全面排查**：TUI 宽度计算的 RGI_Emoji/零宽/CJK 正则、以及 smart-search/lorebook/director 的 `\p{L}`/`\p{Script=Han}` 正则统一改为字符串构造，杜绝 Termux android Node 的 V8 缺 Unicode 属性数据导致的模块编译期崩溃
+- 继承 mobile.92：Unicode 属性正则惰性创建 + 分级回退
 
 ## 本版要点（mobile.92）
 

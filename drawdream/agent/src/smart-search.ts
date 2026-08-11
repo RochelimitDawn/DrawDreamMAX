@@ -347,7 +347,7 @@ export function planSearchQueries(query: string, maxQueries = 3): SearchPlan {
 function textFingerprint(hit: SmartSearchHit): string {
 	const normalized = (hit.content || hit.title)
 		.toLowerCase()
-		.replace(/[^\p{L}\p{N}]+/gu, " ")
+		.replace(new RegExp("[^\\p{L}\\p{N}]+", "gu"), " ")
 		.trim()
 		.slice(0, 180);
 	return normalized.length >= 60 ? normalized : "";

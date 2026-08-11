@@ -706,9 +706,9 @@ export function buildTurnInjection({
 export function detectsLanguageMismatch(text: string, language: string): boolean {
 	if (!/中文|汉语|chinese/i.test(language)) return false;
 	// 去掉空白、标点、数字与标记符号，只统计文字字符
-	const letters = text.match(/\p{L}/gu) ?? [];
+	const letters = text.match(new RegExp("\\p{L}", "gu")) ?? [];
 	if (letters.length < 40) return false; // 样本太短不判定
-	const cjk = letters.filter((ch) => /\p{Script=Han}/u.test(ch)).length;
+	const cjk = letters.filter((ch) => new RegExp("\\p{Script=Han}", "u").test(ch)).length;
 	return cjk / letters.length < 0.3;
 }
 

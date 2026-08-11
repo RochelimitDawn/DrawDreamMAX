@@ -43,14 +43,17 @@ function couldBeEmoji(segment: string): boolean {
 let zeroWidthRegex: RegExp | null = null;
 let leadingNonPrintingRegex: RegExp | null = null;
 let zeroWidthFallback: RegExp | null = null;
+// 注意：正则一律用 new RegExp(字符串) 构造——正则字面量的属性转义语法错误在
+// 编译期抛出且无法被 try-catch 捕获，而字符串构造在运行时抛错（可捕获），
+// 保证在缺 Unicode 属性数据的嵌入式 Node（Termux android）上不崩溃。
 function charClassRegex(flags: "v" | "u"): RegExp {
-	const src = String.raw`(?:[\p{Default_Ignorable_Code_Point}\p{Control}\p{Mark}\p{Surrogate}])`;
+	const src = "(?:[\\p{Default_Ignorable_Code_Point}\\p{Control}\\p{Mark}\\p{Surrogate}])";
 	try {
 		return new RegExp(`^${src}+$`, flags);
 	} catch {
 		// 纯字符类兜底：任何 V8/ICU 组合下都不会抛错
 		// eslint-disable-next-line no-control-regex, no-misleading-character-class
-		if (zeroWidthFallback === null) zeroWidthFallback = /^[\x00-\x1f\x7f-\x9f\u0300-\u036f\u{FE00}-\u{FE0F}\u{200B}-\u{200D}]+$/u;
+		if (zeroWidthFallback === null) zeroWidthFallback = new RegExp("^[\\x00-\\x1f\\x7f-\\x9f\\u0300-\\u036f\\uFE00-\\uFE0F\\u200B-\\u200D]+$", "u");
 		return zeroWidthFallback;
 	}
 }
@@ -61,13 +64,13 @@ function isZeroWidth(segment: string): boolean {
 function stripLeadingNonPrinting(segment: string): string {
 	if (leadingNonPrintingRegex === null) {
 		try {
-			leadingNonPrintingRegex = /^[\p{Default_Ignorable_Code_Point}\p{Control}\p{Format}\p{Mark}\p{Surrogate}]+/v;
+			leadingNonPrintingRegex = new RegExp("^[\\p{Default_Ignorable_Code_Point}\\p{Control}\\p{Format}\\p{Mark}\\p{Surrogate}]+", "v");
 		} catch {
 			try {
-				leadingNonPrintingRegex = /^[\p{Default_Ignorable_Code_Point}\p{Control}\p{Format}\p{Mark}\p{Surrogate}]+/u;
+				leadingNonPrintingRegex = new RegExp("^[\\p{Default_Ignorable_Code_Point}\\p{Control}\\p{Format}\\p{Mark}\\p{Surrogate}]+", "u");
 			} catch {
 				// eslint-disable-next-line no-control-regex, no-misleading-character-class
-				leadingNonPrintingRegex = /^[\x00-\x1f\x7f-\x9f\u{200B}-\u{200D}\u{FE00}-\u{FE0F}]+/u;
+				leadingNonPrintingRegex = new RegExp("^[\\x00-\\x1f\\x7f-\\x9f\\u200B-\\u200D\\uFE00-\\uFE0F]+", "u");
 			}
 		}
 	}
@@ -83,7 +86,7 @@ let rgiEmojiFallbackRegex: RegExp | null = null;
 function isRgiEmoji(segment: string): boolean {
 	if (rgiEmojiRegex === null) {
 		try {
-			rgiEmojiRegex = /^\p{RGI_Emoji}$/v;
+			rgiEmojiRegex = new RegExp("^\\p{RGI_Emoji}$", "v");
 		} catch {
 			rgiEmojiRegex = null;
 		}
@@ -91,11 +94,11 @@ function isRgiEmoji(segment: string): boolean {
 	if (rgiEmojiRegex) return rgiEmojiRegex.test(segment);
 	if (rgiEmojiFallbackRegex === null) {
 		try {
-			rgiEmojiFallbackRegex = /^\p{Extended_Pictographic}$/u;
+			rgiEmojiFallbackRegex = new RegExp("^\\p{Extended_Pictographic}$", "u");
 		} catch {
 			// 纯字符类兜底：主要 emoji 区段
 			// eslint-disable-next-line no-misleading-character-class
-			rgiEmojiFallbackRegex = /^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]$/u;
+			rgiEmojiFallbackRegex = new RegExp("^[\\u{1F300}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{FE0F}]$", "u");
 		}
 	}
 	return rgiEmojiFallbackRegex.test(segment);
@@ -111,8 +114,10 @@ let cjkBreakRegex: RegExp | null = null;
 export function cjkBreakTest(ch: string): boolean {
 	if (cjkBreakRegex === null) {
 		try {
-			cjkBreakRegex =
-				/[\p{Script_Extensions=Han}\p{Script_Extensions=Hiragana}\p{Script_Extensions=Katakana}\p{Script_Extensions=Hangul}\p{Script_Extensions=Bopomofo}]/u;
+			cjkBreakRegex = new RegExp(
+				"[\\p{Script_Extensions=Han}\\p{Script_Extensions=Hiragana}\\p{Script_Extensions=Katakana}\\p{Script_Extensions=Hangul}\\p{Script_Extensions=Bopomofo}]",
+				"u",
+			);
 		} catch {
 			cjkBreakRegex = null;
 		}
