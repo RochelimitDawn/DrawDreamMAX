@@ -5,7 +5,7 @@ import { KillRing } from "../kill-ring.ts";
 import { type Component, CURSOR_MARKER, type Focusable, type TUI } from "../tui.ts";
 import { UndoStack } from "../undo-stack.ts";
 import {
-	cjkBreakRegex,
+	cjkBreakTest,
 	getGraphemeSegmenter,
 	getWordSegmenter,
 	isWhitespaceChar,
@@ -190,8 +190,8 @@ export function wordWrapLine(line: string, maxWidth: number, preSegmented?: Intl
 			wrapOppIndex = next.index;
 			wrapOppWidth = currentWidth;
 		} else if (!isWs && next && !isWhitespaceChar(next.segment)) {
-			const isCjk = !isPasteMarker(grapheme) && cjkBreakRegex.test(grapheme);
-			const nextIsCjk = !isPasteMarker(next.segment) && cjkBreakRegex.test(next.segment);
+			const isCjk = !isPasteMarker(grapheme) && cjkBreakTest(grapheme);
+			const nextIsCjk = !isPasteMarker(next.segment) && cjkBreakTest(next.segment);
 			if (isCjk || nextIsCjk) {
 				wrapOppIndex = next.index;
 				wrapOppWidth = currentWidth;

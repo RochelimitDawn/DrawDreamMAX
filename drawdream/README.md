@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.91`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.92`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.91` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.92` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.91
+└── package.json         # 2.0.0-alpha.1-mobile.92
 ```
 
 ```text
@@ -114,6 +114,12 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.92）
+
+- **修复 Android 启动崩溃**：Termux android Node 的 V8 缺少 `\p{RGI_Emoji}` 等 Unicode 属性数据，TUI 包顶层正则字面量在模块加载时抛 `Invalid property name`，导致 agent 启动即退出（`agent exited code=1`）
+- **Unicode 属性正则在部分嵌入式 Node 上不可用**：所有 v-flag/u-flag `\p{...}` 正则改为惰性创建 + 分级回退（v-flag → u-flag → 纯字符类），模块加载不再编译属性正则，任意 V8/ICU 组合下不崩溃；emoji/零宽/CJK 宽度估算功能保持
+- 继承 mobile.91：APK 体积裁剪（min-icu + jniLibs 闭包过滤）
 
 ## 本版要点（mobile.91）
 

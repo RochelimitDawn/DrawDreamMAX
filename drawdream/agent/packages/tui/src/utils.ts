@@ -37,16 +37,96 @@ function couldBeEmoji(segment: string): boolean {
 }
 
 // Regexes for character classification (same as string-width library)
-const zeroWidthRegex = /^(?:\p{Default_Ignorable_Code_Point}|\p{Control}|\p{Mark}|\p{Surrogate})+$/v;
-const leadingNonPrintingRegex = /^[\p{Default_Ignorable_Code_Point}\p{Control}\p{Format}\p{Mark}\p{Surrogate}]+/v;
-const rgiEmojiRegex = /^\p{RGI_Emoji}$/v;
+// v-flag 属性正则在部分嵌入式 Node 构建（Termux android nodejs）的 V8 中数据缺失，
+// 顶层字面量会在模块加载/编译时直接抛 "Invalid property name"；一律惰性创建 +
+// 兼容回退，确保模块可加载。
+let zeroWidthRegex: RegExp | null = null;
+let leadingNonPrintingRegex: RegExp | null = null;
+let zeroWidthFallback: RegExp | null = null;
+function charClassRegex(flags: "v" | "u"): RegExp {
+	const src = String.raw`(?:[\p{Default_Ignorable_Code_Point}\p{Control}\p{Mark}\p{Surrogate}])`;
+	try {
+		return new RegExp(`^${src}+$`, flags);
+	} catch {
+		// 纯字符类兜底：任何 V8/ICU 组合下都不会抛错
+		// eslint-disable-next-line no-control-regex, no-misleading-character-class
+		if (zeroWidthFallback === null) zeroWidthFallback = /^[\x00-\x1f\x7f-\x9f\u0300-\u036f\u{FE00}-\u{FE0F}\u{200B}-\u{200D}]+$/u;
+		return zeroWidthFallback;
+	}
+}
+function isZeroWidth(segment: string): boolean {
+	if (zeroWidthRegex === null) zeroWidthRegex = charClassRegex("v");
+	return zeroWidthRegex.test(segment);
+}
+function stripLeadingNonPrinting(segment: string): string {
+	if (leadingNonPrintingRegex === null) {
+		try {
+			leadingNonPrintingRegex = /^[\p{Default_Ignorable_Code_Point}\p{Control}\p{Format}\p{Mark}\p{Surrogate}]+/v;
+		} catch {
+			try {
+				leadingNonPrintingRegex = /^[\p{Default_Ignorable_Code_Point}\p{Control}\p{Format}\p{Mark}\p{Surrogate}]+/u;
+			} catch {
+				// eslint-disable-next-line no-control-regex, no-misleading-character-class
+				leadingNonPrintingRegex = /^[\x00-\x1f\x7f-\x9f\u{200B}-\u{200D}\u{FE00}-\u{FE0F}]+/u;
+			}
+		}
+	}
+	return segment.replace(leadingNonPrintingRegex, "");
+}
+
+// RGI_Emoji (v-flag property-of-strings) 需要 V8 编译时内置较新的 Unicode emoji 数据；
+// 部分嵌入式 Node 构建（如 Termux android nodejs）缺失该数据，编译正则即抛
+// "Invalid property name"。惰性创建并回退到 Extended_Pictographic（u-flag，单字符
+// 属性，兼容面更广），配合 couldBeEmoji 预过滤，保证终端 emoji 宽度估算不回退。
+let rgiEmojiRegex: RegExp | null = null;
+let rgiEmojiFallbackRegex: RegExp | null = null;
+function isRgiEmoji(segment: string): boolean {
+	if (rgiEmojiRegex === null) {
+		try {
+			rgiEmojiRegex = /^\p{RGI_Emoji}$/v;
+		} catch {
+			rgiEmojiRegex = null;
+		}
+	}
+	if (rgiEmojiRegex) return rgiEmojiRegex.test(segment);
+	if (rgiEmojiFallbackRegex === null) {
+		try {
+			rgiEmojiFallbackRegex = /^\p{Extended_Pictographic}$/u;
+		} catch {
+			// 纯字符类兜底：主要 emoji 区段
+			// eslint-disable-next-line no-misleading-character-class
+			rgiEmojiFallbackRegex = /^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]$/u;
+		}
+	}
+	return rgiEmojiFallbackRegex.test(segment);
+}
 
 // Cache for non-ASCII strings
 const WIDTH_CACHE_SIZE = 512;
 const widthCache = new Map<string, number>();
 
-export const cjkBreakRegex =
-	/[\p{Script_Extensions=Han}\p{Script_Extensions=Hiragana}\p{Script_Extensions=Katakana}\p{Script_Extensions=Hangul}\p{Script_Extensions=Bopomofo}]/u;
+// 部分嵌入式 Node 构建（Termux android nodejs）的 V8 缺少 Unicode 属性数据，
+// 顶层正则字面量在模块加载即抛错；cjkBreakRegex 惰性创建并回退到字面 CJK 区段。
+let cjkBreakRegex: RegExp | null = null;
+export function cjkBreakTest(ch: string): boolean {
+	if (cjkBreakRegex === null) {
+		try {
+			cjkBreakRegex =
+				/[\p{Script_Extensions=Han}\p{Script_Extensions=Hiragana}\p{Script_Extensions=Katakana}\p{Script_Extensions=Hangul}\p{Script_Extensions=Bopomofo}]/u;
+		} catch {
+			cjkBreakRegex = null;
+		}
+	}
+	if (cjkBreakRegex) return cjkBreakRegex.test(ch);
+	const cp = ch.codePointAt(0)!;
+	return (
+		(cp >= 0x3400 && cp <= 0x4dbf) || // CJK Ext A
+		(cp >= 0x4e00 && cp <= 0x9fff) || // CJK Unified
+		(cp >= 0x3040 && cp <= 0x30ff) || // Hiragana + Katakana
+		(cp >= 0xac00 && cp <= 0xd7af) || // Hangul
+		(cp >= 0x3100 && cp <= 0x312f) // Bopomofo
+	);
+}
 
 function isPrintableAscii(str: string): boolean {
 	for (let i = 0; i < str.length; i++) {
@@ -170,17 +250,17 @@ function graphemeWidth(segment: string): number {
 	}
 
 	// Zero-width clusters
-	if (zeroWidthRegex.test(segment)) {
+	if (isZeroWidth(segment)) {
 		return 0;
 	}
 
 	// Emoji check with pre-filter
-	if (couldBeEmoji(segment) && rgiEmojiRegex.test(segment)) {
+	if (couldBeEmoji(segment) && isRgiEmoji(segment)) {
 		return 2;
 	}
 
 	// Get base visible codepoint
-	const base = segment.replace(leadingNonPrintingRegex, "");
+	const base = stripLeadingNonPrinting(segment);
 	const cp = base.codePointAt(0);
 	if (cp === undefined) {
 		return 0;
@@ -636,7 +716,7 @@ function splitIntoTokensWithAnsi(text: string): string[] {
 
 		for (const { segment } of graphemeSegmenter.segment(text.slice(i, end))) {
 			const segmentIsSpace = segment === " ";
-			if (!segmentIsSpace && cjkBreakRegex.test(segment)) {
+			if (!segmentIsSpace && cjkBreakTest(segment)) {
 				flushCurrent();
 				const token = pendingAnsi + segment;
 				pendingAnsi = "";
