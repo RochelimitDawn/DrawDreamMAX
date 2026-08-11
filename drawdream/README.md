@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.93`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.94`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.93` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.94` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.93
+└── package.json         # 2.0.0-alpha.1-mobile.94
 ```
 
 ```text
@@ -114,6 +114,12 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.94）
+
+- **Android Node 换用 Termux LTS（24.18.0）**：此前自动拉取的 termux nodejs 26.4.0 在 Android 上存在多个兼容问题（V8 缺 Unicode 属性数据导致 `\p{RGI_Emoji}` 编译错误、`single.mjs` 加载后服务拉不起来）。改用 termux `nodejs-lts`（24.18.0，LTS 更稳定）；体积还更小（47.4MB → 43.2MB，jniLibs 88.8MB → 84.1MB）
+- **mobile-entry 增加挂起诊断**：`import single.mjs` 完成后打印确认日志；若 25s 未 resolve 打印 watchdog 诊断并退出，便于定位「等待服务就绪」卡住的具体阶段
+- 继承 mobile.93：Unicode 属性正则 `new RegExp` 字符串构造 + 分级回退
 
 ## 本版要点（mobile.93）
 

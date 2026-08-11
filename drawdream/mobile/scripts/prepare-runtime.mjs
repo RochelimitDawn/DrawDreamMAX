@@ -447,6 +447,16 @@ if (existsSync(libDir)) {
 
 process.chdir(here)
 
+// 挂起 watchdog：import single.mjs 若超过 25s 未 resolve，打印诊断并退出。
+// 用于定位 Android 上「等待服务就绪」卡住时 single.mjs 到底卡在哪个阶段。
+const _watchdog = setTimeout(() => {
+  console.error('[mobile-entry] watchdog: import single.mjs timed out after 25s')
+  console.error('[mobile-entry] watchdog: process still alive, event loop may be stuck or awaiting a never-resolving promise')
+  console.error('[mobile-entry] watchdog: dumping current active handles is not available in plain node; exiting')
+  process.exit(1)
+}, 25_000)
+_watchdog.unref?.()
+
 try {
   // 单文件入口（bundle 全部依赖，运行时不依赖 node_modules）
   if (!existsSync(single)) {
@@ -455,6 +465,8 @@ try {
   }
   console.log('[mobile-entry] loading single.mjs (bundle)')
   await import(pathToFileURL(single).href)
+  console.log('[mobile-entry] single.mjs import resolved (server should start its own logs below)')
+  clearTimeout(_watchdog)
 } catch (err) {
   console.error('[mobile-entry] fatal', err)
   if (err && err.stack) console.error(err.stack)

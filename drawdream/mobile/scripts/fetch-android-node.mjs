@@ -40,7 +40,9 @@ const base = 'https://packages.termux.dev/apt/termux-main'
 const packagesUrl = `${base}/dists/stable/main/binary-${arch}/Packages`
 
 const CORE_PKGS = [
-  'nodejs',
+  // 默认 nodejs-lts（24.x，LTS 更稳定；termux nodejs 26.4.0 在 Android 上有
+  // V8 Unicode 属性数据缺失等问题）。可用 DRAWDREAM_NODE_PKG=nodejs 覆盖。
+  process.env.DRAWDREAM_NODE_PKG || 'nodejs-lts',
   'openssl',
   'zlib',
   'c-ares',
