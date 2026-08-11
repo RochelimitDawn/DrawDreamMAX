@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.94`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.95`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.94` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.95` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.94
+└── package.json         # 2.0.0-alpha.1-mobile.95
 ```
 
 ```text
@@ -114,6 +114,12 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.95）
+
+- **回退精简 ICU，改用完整 ICU 数据**：mobile.94 在 termux node 24.18.0 上加载 `single.mjs` 后原生段错误（`agent exited code=139`，SIGSEGV）。termux node 使用 system ICU（动态加载 `libicudata.so`），pkgdata 重建的 zh/en-only 精简数据疑似缺 V8 所需的数据表导致 ICU 原生代码崩溃。本版恢复 termux 原始完整 `libicudata.so`（31.6MB）
+- **精简 ICU 改为可开关**：`DRAWDREAM_ENABLE_MIN_ICU=1` 才启用（供后续排查/修复后重新开启）
+- 继承 mobile.94：termux nodejs-lts 24.18.0 + mobile-entry 挂起诊断
 
 ## 本版要点（mobile.94）
 

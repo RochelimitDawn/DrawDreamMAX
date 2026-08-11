@@ -191,8 +191,11 @@ function stageJniLibs() {
 
   // 精简 ICU 数据（build-min-icu 产物）存在时，替换完整 libicudata（省 ~30MB）。
   // node 依赖闭包包含 libicudata.so.78；此处把对应实体的数据换成 zh/en-only 精简版。
+  // 注意：termux node 用 system ICU，精简数据若缺 V8 需要的表会导致原生段错误
+  // （agent exited code=139）。默认关闭，用 DRAWDREAM_ENABLE_MIN_ICU=1 显式启用。
+  const enableMinIcu = process.env.DRAWDREAM_ENABLE_MIN_ICU === '1'
   const minIcu = join(mobileRoot, '.cache', 'min-icu', 'libicudata.so')
-  if (existsSync(minIcu)) {
+  if (enableMinIcu && existsSync(minIcu)) {
     const icudataKey = [...byHash.keys()].find((h) => {
       const g = byHash.get(h)
       return g.origNames.some((n) => /^libicudata(\.so\.\d+)?$/.test(n))
@@ -205,8 +208,10 @@ function stageJniLibs() {
     } else {
       log('warn: min-icu present but libicudata not found in closure')
     }
-  } else {
+  } else if (enableMinIcu) {
     log('min-icu not found; using full libicudata', minIcu)
+  } else {
+    log('min-icu disabled (DRAWDREAM_ENABLE_MIN_ICU!=1); using full libicudata')
   }
 
   /** origName -> jniName */
