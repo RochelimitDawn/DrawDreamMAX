@@ -54,6 +54,20 @@ export class AccountService {
 	): Promise<RegisterResult> {
 		const existing = await this.client.findAccount(username.trim());
 		if (existing) {
+			// 旧版 bug：首设备注册时可能存入了空 salt/hash，导致后续登录校验必然失败。
+			// 哈希为空时视为新注册，用本次密码哈希覆盖。
+			if (!existing.passwordSalt || !existing.passwordHash) {
+				const account: AccountRow = {
+					...existing,
+					passwordSalt,
+					passwordHash,
+					kdf: "scrypt",
+					updatedAt: Date.now(),
+				};
+				await this.client.upsertAccount(account);
+				await this.registerDevice();
+				return { ok: true, account, newAccount: true };
+			}
 			if (!verifyPassword(password, existing.passwordSalt, existing.passwordHash)) {
 				return { ok: false, error: "invalid-password" };
 			}
@@ -79,6 +93,8 @@ export class AccountService {
 	async login(username: string, password: string): Promise<LoginResult> {
 		const existing = await this.client.findAccount(username.trim());
 		if (!existing) return { ok: false, error: "not-found" };
+		// 旧版 bug：空哈希账号无法校验，视为不存在（走重新注册覆盖）
+		if (!existing.passwordSalt || !existing.passwordHash) return { ok: false, error: "not-found" };
 		if (!verifyPassword(password, existing.passwordSalt, existing.passwordHash)) {
 			return { ok: false, error: "invalid-password" };
 		}

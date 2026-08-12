@@ -5,6 +5,7 @@
 
 import { readBody, sendJson } from "../http.ts";
 import type { RouteCtx } from "./context.ts";
+import { hashPassword } from "../../../src/auth/password.ts";
 import { AccountService } from "../../sync/account.ts";
 import { SyncConfigStore } from "../../sync/config.ts";
 import { ConflictStore } from "../../sync/conflicts.ts";
@@ -174,7 +175,10 @@ export async function handleSyncRoutes(ctx: RouteCtx): Promise<boolean> {
 				deviceId,
 				deviceName,
 			});
-			const reg = await acct.registerWithHash(username, "", "", accountPassword);
+			// 新账号注册时须用真实哈希（传空 salt/hash 会把空哈希存进云端，
+			// 导致后续任何设备登录该校验必然失败 → invalid-password）
+			const { salt, hash } = hashPassword(accountPassword);
+			const reg = await acct.registerWithHash(username, salt, hash, accountPassword);
 			if (!reg.ok) {
 				await client.close();
 				sendJson(res, 200, { ok: false, error: reg.error, code: reg.error.toUpperCase() });
