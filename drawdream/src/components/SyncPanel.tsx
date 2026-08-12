@@ -41,6 +41,7 @@ interface SyncConfigInfo {
   user: string | null
   database: string | null
   hasPassword: boolean
+  accountUsername: string | null
 }
 
 interface DeviceInfo {
@@ -113,6 +114,8 @@ export function SyncPanel() {
       if (cfg.port) setPort(String(cfg.port))
       if (cfg.user) setUser(cfg.user)
       if (cfg.database) setDatabase(cfg.database)
+      // 回填云账号用户名（密码不落盘明文，启用时需重新输入）
+      if (cfg.accountUsername) setAccountUsername(cfg.accountUsername)
     } catch {
       /* ignore */
     }
@@ -176,7 +179,8 @@ export function SyncPanel() {
         toast(r.newAccount ? '云同步已启用（账号已注册）' : '云同步已启用', 'success')
         setPassword('')
         setAccountPassword('')
-        void refresh()
+        // 立即刷新状态（enabled/设备/冲突），避免「需强制退出重进才能看到已启用」
+        await Promise.all([refresh(), loadConfig()])
       } else {
         setTestHint(r.hint ?? '')
         toast(r.error ?? '启用失败', 'error')
@@ -211,8 +215,13 @@ export function SyncPanel() {
         toast('请先填写云同步 API 连接信息', 'error')
         return
       }
-      if (!accountUsername || !accountPassword) {
-        toast('请先在「云账号」填写账号用户名与密码', 'error')
+      // 用户名可能已从后端回填（先前保存过）；密码必须现场输入（不落盘明文）
+      if (!accountUsername) {
+        toast('请先在「云账号」填写账号用户名', 'error')
+        return
+      }
+      if (!accountPassword) {
+        toast('请填写云账号密码以启用', 'error')
         return
       }
       await enable()
@@ -389,45 +398,44 @@ export function SyncPanel() {
           <span className="sync-card-sub">多设备共享</span>
         </div>
         <div className="sync-card-body">
-          {!status.enabled ? (
-            <>
-              <div className="sync-form">
-                <label className="sync-field">
-                  <span>账号用户名</span>
-                  <input
-                    type="text"
-                    value={accountUsername}
-                    onChange={(e) => setAccountUsername(e.target.value)}
-                    placeholder="首次启用将注册该账号"
-                  />
-                </label>
-                <label className="sync-field">
-                  <span>账号密码</span>
-                  <input
-                    type="password"
-                    value={accountPassword}
-                    onChange={(e) => setAccountPassword(e.target.value)}
-                    autoComplete="new-password"
-                  />
-                </label>
-                <label className="sync-field">
-                  <span>本设备名称</span>
-                  <input type="text" value={deviceName} onChange={(e) => setDeviceName(e.target.value)} />
-                </label>
-              </div>
-              <div className="sync-actions">
-                <button className="btn sync-enable" onClick={() => void enable()} disabled={busy}>
-                  {busy ? <Loader2 className="spin" size={16} /> : <Check size={16} />}
-                  启用云同步
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="sync-account-info">
-              <Cloud size={16} strokeWidth={2} />
-              <span>账号已绑定，组：{status.groupId || '—'}</span>
-            </div>
-          )}
+          {/* 账号编辑区始终可见：用户名回填持久化，密码需现场输入（不落盘明文）。
+              已启用时可改账号/重输密码后点「重新启用」。 */}
+          <div className="sync-form">
+            <label className="sync-field">
+              <span>账号用户名</span>
+              <input
+                type="text"
+                value={accountUsername}
+                onChange={(e) => setAccountUsername(e.target.value)}
+                placeholder="首次启用将注册该账号"
+              />
+            </label>
+            <label className="sync-field">
+              <span>账号密码</span>
+              <input
+                type="password"
+                value={accountPassword}
+                onChange={(e) => setAccountPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+            </label>
+            <label className="sync-field">
+              <span>本设备名称</span>
+              <input type="text" value={deviceName} onChange={(e) => setDeviceName(e.target.value)} />
+            </label>
+          </div>
+          <div className="sync-actions">
+            <button className="btn sync-enable" onClick={() => void enable()} disabled={busy}>
+              {busy ? <Loader2 className="spin" size={16} /> : <Check size={16} />}
+              {status.enabled ? '重新启用云同步' : '启用云同步'}
+            </button>
+            {status.enabled && (
+              <span className="sync-account-info">
+                <Cloud size={16} strokeWidth={2} />
+                账号已绑定，组：{status.groupId || '—'}
+              </span>
+            )}
+          </div>
         </div>
       </section>
 

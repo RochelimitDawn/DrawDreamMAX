@@ -889,6 +889,7 @@ export default {
     contextSize: '上下文窗口',
     systemPrompt: '全局系统提示',
     jailbreak: '附加指令',
+    worldInfo: '世界书',
     worldInfoDepth: '世界书扫描深度',
     lorebookBudget: '世界书注入上限',
     responsePrefill: '回复预填',

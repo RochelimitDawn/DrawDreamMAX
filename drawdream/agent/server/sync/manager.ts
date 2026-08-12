@@ -5,6 +5,7 @@
 
 import { resolve } from "node:path";
 import { join } from "node:path";
+import { existsSync, readdirSync } from "node:fs";
 
 import { SyncConfigStore } from "./config.ts";
 import { SyncEngine } from "./engine.ts";
@@ -98,6 +99,31 @@ export function engineCount(): number {
 	let n = 0;
 	for (const h of engines.values()) if (h.engine) n++;
 	return n;
+}
+
+/**
+ * 启动时恢复所有已启用同步的 workspace 引擎。
+ * 遍历 dataRoot 下 users 目录各用户的 workspace，对含 .drawdream-sync/config.json 且 enabled 的启动引擎。
+ */
+export function restoreEngines(dataRoot: string, agentDir: string): number {
+	try {
+		const usersDir = join(dataRoot, "users");
+		const entries = existsSync(usersDir) ? readdirSync(usersDir) : [];
+		let restored = 0;
+		for (const uid of entries) {
+			const workspace = join(usersDir, uid, "workspace");
+			if (!existsSync(join(workspace, ".drawdream-sync", "config.json"))) continue;
+			try {
+				const handle = ensureEngineStarted(workspace, agentDir);
+				if (handle?.engine) restored++;
+			} catch {
+				/* ignore */
+			}
+		}
+		return restored;
+	} catch {
+		return 0;
+	}
 }
 
 export { TiDBClient };

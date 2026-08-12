@@ -56,6 +56,7 @@ export async function handleSyncRoutes(ctx: RouteCtx): Promise<boolean> {
 			user: cfg?.user ?? null,
 			database: cfg?.database ?? null,
 			hasPassword: cfg ? cfg.password.length > 0 : false,
+			accountUsername: store.getAccountUsername() || null,
 		});
 		return true;
 	}
@@ -159,8 +160,15 @@ export async function handleSyncRoutes(ctx: RouteCtx): Promise<boolean> {
 		}
 		const username = String(body.username ?? "").trim();
 		const accountPassword = String(body.accountPassword ?? "");
-		if (!username || !accountPassword) {
+		const savedUsername = store.getAccountUsername();
+		// 允许两种情况：填了账号密码，或已保存过用户名、本次仅填密码（重启用）
+		const effectiveUsername = username || savedUsername;
+		if (!effectiveUsername) {
 			sendJson(res, 400, { error: "需要云账号用户名与密码", code: "NO_ACCOUNT" });
+			return true;
+		}
+		if (!accountPassword) {
+			sendJson(res, 400, { error: "需要云账号密码", code: "NO_ACCOUNT" });
 			return true;
 		}
 		const groupId = store.getGroupId() || `grp-${Date.now().toString(36)}`;
@@ -178,7 +186,7 @@ export async function handleSyncRoutes(ctx: RouteCtx): Promise<boolean> {
 			// 新账号注册时须用真实哈希（传空 salt/hash 会把空哈希存进云端，
 			// 导致后续任何设备登录该校验必然失败 → invalid-password）
 			const { salt, hash } = hashPassword(accountPassword);
-			const reg = await acct.registerWithHash(username, salt, hash, accountPassword);
+			const reg = await acct.registerWithHash(effectiveUsername, salt, hash, accountPassword);
 			if (!reg.ok) {
 				await client.close();
 				sendJson(res, 200, { ok: false, error: reg.error, code: reg.error.toUpperCase() });
@@ -196,6 +204,8 @@ export async function handleSyncRoutes(ctx: RouteCtx): Promise<boolean> {
 			store.saveTidbConfig(tidb);
 			store.setDevice(deviceId, deviceName, groupId);
 			store.setEnabled(true);
+			// 持久化云账号用户名（密码不落盘明文），重启用时前端可回填
+			store.setAccountUsername(effectiveUsername);
 			// 启动引擎（含全量拉取）
 			const handle = ensureEngineStarted(cwd, agentDir);
 			if (handle?.engine) {

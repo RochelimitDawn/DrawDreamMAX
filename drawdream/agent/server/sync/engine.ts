@@ -10,11 +10,10 @@
  */
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative, sep } from "node:path";
 
 import { ConflictStore } from "./conflicts.ts";
 import { SyncCursor } from "./cursor.ts";
-import { fieldMerge } from "./merger.ts";
 import { PendingQueue } from "./queue.ts";
 import { checkSessionMerge } from "./session-merge.ts";
 import { TiDBClient, classifyTidbError } from "./tidb.ts";
@@ -94,6 +93,8 @@ export class SyncEngine {
 		const targets = defaultTargets(this.opts.workspaceCwd, this.opts.sessionDir);
 		this.watcher = new SyncFileWatcher(targets);
 		this.watcher.watch((batch) => this.onLocalBatch(batch));
+		// 全量上传本地已有数据（首次启用/重启后把本地数据同步到云端）
+		await this.fullPush();
 		// 立即同步一次（上行 outbox + 下行全量/增量）
 		await this.syncNow();
 		// poll 循环
@@ -140,6 +141,40 @@ export class SyncEngine {
 		} catch (err) {
 			this.lastError = classifyTidbError(err).message;
 			this.notifyStatus();
+		}
+	}
+
+	/**
+	 * 全量上传本地所有同步目标（版本类 replace / 增量类 append 全量）。
+	 * 确保首次启用或重启后，本地已有数据（角色卡/预设/会话等）全部同步到云端。
+	 */
+	async fullPush(): Promise<number> {
+		if (!this.running || !this.watcher) return 0;
+		try {
+			const batches = this.watcher.scanAll();
+			if (batches.length === 0) return 0;
+			const entries = batches.map((b) => ({
+				seq: 0,
+				entityType: b.entityType,
+				entityId: b.entityId,
+				payload: b.payload,
+				deviceId: this.opts.deviceId,
+				createdAt: Date.now(),
+			}));
+			await this.client.insertEntries(entries);
+			this.lastSyncedAt = Date.now();
+			this.lastError = undefined;
+			this.notifyStatus();
+			return batches.length;
+		} catch {
+			// 网络失败：全量批次进入 outbox，恢复后重放
+			try {
+				for (const b of this.watcher.scanAll()) this.queue.enqueue(b);
+			} catch {
+				/* ignore */
+			}
+			this.notifyStatus();
+			return 0;
 		}
 	}
 
@@ -321,45 +356,39 @@ export class SyncEngine {
 		remotePayload: unknown,
 	): void {
 		mkdirSync(targetPath.replace(/\/[^/]+$/, ""), { recursive: true });
+		// 简化策略：以云端为准全量覆盖本地（用户诉求「所有数据都同步过去」）。
+		// 本地若存在且与云端不同，先备份到 .sync-backup 防丢失，再覆盖。
 		if (!isPlainObjectLike(remotePayload)) {
-			// 非对象（如媒体二进制占位）：直接覆盖
 			const content = typeof remotePayload === "string" ? remotePayload : JSON.stringify(remotePayload, null, 2);
+			if (existsSync(targetPath)) {
+				const local = readFileSync(targetPath, "utf8");
+				if (local !== content) this.backupLocal(targetPath);
+			}
 			writeFileSync(targetPath, content);
 			return;
 		}
-		const remoteObj = remotePayload;
-		let localObj: Record<string, unknown> | null = null;
-		let localTs = 0;
+		const content = JSON.stringify(remotePayload, null, 2);
 		if (existsSync(targetPath)) {
 			try {
-				const parsed = JSON.parse(readFileSync(targetPath, "utf8")) as unknown;
-				if (isPlainObjectLike(parsed)) {
-					localObj = parsed;
-					localTs = statSyncMtimeMs(targetPath);
-				}
+				const local = readFileSync(targetPath, "utf8");
+				if (local.trim() !== content.trim()) this.backupLocal(targetPath);
 			} catch {
 				/* ignore */
 			}
 		}
-		if (!localObj) {
-			// 本地无该文件：直接写入远端内容
-			writeFileSync(targetPath, JSON.stringify(remoteObj, null, 2));
-			return;
-		}
-		// 字段级合并：云端无 base 历史时，以 remote 为 base（远端视为权威初值）
-		const remoteTs = Date.now();
-		const result = fieldMerge({
-			entityType,
-			entityId,
-			local: localObj,
-			remote: remoteObj,
-			base: null,
-			localTs,
-			remoteTs,
-		});
-		writeFileSync(targetPath, JSON.stringify(result.merged, null, 2));
-		for (const c of result.conflicts) {
-			this.conflicts.upsert(c);
+		writeFileSync(targetPath, content);
+	}
+
+	/** 冲突/覆盖前把本地版本备份到 <workspace>/.sync-backup/<ts>-<rel>，避免丢数据。 */
+	private backupLocal(targetPath: string): void {
+		try {
+			const backupDir = join(this.opts.workspaceCwd, ".sync-backup");
+			mkdirSync(backupDir, { recursive: true });
+			const rel = relative(this.opts.workspaceCwd, targetPath).split(sep).join("_");
+			const dest = join(backupDir, `${Date.now()}-${rel}`);
+			writeFileSync(dest, readFileSync(targetPath));
+		} catch {
+			/* ignore */
 		}
 	}
 
@@ -423,12 +452,4 @@ function isJsonlLike(s: string): boolean {
 
 function isPlainObjectLike(v: unknown): v is Record<string, unknown> {
 	return typeof v === "object" && v !== null && !Array.isArray(v);
-}
-
-function statSyncMtimeMs(p: string): number {
-	try {
-		return statSync(p).mtimeMs;
-	} catch {
-		return 0;
-	}
 }

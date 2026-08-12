@@ -18,6 +18,8 @@ import type { ChangeBatch, ChangeKind, EntityType } from "./types.ts";
 export interface WatchTarget {
 	/** 目录绝对路径 */
 	dir: string;
+	/** entity_id 的基准目录（会话=sessionDir，其余=workspaceCwd）；相对该基准生成稳定标识 */
+	baseDir: string;
 	/** 该目录下文件的实体类型 */
 	entityType: EntityType;
 	/** 该目录的文件是否按"追加"同步（true=JSONL 增量类，false=整体替换版本类） */
@@ -210,8 +212,9 @@ export class SyncFileWatcher {
 	}
 
 	private entityId(t: WatchTarget, p: string): string {
-		// 相对 target 目录的相对路径作为 entity_id 的稳定标识
-		const rel = relative(t.dir, p).split(sep).join("/");
+		// 相对 target 基准目录（workspaceCwd / sessionDir）的路径作为 entity_id 的稳定标识，
+		// 确保下行 applyEntry 能还原到正确本地路径。
+		const rel = relative(t.baseDir, p).split(sep).join("/");
 		return `${t.entityType}:${rel}`;
 	}
 
@@ -219,6 +222,79 @@ export class SyncFileWatcher {
 		if (this.stopped) return;
 		// 广播后由 engine 聚合去抖
 		this.onChange?.(batch);
+	}
+
+	/**
+	 * 全量扫描所有目标文件并产生初始批次（含首次出现文件）。
+	 * 用于启用同步时把本地已有数据全量上传（首次启用场景关键）。
+	 * 返回生成的批次列表（engine 决定上传策略）。
+	 */
+	scanAll(): ChangeBatch[] {
+		const batches: ChangeBatch[] = [];
+		for (const t of this.targets) {
+			let names: string[];
+			try {
+				names = readdirSync(t.dir);
+			} catch {
+				continue;
+			}
+			for (const name of names) {
+				if (!this.matchesExtension(t, name)) continue;
+				const p = join(t.dir, name);
+				let st: ReturnType<typeof statSync>;
+				try {
+					st = statSync(p);
+				} catch {
+					continue;
+				}
+				if (!st.isFile()) continue;
+				const key = this.fileKey(t, p);
+				const kind: ChangeKind = t.appendOnly ? "append" : "replace";
+				if (kind === "append") {
+					try {
+						const raw = readFileSync(p, "utf8");
+						const lines = raw.split("\n").filter((l) => l.trim());
+						if (lines.length === 0) continue;
+						this.state.set(key, {
+							kind,
+							lineCount: countLines(raw),
+							hash: createHash("sha256").update(raw).digest("hex"),
+							mtimeMs: st.mtimeMs,
+						});
+						batches.push({
+							entityType: t.entityType,
+							entityId: this.entityId(t, p),
+							kind: "append",
+							payload: lines,
+							fromSeq: 0,
+							ts: Date.now(),
+						});
+					} catch {
+						/* ignore */
+					}
+				} else {
+					try {
+						const content = readFileSync(p, "utf8");
+						this.state.set(key, {
+							kind,
+							lineCount: 0,
+							hash: createHash("sha256").update(content).digest("hex"),
+							mtimeMs: st.mtimeMs,
+						});
+						batches.push({
+							entityType: t.entityType,
+							entityId: this.entityId(t, p),
+							kind: "replace",
+							payload: parseJsonOrRaw(content),
+							ts: Date.now(),
+						});
+					} catch {
+						/* ignore */
+					}
+				}
+			}
+		}
+		return batches;
 	}
 }
 
@@ -255,12 +331,12 @@ function parseJsonOrRaw(content: string): unknown {
 /** 构建默认监听目标（会话目录 + workspace 同步相关目录）。 */
 export function defaultTargets(workspaceCwd: string, sessionDir: string): WatchTarget[] {
 	const targets: WatchTarget[] = [];
-	const addDir = (dir: string, entityType: EntityType, appendOnly: boolean, extensions: string[]) => {
+	const addDir = (dir: string, entityType: EntityType, appendOnly: boolean, extensions: string[], baseDir?: string) => {
 		if (!dir) return;
-		targets.push({ dir, entityType, appendOnly, extensions });
+		targets.push({ dir, baseDir: baseDir ?? workspaceCwd, entityType, appendOnly, extensions });
 	};
-	// 会话：append-only JSONL
-	addDir(sessionDir, "session", true, [".jsonl"]);
+	// 会话：append-only JSONL（entity 基准为 sessionDir 根）
+	addDir(sessionDir, "session", true, [".jsonl"], sessionDir);
 	// 记忆 palace：append-only JSONL
 	addDir(join(workspaceCwd, ".drawdream-palace"), "palace", true, [".jsonl", ".json"]);
 	// 摘要：append-only JSONL

@@ -891,6 +891,7 @@ export default {
     contextSize: 'Context size',
     systemPrompt: 'Global system prompt',
     jailbreak: 'Extra instructions',
+    worldInfo: 'World Info',
     worldInfoDepth: 'World Info depth',
     lorebookBudget: 'World Info injection cap',
     responsePrefill: 'Response prefill',

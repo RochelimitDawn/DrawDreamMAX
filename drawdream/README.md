@@ -9,7 +9,7 @@
 **方寸之间，绘梦天地**
 
 绘梦 UI + 内嵌 DrawDream Agent · **Alpha 2.0**（`2.0.0-alpha.1`）  
-**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.99`** · 单端口 **7620**
+**主交付：安卓本地 Node APK** · 当前发布线 **`v2.0.0-alpha.1-mobile.100`** · 单端口 **7620**
 
 [![GitHub stars](https://img.shields.io/github/stars/RochelimitDawn/DrawDreamMAX?style=for-the-badge&logo=github)](https://github.com/RochelimitDawn/DrawDreamMAX/stargazers)
 [![License PolyForm NC](https://img.shields.io/badge/License-PolyForm_NC-f59e0b?style=for-the-badge)](../LICENSE)
@@ -23,7 +23,7 @@
 
 ## 说明
 
-当前仓库以 `mobile.99` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
+当前仓库以 `mobile.100` 作为唯一稳定版本。产品维护围绕桌面/平板设置体验、酒馆兼容渲染、卡内 UI 全量渲染和移动端主流程进行。
 
 本目录同时包含：
 
@@ -91,7 +91,7 @@ drawdream/
 │   ├── scripts/
 │   └── android/
 ├── scripts/
-└── package.json         # 2.0.0-alpha.1-mobile.99
+└── package.json         # 2.0.0-alpha.1-mobile.100
 ```
 
 ```text
@@ -114,6 +114,17 @@ drawdream/
 | `/plaza` | 广场 | 本地卡库 |
 
 ---
+
+## 本版要点（mobile.100）
+
+- **云同步大幅修复（按「所有数据同步过去」方向简化）**：
+  - **修复跨端不同步的根因**：entityId 此前用「相对目标目录」的短路径，下行拉取时写错本地位置（角色卡/预设拉到根目录），数据永远对不上；改为相对 workspace 的完整路径，双向同步正确落盘
+  - **全量上传**：启用同步/重启时 `fullPush` 把本地已有数据（角色卡/预设/会话/世界书/人设/状态）全量同步到云端（此前只同步「变更后」的文件，已有数据从不上传）
+  - **下行以云端为准覆盖**：去掉复杂字段级合并，云端数据直接覆盖本地（冲突前自动备份到 `.sync-backup` 防丢数据）
+  - **引擎自动恢复**：agent 启动时自动恢复已启用的同步引擎，不再需要进云同步页面才启动
+- **UX**：云账号卡片始终可见（用户名持久化回填、密码现场输入），启用后立即刷新状态，不用强制退出重进
+- **i18n 修复**：`settings.worldInfo` 缺键导致显示类名，已补 zh/en
+- 继承 mobile.99：invalid-password 修复
 
 ## 本版要点（mobile.99）
 

@@ -12,6 +12,7 @@ import type { TidbConfig } from "./types.ts";
 
 interface StoredConfig {
 	enabled: boolean;
+	accountUsername?: string;
 	tidb?: {
 		host: string;
 		port: number;
@@ -148,6 +149,17 @@ export class SyncConfigStore {
 	setEnabled(enabled: boolean): void {
 		const s = this.load();
 		s.enabled = enabled;
+		this.save(s);
+	}
+
+	/** 云账号用户名（明文，安全信息不含密码）。 */
+	getAccountUsername(): string {
+		return this.load().accountUsername ?? "";
+	}
+
+	setAccountUsername(username: string): void {
+		const s = this.load();
+		s.accountUsername = username.trim();
 		this.save(s);
 	}
 

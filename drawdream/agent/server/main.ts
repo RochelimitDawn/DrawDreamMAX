@@ -31,6 +31,7 @@ import {
 import { dir as userAssetDir, preferDrawdreamAgentHome, takeAgentMergeLog } from "../src/paths.ts";
 import { handleAuthApi, resolveAuthContext } from "./auth-http.ts";
 import { handleApiRequest } from "./rest.ts";
+import { restoreEngines } from "./sync/manager.ts";
 import type { ClientFrame, ServerFrame } from "./wire.ts";
 import { createUserHost, type UserHost } from "./user-host.ts";
 import {
@@ -508,6 +509,13 @@ httpServer.listen(PORT, HOST, () => {
 	}
 	// 仅打印本机地址；移动端走 App 壳内嵌，不引导局域网扫码访问
 	console.log(`[drawdream] listening on ${urls[0]}`);
+	// 启动时恢复已启用的云同步引擎（避免重启后同步失效）
+	try {
+		const restored = restoreEngines(authDataRoot, agentHome);
+		if (restored > 0) console.log(`[drawdream] 已恢复 ${restored} 个云同步引擎`);
+	} catch {
+		/* ignore */
+	}
 });
 
 const shutdown = async () => {
