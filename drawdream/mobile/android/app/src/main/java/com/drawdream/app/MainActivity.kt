@@ -180,6 +180,23 @@ class MainActivity : AppCompatActivity() {
             prefs.edit().putString("theme", resolved).apply()
             handler.post { applySplashTheme(resolved) }
         }
+
+        /** 返回设备性能档位（低端机降级动画/渲染用）。JSON 字符串。 */
+        @JavascriptInterface
+        fun deviceProfile(): String {
+            val am = getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+            val memInfo = android.app.ActivityManager.MemoryInfo()
+            am.getMemoryInfo(memInfo)
+            val totalRamMb = memInfo.totalMem / (1024 * 1024)
+            val cores = Runtime.getRuntime().availableProcessors()
+            // 低端判定：RAM < 4GB 或核心数 < 4
+            val tier = when {
+                totalRamMb < 3 * 1024 || cores < 4 -> "low"
+                totalRamMb < 6 * 1024 || cores < 6 -> "mid"
+                else -> "high"
+            }
+            return "{\"tier\":\"$tier\",\"ramMb\":$totalRamMb,\"cores\":$cores}"
+        }
     }
 
     /** 入场动画主题切换：暖金背景 + 网格 + 文字色跟随浅色/深色 */
