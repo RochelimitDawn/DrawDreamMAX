@@ -288,6 +288,10 @@ class MainActivity : AppCompatActivity() {
         ws.mediaPlaybackRequiresUserGesture = false
         ws.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
         ws.cacheMode = WebSettings.LOAD_DEFAULT
+        // 渲染性能：离线预栅格化（首屏更快）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ws.offscreenPreRaster = true
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ws.safeBrowsingEnabled = true
         }
