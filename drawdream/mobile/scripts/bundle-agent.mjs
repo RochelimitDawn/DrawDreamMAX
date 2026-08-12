@@ -43,6 +43,9 @@ export async function bundleAgent() {
       // VIRTUAL_MODULES（typebox 等已由 loader.ts 静态 import 内联进 bundle），
       // 而非 Node 的 require.resolve（找不到 typebox 会崩）。
       `--banner:js=${REQUIRE_SHIM}globalThis.__DD_SINGLE_FILE_BUNDLE=true;`,
+      // minify：15.5MB → 8.4MB，single.mjs 解析加载耗时 ~4364ms → ~1000ms（低端机收益更大）。
+      // banner 的 createRequire shim 必须保留（ws 等动态 require），与 --minify 兼容。
+      '--minify',
       `--outfile=${outFile}`,
       '--log-level=warning',
     ],
